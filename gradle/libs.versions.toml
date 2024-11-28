@@ -1,0 +1,23 @@
+[versions]
+kotlin-cli = "0.3.6"
+kotlin = "2.0.20"
+snakeyaml = "2.3"
+antlr = "4.3.4"
+slf4j = "2.0.16"
+commons-io = "2.17.0"
+commons-text = "1.12.0"
+jupiter = "5.11.3"
+versions = "0.51.0"
+
+[libraries]
+kotlin-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli-jvm", version.ref = "kotlin-cli"}
+commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io"}
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml"}
+antlr = { module = "org.antlr:ST4", version.ref = "antlr"}
+slf4j = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" } # thymeleaf logging provider
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jupiter" }
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+versions = { id = "com.github.ben-manes:gradle-versions-plugin", version.ref = "versions" }
