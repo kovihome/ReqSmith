@@ -26,7 +26,7 @@ import kotlinx.cli.optional
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.configuration.ConfigManager
-import dev.reqsmith.composer.common.plugin.build.BuildSystem
+import dev.reqsmith.composer.common.plugin.buildsys.BuildSystem
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
 import kotlin.system.exitProcess

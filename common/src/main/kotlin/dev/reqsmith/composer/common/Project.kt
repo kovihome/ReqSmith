@@ -18,7 +18,7 @@
 
 package dev.reqsmith.composer.common
 
-import dev.reqsmith.composer.common.plugin.build.BuildSystem
+import dev.reqsmith.composer.common.plugin.buildsys.BuildSystem
 import java.io.File
 import java.nio.file.Paths
 import kotlin.io.path.Path
