@@ -1,0 +1,8 @@
+#
+# ReqSmith::composer configuration for default values
+#
+domainName: dev.reqsmith.sample
+applicationType: applications.CommandLineApplication
+propertyType: String
+language: kotlin
+buildsys: gradle

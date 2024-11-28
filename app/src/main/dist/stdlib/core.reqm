@@ -1,0 +1,16 @@
+/*
+** Core ReqM definitions
+*/
+
+application ApplicationBase {
+	description: 'Basic application'
+	version: 0.1.0-SNAPSHOT
+}
+
+class string atomic
+
+class integer atomic
+
+class Date atomic
+
+entitydev.reqsmith.base.EntityBase

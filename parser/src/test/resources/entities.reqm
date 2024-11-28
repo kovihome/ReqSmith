@@ -1,0 +1,48 @@
+/*
+ * Sample application Requirement Model: entities
+ */
+
+// atomic type
+class AtomicType atomic
+
+// simple compound type
+class SimpleCompoundType {
+    firstAttribute
+    secondAttribute: string
+    thirdAttribute: AtomicType
+    fourthAttribute {
+        type: listOf integer
+    }
+}
+
+// enumeration type
+// TBD
+class EnumType enumeration {
+    one, two, three, four
+}
+
+// extension type
+class ExtensionType is SimpleCompoundType {
+    fifthAttribute
+}
+
+// empty entity definition
+entity EmptyEntity
+
+// inherited entity definition
+entity InheritedEntity is dev.reqsmith.base.EntityBase
+
+// entity with attributes
+entity AttributedEntity {
+	description
+	attendees: listOf Person
+	dates {
+//		@State {
+//			accepted, proposed
+//		}
+//		@Votable
+		type: listOf Date
+		mandatory
+	}
+	opt: optional string
+}

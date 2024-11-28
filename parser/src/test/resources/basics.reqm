@@ -1,0 +1,13 @@
+/*
+ * Sample application Requirement Model: the basics
+ */
+
+// application descriptor
+application dev.reqsmith.test.Sample from applications.WebApplication {
+	description: 'Sample application for test'
+	version: 1.0.0
+}
+
+actor User
+
+actor RestrictedUser from User

@@ -1,0 +1,11 @@
+/*
+ * Sample application Requirement Model: view
+ */
+
+// simple technical (interface) view
+view Terminal {
+    events {
+        appstart: start
+    }
+}
+

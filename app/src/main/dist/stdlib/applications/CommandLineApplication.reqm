@@ -1,0 +1,20 @@
+/*
+ * Command line application
+ */
+
+application applications.CommandLineApplication from ApplicationBase {
+    description: 'Basic command line application'
+    dependencies {
+        frameworks.Base
+    }
+    events {
+        applicationStart: start
+    }
+    generator: framework.base
+}
+
+action start {
+    print "<name>, version <version>"
+    print "<description>"
+}
+
