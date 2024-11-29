@@ -81,13 +81,9 @@ class ModelMerger(private val finder: RepositoryFinder) {
             }
         }
         // add dependendent actions to the dependecies
-//        Log.debug("add dependent actions")
         reqmsrc.actions.forEach { act ->
-//            Log.debug("acn action $act")
             act.definition.actionCalls.forEach {
-//                Log.debug("action call $it")
                 val actdep = collectActionSources(it.actionName)
-//                actdep.forEach { d -> Log.debug("dependent action $d") }
                 dependencies.actions.addAll(actdep)
             }
             
@@ -112,14 +108,11 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 var ix = 0
                 while (ix < ic.items.size) {
                     val item = ic.items[ix]
-//                    Log.debug("$ix item = ${item.name} ${item.itemType} ${item.filename}")
                     val actReqmSource = ReqMSource()
                     parser.parseReqMTree(item.filename!!, actReqmSource)
                     val act = actReqmSource.actions.find { item.name == it.qid.toString() }
                     if (act != null) {
-//                        Log.debug("$act")
                         dependentActions.add(act)
-                        act.owner = app.qid.toString()
                         act.increaseRefCount()
                         act.definition.actionCalls.forEach { call ->
                             when {
@@ -161,7 +154,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
         val dependencies = app.definition.properties.find { it.key == "dependencies" }
         dependencies?.let {
             it.simpleAttributes.forEach { dep ->
-//                Log.debug("dependent modul key=${dep.key} value=${dep.value}")
                 modules.addAll(collectModuleSource(dep.key))
             }
         }
@@ -182,7 +174,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 ic2.items[0].recType = RepositoryIndex.RecordType.content
                 ic.items.add(ic2.items[0])
             }
-//            Log.debug("adding new referenced item $sourceRef to the list")
         }
     }
 
@@ -302,7 +293,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
             parser.parseReqMTree(item.filename!!, reqmSource)
             val mod = reqmSource.modules.find { item.name == it.qid.toString() }
             if (mod != null) {
-//                Log.debug("$mod")
                 mod.increaseRefCount()
                 moduls.add(mod)
                 addDependecyToList(mod.sourceRef, Ref.Type.mod, ic)
@@ -348,7 +338,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 destPropList.add(d)
             }
         }
-
     }
 
 }
