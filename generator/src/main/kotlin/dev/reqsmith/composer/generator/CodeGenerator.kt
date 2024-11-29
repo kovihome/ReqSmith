@@ -41,15 +41,8 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
 
         igm.enumerations.forEach { buildEnumeration(it.value, fileHeader) }
 
-//        igm.events.forEach { buildEvent(it.value, fileHeader) }
-
-
         return true
     }
-
-//    private fun buildEvent(event: IGMEvent, fileHeader: String) {
-//
-//    }
 
     private fun buildEnumeration(enum: IGMEnumeration, fileHeader: String): Boolean {
         // build source code in string builder
@@ -86,7 +79,6 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
     }
 
     private fun buildClass(cls: IGMClass, fileHeader: String): Boolean {
-//        qid: QualifiedId?, parent: QualifiedId, definition: Definition, enumeration: Boolean = false
         // build source code in string builder
         val sb = StringBuilder()
 

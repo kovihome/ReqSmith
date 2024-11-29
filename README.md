@@ -1,9 +1,173 @@
-# ReqSmith
-ReqSmith generates source code from requirement model and predefined building blocks (design patters, generic use cases, etc.)
+# **ReqSmith**
 
-ReqSmith::composer is an application generator, which creates code from requirements directly,
-using software requirement patterns, best cases and predefined solutions.
+### **A developement system to build applications from requirements**
 
-For more information, please visit http://reqsmith.dev
+**ReqSmith** is a developer tool that enables users to:
+1. **Model user requirements** that describe the behavior and functionality of an application.
+2. **Automatically generate source code** based on the requirements.
+3. **Leverage pre-built building blocks**, which are modular components that include software design patterns, best practices and predefined solutions, along with requirements and generators.
 
-Typing 'compose --help' prints the command line help.
+---
+
+## **Features**
+
+- **Requirement Modeling**:  
+  ReqSmith provides an intuitive language that allows users to easily define and document application requirements.
+
+- **Source Code Generation**:  
+  The tool automatically generates essential source code for applications based on the requirement models.
+
+- **Modular Building Blocks**:  
+  ReqSmith uses predefined modules that:
+    - Include software design patterns.
+    - Provide functionalities for application generation.
+    - Are customizable and extensible.
+
+- **Flexible Generators**:  
+  ReqSmith supports custom generators, allowing users to create their own functionalities.
+
+---
+
+## **Use Cases**
+
+### 1. **Modeling Requirements**
+ReqSmith allows you to define simple or complex requirements in an easily readable format. For an example of a simple model of "Hello World!" application, see [Example](#example) section below.
+
+### 2. **Automatic Code Generation**
+Based on the requirements, ReqSmith can generate:
+- Data structures for entities (e.g., classes or interfaces).
+- Implementations for predefined actions.
+
+### 3. **Using Building Blocks**
+The modular approach enables integration of design patterns.
+
+These patterns adapt automatically to the requirement models.
+
+---
+
+## **Installation**
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/kovihome/ReqSmith.git
+   cd ReqSmith
+   ```
+
+2. Run the Gradle build:
+   ```bash
+   ./gradlew build
+   ```
+
+3. Start the application:
+   ```bash
+   ./gradlew run
+   ```
+   or install it from the distribution package
+
+   ```bash
+   unzip ./app/build/distributions/composer-0.1.0.zip -d any-folder-you-want
+   ```
+---
+
+## **How to Use**
+
+1. **Create a new ReqM project**:
+
+   Create a project structure and a minimal requirement model file.
+
+```bash
+   mkdir MyProjectFolder
+   cd MyProjectFolder
+   compose --init -p MyProject
+```
+
+2. **Define a Requirement Model**:  
+   Write down your project requirements in ReqM format.
+
+
+3. **Generate Code**:  
+   Based on the requirements, ReqSmith creates the required source code with the appropriate modules for the required language and build system.
+
+```bash
+   compose -l kotlin -b gradle
+```
+4. **Build your application**:
+   Build the application with the generated build script.
+
+```bash
+   ./gradlew build
+```
+
+5. **Customization**:  
+   Extend the predefined modules or create your own modules and generators.
+
+---
+
+## **Example**
+
+### Input Requirement Model:
+```plaintext
+application HelloWorld from applications.CommandLineApplication {
+    description: 'Hello World application'
+    version: 1.0.0
+}
+
+action start {
+    print 'Hello World!'
+}
+```
+
+### Generated Source Code:
+```kotlin
+package dev.reqsmith.sample
+
+class HelloWorld {
+    fun start() {
+        println ("Hello World!")
+    }
+}
+
+fun main(args: Array<String>) {
+    val helloworld = HelloWorld()
+    helloworld.start ()
+}
+```
+
+---
+
+## **Additional Features**
+
+- **Extensibility**:  
+  Add new modules and generators easily for your own projects.
+
+- **Integration**:  
+  ReqSmith can be integrated seamlessly with existing build tools, such as Gradle or Maven.
+
+- **CI/CD Support**:  
+  The application can be configured to work in automated environments, such as Jenkins or GitHub Actions.
+
+---
+
+## **Contribution**
+
+We welcome community contributions! If you want to improve ReqSmith:
+1. Fork this repository.
+2. Create a branch for your feature:
+   ```bash
+   git checkout -b feature/your-feature
+   ```
+3. Submit a pull request with your changes.
+
+---
+
+## **License**
+
+This project is licensed under the [GNU GPL V3 License](./LICENSE). See the license file for details.
+
+---
+
+## **Contact**
+
+If you have any questions, feel free to contact us at:
+- **Email**: [kovihome86@gmail.com](mailto:kovihome86@gmail.com)
+- **GitHub Issues**: [Issues Page](https://github.com/kovihome/ReqSmith/issues)

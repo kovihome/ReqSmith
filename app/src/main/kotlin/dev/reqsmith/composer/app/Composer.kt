@@ -54,12 +54,12 @@ class Composer(private val project: Project, private val appHome: String) {
         if (reqmsrc.actions.isNotEmpty()) Log.info("  ${reqmsrc.actions.size} actions")
         Log.info("==========================================")
 
-        // TODO: consolidate reqm source - inconsistencies, merge multiple element instances
-        Log.title("Consolidate ReqM [TODO]")
+        // consolidate reqm source - inconsistencies, merge multiple element instances
+        Log.title("Consolidate ReqM")
         val validator = ModelValidator()
         val isConsistent = validator.resolveInconsistencies(reqmsrc)
         if (!isConsistent) {
-            // Failure Point #2 - inconsistencies in reqm model
+            // TODO: Failure Point #2 - inconsistencies in reqm model
             return null
         }
 
@@ -86,11 +86,11 @@ class Composer(private val project: Project, private val appHome: String) {
             return null
         }
 
-        // TODO: validate model completeness
+        // validate model completeness
         Log.title("Validate model completeness")
         val isComplete = validator.validateCompleteness(reqmsrc)
         if (!isComplete) {
-            // Failure Point #3 - merged model is not complete
+            // TODO: Failure Point #3 - merged model is not complete
             return null
         }
 

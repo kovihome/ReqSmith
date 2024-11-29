@@ -90,10 +90,8 @@ class Project(private var projectFolder: String?, private val buildSystem: Build
 //            else -> Path(inputFolder!!).parent.absolutePathString()
 //        }
         buildFolder = "$projectFolder/${buildSystem.buildFolder}"
-        if (!forInit) {
-            if (!ensureFolderExists(buildFolder)) {
-                return false
-            }
+        if (!forInit && !ensureFolderExists(buildFolder)) {
+            return false
         }
         Log.debug("Build folder = $buildFolder")
 
@@ -101,10 +99,8 @@ class Project(private var projectFolder: String?, private val buildSystem: Build
         if (outputFolder == null) {
             outputFolder = "$buildFolder/${buildSystem.sourceFolder}/$reqmFolderName"
         }
-        if (!forInit) {
-            if (!ensureFolderExists(outputFolder!!)) {
-                return false
-            }
+        if (!forInit && !ensureFolderExists(outputFolder!!)) {
+            return false
         }
         Log.debug("Output folder = $outputFolder")
 
@@ -127,7 +123,7 @@ class Project(private var projectFolder: String?, private val buildSystem: Build
     }
 
     fun printErrors() {
-        errors.forEach { Log.error("$it") }
+        errors.forEach { Log.error(it) }
     }
 
     fun srcPath(language: String): String = "$buildFolder/${buildSystem.sourceFolder}/$language"

@@ -32,9 +32,6 @@ open class DefaultFrameworkBuilder(val reqmSource: ReqMSource) : FrameworkBuilde
 
         processEvents(app.definition, cls, igm)
 
-//        val starter = app.definition.properties.find { it.key == "start" }?.value ?: "start"
-//        val action = cls.getAction(starter)
-
     }
 
     private fun processEvents(definition: Definition, cls: IGMClass, igm: InternalGeneratorModel) {
@@ -42,15 +39,12 @@ open class DefaultFrameworkBuilder(val reqmSource: ReqMSource) : FrameworkBuilde
         events?.let {
             it.simpleAttributes.forEach {prop ->
                 processEvent(prop, cls, igm)
-//                prop.value?.let { it1 -> addActionToClass(it1, cls) }
-//                val event = igm.getEvent(prop.key!!)
-//                event.action = "${cls.id}.${prop.value}"
             }
         }
     }
 
     protected open fun processEvent(prop: Property, cls: IGMClass, igm: InternalGeneratorModel) {
-
+        // intentionally empty function: no default events to be processed
     }
 
 }
