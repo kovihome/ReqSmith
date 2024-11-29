@@ -13,4 +13,4 @@ class integer atomic
 
 class Date atomic
 
-entitydev.reqsmith.base.EntityBase
+entity dev.reqsmith.base.EntityBase
