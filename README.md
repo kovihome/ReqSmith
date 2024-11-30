@@ -1,4 +1,7 @@
 # **ReqSmith**
+[![Latest version: 0.1.0](https://img.shields.io/badge/latest_version-0.1.0-green.svg)](https://github.com/kovihome/ReqSmith/releases/tag/0.1.0-2)
+[![Java 17+](https://img.shields.io/badge/java-17+-4c7e9f.svg)](http://java.oracle.com)
+[![License](https://img.shields.io/badge/license-GNU_GPL_V3-blue.svg)](https://github.com/kovihome/ReqSmith/blob/main/LICENSE)
 
 ### **A developement system to build applications from requirements**
 
