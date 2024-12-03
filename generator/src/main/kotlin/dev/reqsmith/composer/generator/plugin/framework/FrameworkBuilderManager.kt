@@ -18,22 +18,13 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
-import dev.reqsmith.composer.parser.entities.ReqMSource
+import dev.reqsmith.composer.common.plugin.PluginManager
+import dev.reqsmith.composer.common.plugin.PluginType
 
-open class FrameworkBuilderManager {
+object FrameworkBuilderManager {
 
     private val modules : MutableMap<String, String> = HashMap()
     private val generators : MutableMap<String, FrameworkBuilder> = HashMap()
-
-    object INSTANCE : FrameworkBuilderManager()
-
-    fun get(frameworkGenerator: String, reqmSource: ReqMSource) : FrameworkBuilder =
-        when (frameworkGenerator) {
-            "framework.default" -> DefaultFrameworkBuilder(reqmSource)
-            "framework.base" -> BaseFrameworkBuilder(reqmSource)
-            "framework.web" -> WebFrameworkBuilder(reqmSource)
-            else -> throw Exception("Unknown framework build plugin $frameworkGenerator.")
-        }
 
     fun addModule(moduleId: String, generatorId:String): Boolean {
         if (modules.containsKey(moduleId)) {
@@ -46,9 +37,9 @@ open class FrameworkBuilderManager {
         return true
     }
 
-    fun getBuilder(moduleId: String, reqmSource: ReqMSource) : FrameworkBuilder {
+    fun getBuilder(moduleId: String) : FrameworkBuilder {
         val generatorId = modules[moduleId] ?: "framework.default"
-        return generators.getOrPut(generatorId) { get(generatorId, reqmSource) }
+        return generators.getOrPut(generatorId) { PluginManager.get<FrameworkBuilder>(PluginType.Framework, generatorId) }
     }
 
     override fun toString(): String {

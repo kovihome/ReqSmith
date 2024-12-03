@@ -20,6 +20,8 @@ package dev.reqsmith.composer.app
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.common.plugin.PluginManager
+import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.CodeGenerator
 import dev.reqsmith.composer.generator.GeneratorModelBuilder
@@ -31,7 +33,7 @@ import java.util.*
 
 class Generator(private val project: Project, private val reqMSource: ReqMSource, private val appHome: String, private val lang: String) {
 
-    private val langBuilder = LanguageBuilder.get(lang)
+    private val langBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, lang)     // LanguageBuilder.get(lang)
     private val srcPath = project.srcPath(lang)
 
     fun generate(): Boolean {
@@ -40,7 +42,7 @@ class Generator(private val project: Project, private val reqMSource: ReqMSource
 
         // collect generators
         collectGenerators(reqMSource)
-        Log.info("Generators found:\n${FrameworkBuilderManager.INSTANCE}")
+        Log.info("Generators found:\n${FrameworkBuilderManager}")
 
         // create internal generator model
         Log.debug("Build InternalGeneratorModel...")
@@ -71,7 +73,7 @@ class Generator(private val project: Project, private val reqMSource: ReqMSource
     }
 
     private fun addGenerator(moduleId: String, definition: Definition) {
-        definition.properties.find { it.key == "generator" }?.let { FrameworkBuilderManager.INSTANCE.addModule(moduleId, it.value!!) }
+        definition.properties.find { it.key == "generator" }?.let { FrameworkBuilderManager.addModule(moduleId, it.value!!) }
     }
 
 //    private fun getImports(qid: QualifiedId, definition: Definition): String {

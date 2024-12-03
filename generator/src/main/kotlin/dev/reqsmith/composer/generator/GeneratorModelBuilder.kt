@@ -162,7 +162,7 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
     }
 
     private fun getGenerator(moduleId: String): FrameworkBuilder {
-        return FrameworkBuilderManager.INSTANCE.getBuilder(moduleId, reqMSource)
+        return FrameworkBuilderManager.getBuilder(moduleId)
     }
 
     private fun addActionToClass(actionName: String, cls: IGMClass, templateContext: Map<String, String>) {

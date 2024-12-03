@@ -16,15 +16,34 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.composer.generator.plugin.framework
+package dev.reqsmith.composer.common.plugin
 
-import dev.reqsmith.composer.common.plugin.PluginDef
-import dev.reqsmith.composer.common.plugin.PluginType
+/**
+ * Types of ReqSmith plugins
+ */
+enum class PluginType {
+    /**
+     * Build system plugin type
+     */
+    BuildSystem,
 
-class WebFrameworkBuilder : BaseFrameworkBuilder() {
+    /**
+     * Language plugin type
+     */
+    Language,
 
-    override fun definition(): PluginDef {
-        return PluginDef("framework.web", PluginType.Framework)
-    }
+    /**
+     * Framework plugin type
+     */
+    Framework,
 
+    /**
+     * Resource (protocol, file-type, etc.) plugin type
+     */
+    Resource,
+
+    /**
+     * String template plugin type
+     */
+    Template
 }

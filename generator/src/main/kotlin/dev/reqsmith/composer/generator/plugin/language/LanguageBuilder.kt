@@ -30,19 +30,4 @@ interface LanguageBuilder {
     fun addComment(text: String, indent: Int = 0): String
     fun addImport(imported: String, indent: Int = 0): String
 
-    companion object {
-        fun get(languageName: String) =
-            when (languageName) {
-                "kotlin" -> KotlinBuilder()
-//                "kotlinscript" -> KotlinScriptBuilder()
-//                "java" -> JavaBuilder()
-//                "javascript" -> JavaScriptBuilder()
-//                "python" -> PythonBuilder()
-//                "cpp" -> CppBuilder()
-//                "html" -> HtmlBuilder()
-//                "css" -> CssBuilder()
-                else -> throw Exception("Unknown build system name $languageName.")
-            }
-    }
-
 }

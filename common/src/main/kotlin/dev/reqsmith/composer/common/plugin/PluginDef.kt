@@ -16,15 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.composer.generator.plugin.framework
+package dev.reqsmith.composer.common.plugin
 
-import dev.reqsmith.composer.common.plugin.PluginDef
-import dev.reqsmith.composer.common.plugin.PluginType
-
-class WebFrameworkBuilder : BaseFrameworkBuilder() {
-
-    override fun definition(): PluginDef {
-        return PluginDef("framework.web", PluginType.Framework)
-    }
+class PluginDef(val name: String, val type: PluginType) {
 
 }

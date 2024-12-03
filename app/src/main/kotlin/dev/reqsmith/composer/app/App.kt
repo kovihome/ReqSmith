@@ -22,6 +22,8 @@ package dev.reqsmith.composer.app
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.configuration.ConfigManager
+import dev.reqsmith.composer.common.plugin.PluginManager
+import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.plugin.buildsys.BuildSystem
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
@@ -32,12 +34,12 @@ import kotlin.io.path.absolutePathString
 import kotlin.system.measureTimeMillis
 
 class App(private val args: Array<String>) {
-    val composerName = "ReqSmith::composer"
+    val systemName = "ReqSmith"
     val composerVersion = "0.2.0-Web"
     val composerDesc = "Requirement composer and code generator"
 
     val path = System.getenv("APP_HOME") ?: "."
-    private val name = System.getenv("APP_BASE_NAME") ?: "composer"
+    val name = System.getenv("APP_BASE_NAME") ?: "composer"
 
     private val argParser = ArgParser(name)
 
@@ -71,7 +73,7 @@ class App(private val args: Array<String>) {
 
         // select build system
         val buildSystem = try {
-            BuildSystem.get(buildSystemName)
+            PluginManager.get<BuildSystem>(PluginType.BuildSystem, buildSystemName)
         } catch (e: Exception) {
             Log.error("build system $buildSystemName is not supported.")
             return false
@@ -96,7 +98,7 @@ class App(private val args: Array<String>) {
 
         // select build system
         val buildSystem = try {
-            BuildSystem.get(buildSystemName)
+            PluginManager.get<BuildSystem>(PluginType.BuildSystem, buildSystemName)
         } catch (e: Exception) {
             Log.error("build system $buildSystemName is not supported.")
             return false
@@ -159,12 +161,15 @@ fun main(args: Array<String>) {
 
         // create the app
         val app = App(args)
-        Log.title("${app.composerName}, version ${app.composerVersion}")
+        Log.title("${app.systemName}::${app.name}, version ${app.composerVersion}")
         Log.text("${app.composerDesc}\n")
         Log.info("Application root folder: ${Path(app.path).absolutePathString()}")
 
         // process command line arguments
         app.processArgs()
+
+        // load all plugins
+        PluginManager.loadAll()
 
         // run
         success = if (app.initCommand == true) {

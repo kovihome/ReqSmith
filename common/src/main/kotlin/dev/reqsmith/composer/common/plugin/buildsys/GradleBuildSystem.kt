@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,12 +18,15 @@
 
 package dev.reqsmith.composer.common.plugin.buildsys
 
+import dev.reqsmith.composer.common.plugin.Plugin
+import dev.reqsmith.composer.common.plugin.PluginDef
+import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
 
-class GradleBuildSystem : BuildSystem {
+class GradleBuildSystem : BuildSystem, Plugin {
     override val sourceFolder: String = "src/main"
     override val buildFolder: String = "build"
 
@@ -68,6 +71,10 @@ class GradleBuildSystem : BuildSystem {
                 it.write(s)
             }
         }
+    }
+
+    override fun definition(): PluginDef {
+        return PluginDef("gradle", PluginType.BuildSystem)
     }
 
 }

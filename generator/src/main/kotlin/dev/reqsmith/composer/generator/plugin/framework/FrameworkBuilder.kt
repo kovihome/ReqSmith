@@ -24,13 +24,4 @@ import dev.reqsmith.composer.parser.entities.Application
 interface FrameworkBuilder {
     fun buildApplication(app: Application, igm: InternalGeneratorModel)
 
-//    companion object {
-//        fun get(frameworkGenerator: String) : FrameworkBuilder =
-//            when (frameworkGenerator) {
-//                "framework.default" -> DefaultFrameworkBuilder()
-//                "framework.base" -> BaseFrameworkBuilder()
-//                else -> throw Exception("Unknown framework build plugin $frameworkGenerator.")
-//            }
-//    }
-
 }

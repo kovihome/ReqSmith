@@ -18,6 +18,9 @@
 
 package dev.reqsmith.composer.generator.plugin.language
 
+import dev.reqsmith.composer.common.plugin.Plugin
+import dev.reqsmith.composer.common.plugin.PluginDef
+import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.generator.entities.IGMAction
 import dev.reqsmith.composer.generator.entities.IGMClass
 import dev.reqsmith.composer.generator.entities.IGMClassMember
@@ -25,7 +28,7 @@ import dev.reqsmith.composer.generator.entities.IGMEnumeration
 import dev.reqsmith.composer.parser.enumeration.Optionality
 import dev.reqsmith.composer.parser.enumeration.StandardTypes
 
-class KotlinBuilder : LanguageBuilder {
+class KotlinBuilder : LanguageBuilder, Plugin {
 
     class Variable(val name: String, val type: String)
 
@@ -33,6 +36,10 @@ class KotlinBuilder : LanguageBuilder {
     override val language: String = "kotlin"
 
     private val tabsize = 4
+
+    override fun definition(): PluginDef {
+        return PluginDef(language, PluginType.Language)
+    }
 
     private fun prefix(size : Int) : String = if (size > 0) " ".repeat(size) else ""
 

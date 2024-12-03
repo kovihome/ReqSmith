@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,5 @@ interface BuildSystem {
     val buildFolder: String
     val sourceFolder: String
 
-//    fun updateBuildScript(projectRootFolder: String, composerBinFolder: String, language: String)
     fun updateBuildScript(params: MutableMap<String, String>)
-
-    companion object {
-        fun get(buildSystemName: String) =
-            when (buildSystemName) {
-                "gradle" -> GradleBuildSystem()
-//                "maven" -> MavenBuildSystem()
-                else -> throw Exception("Unknown build system name $buildSystemName.")
-            }
-    }
 }

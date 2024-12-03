@@ -18,20 +18,18 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
+import dev.reqsmith.composer.common.plugin.PluginDef
+import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.generator.entities.IGMAction
 import dev.reqsmith.composer.generator.entities.IGMClass
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.parser.entities.Property
-import dev.reqsmith.composer.parser.entities.ReqMSource
 
-open class BaseFrameworkBuilder(reqmSource: ReqMSource) : DefaultFrameworkBuilder(reqmSource) {
-//    override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
-//        super.buildApplication(app, igm)
-//
-//        val cls = igm.getClass(app.qid.toString())
-//
-//
-//    }
+open class BaseFrameworkBuilder : DefaultFrameworkBuilder() {
+
+    override fun definition(): PluginDef {
+        return PluginDef("framework.base", PluginType.Framework)
+    }
 
     override fun processEvent(prop: Property, cls: IGMClass, igm: InternalGeneratorModel) {
         when (prop.key) {
