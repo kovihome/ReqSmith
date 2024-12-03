@@ -44,7 +44,7 @@ class Generator(private val project: Project, private val reqMSource: ReqMSource
 
         // create internal generator model
         Log.debug("Build InternalGeneratorModel...")
-        val igm = dev.reqsmith.composer.generator.GeneratorModelBuilder(reqMSource).build()
+        val igm = GeneratorModelBuilder(reqMSource).build()
         Log.debug("$igm")
 
         // generate the source code

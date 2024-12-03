@@ -64,7 +64,15 @@ class RepositoryFinder {
 
     private fun findInRepo(repo: ReqMRepository, indices: MutableList<RepositoryIndex.IndexRecord>, name: String, itemType: Ref.Type) {
         repo.indices.forEach { ri ->
-            indices.addAll(ri.index.filter { it.name == name && it.recType == RepositoryIndex.RecordType.content && it.itemType == itemType })
+            indices.addAll(ri.index.filter { matchName(name, it.name) && it.recType == RepositoryIndex.RecordType.content && it.itemType == itemType })
+        }
+    }
+
+    private fun matchName(first: String, second: String): Boolean {
+        return if (first.contains('.')) {
+            first == second
+        } else {
+            first == second.substringAfterLast('.')
         }
     }
 

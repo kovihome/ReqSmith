@@ -31,6 +31,7 @@ open class FrameworkBuilderManager {
         when (frameworkGenerator) {
             "framework.default" -> DefaultFrameworkBuilder(reqmSource)
             "framework.base" -> BaseFrameworkBuilder(reqmSource)
+            "framework.web" -> WebFrameworkBuilder(reqmSource)
             else -> throw Exception("Unknown framework build plugin $frameworkGenerator.")
         }
 

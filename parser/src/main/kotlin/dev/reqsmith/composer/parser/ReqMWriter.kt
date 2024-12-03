@@ -243,6 +243,10 @@ class ReqMWriter {
             Log.info(it.toString())
             printActionDefinition(it.definition)
         }
+        source.views.forEach {
+            Log.info(it.toString())
+            printDefinition(it.definition)
+        }
     }
 
     private fun printActionDefinition(definition: ActionDefinition) {

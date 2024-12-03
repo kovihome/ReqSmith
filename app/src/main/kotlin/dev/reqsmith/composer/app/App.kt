@@ -19,22 +19,21 @@
 package dev.reqsmith.composer.app
 
 
-import kotlinx.cli.ArgParser
-import kotlinx.cli.ArgType
-import kotlinx.cli.default
-import kotlinx.cli.optional
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.buildsys.BuildSystem
+import kotlinx.cli.ArgParser
+import kotlinx.cli.ArgType
+import kotlinx.cli.default
+import kotlinx.cli.optional
 import kotlin.io.path.Path
 import kotlin.io.path.absolutePathString
-import kotlin.system.exitProcess
 import kotlin.system.measureTimeMillis
 
 class App(private val args: Array<String>) {
     val composerName = "ReqSmith::composer"
-    val composerVersion = "0.1.0-PoC"
+    val composerVersion = "0.2.0-Web"
     val composerDesc = "Requirement composer and code generator"
 
     val path = System.getenv("APP_HOME") ?: "."
@@ -64,32 +63,44 @@ class App(private val args: Array<String>) {
         Log.level = if (debug == true) Log.LogLevel.DEBUG else if (info == true) Log.LogLevel.INFO else Log.LogLevel.NORMAL
     }
 
-    fun initiate() {
+    fun initiate() : Boolean {
         if (projectName.isNullOrBlank()) {
             Log.error("no project name was given for initialization")
-            exitProcess(-1)
+            return false
         }
 
         // select build system
-        val buildSystem = getBuildSystem()
+        val buildSystem = try {
+            BuildSystem.get(buildSystemName)
+        } catch (e: Exception) {
+            Log.error("build system $buildSystemName is not supported.")
+            return false
+        }
 
         // set up project environment
         val project = Project(projectDir, buildSystem)
         if (!project.calculateFolders(forInit = true)) {
             project.printErrors()
-            exitProcess(-1)
+            return false
         }
 
         // create default minimal app
         Composer(project, path).createApp(projectName!!)
 
+        return true
+
     }
 
-    fun compose() {
+    fun compose() : Boolean {
         Log.title("Compose ReqM model")
 
         // select build system
-        val buildSystem = getBuildSystem()
+        val buildSystem = try {
+            BuildSystem.get(buildSystemName)
+        } catch (e: Exception) {
+            Log.error("build system $buildSystemName is not supported.")
+            return false
+        }
 
         // set up project environment
         val project = Project(projectDir, buildSystem).apply {
@@ -98,14 +109,14 @@ class App(private val args: Array<String>) {
         }
         if (!project.calculateFolders()) {
             project.printErrors()
-            exitProcess(-1)
+            return false
         }
 
         // list file from input pattern
         val filenames = project.getSourceFiles()
         if (filenames.isEmpty()) {
             project.printErrors()
-            exitProcess(-1)
+            return false
         }
         Log.info("Input files:")
         filenames.forEach { Log.info("- $it") }
@@ -117,33 +128,30 @@ class App(private val args: Array<String>) {
         val mergedReqMSource = Composer(project, path).compose()
         if (mergedReqMSource == null) {
             Log.error("Something goes wrong with the requirement composer, see previous errors; source code will not be generated. ")
-            exitProcess(-1)
+            return false
         }
 
         // generate source code
         val generator = Generator(project, mergedReqMSource, path, language)
-        val success = generator.generate()
+        val success = try {
+            generator.generate()
+        } catch (e: Exception) {
+            Log.error("Generating source code failed: ${e.localizedMessage}")
+            false
+        }
         if (!success) {
             Log.error("Something goes wrong with the code generator, see previous errors; source code will not or just partially be generated. ")
-            exitProcess(-1)
+            return false
         }
 
-    }
-
-    private fun getBuildSystem(): BuildSystem {
-        val buildSystem = try {
-            BuildSystem.get(buildSystemName)
-        } catch (e: Exception) {
-            Log.error("build system $buildSystemName is not supported.")
-            exitProcess(-1)
-        }
-        return buildSystem
+        return true
     }
 
 }
 
 fun main(args: Array<String>) {
 
+    var success: Boolean
     val elapsedTime = measureTimeMillis {
 
         // load default values first
@@ -159,7 +167,7 @@ fun main(args: Array<String>) {
         app.processArgs()
 
         // run
-        if (app.initCommand == true) {
+        success = if (app.initCommand == true) {
             app.initiate()
         } else {
             app.compose()
@@ -167,5 +175,5 @@ fun main(args: Array<String>) {
 
     }
 
-    Log.text("\nCOMPOSE SUCCESSFUL in ${if (elapsedTime > 1000) elapsedTime/1000 else elapsedTime}${if (elapsedTime > 1000) "s" else "ms"}")
+    Log.text("\nCOMPOSE ${if (success) "SUCCESSFUL" else "FAILED"} in ${if (elapsedTime > 1000) elapsedTime/1000 else elapsedTime}${if (elapsedTime > 1000) "s" else "ms"}")
 }

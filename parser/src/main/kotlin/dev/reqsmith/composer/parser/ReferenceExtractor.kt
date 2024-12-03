@@ -40,9 +40,7 @@ class ReferenceExtractor {
     private fun references(source: ReqMSource): References {
         Log.info("------------------- extract references from ${source.sourceFileName} ------------------")
         val refs = References()
-        if (source.applications.isNotEmpty()) {
-            extractApplication(source.applications[0], refs)
-        }
+        source.applications.forEach { extractApplication(it, refs) }
         source.modules.forEach { extractModule(it, refs) }
         source.actors.forEach { extractActor(it, refs) }
         source.classes.forEach { extractClasss(it, refs) }

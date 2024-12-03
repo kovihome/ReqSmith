@@ -10,6 +10,14 @@
 2. **Automatically generate source code** based on the requirements.
 3. **Leverage pre-built building blocks**, which are modular components that include software design patterns, best practices and predefined solutions, along with requirements and generators.
 
+> **ℹ️ Information:** ReqSmith is in its **proof-of-concept state**. While we've taken the first steps toward building a revolutionary application development tool, **it’s not fully functional yet**. This is just the beginning of a journey to create a platform that generates complete, high-quality source code based on user requirements for any programming language or framework. \
+> \
+> To achieve the full potential of ReqSmith, we need **your help**! Here's how you can contribute:
+> 
+> - **Donate**: Help support development and bring ReqSmith closer to a fully functional version. Every contribution, big or small, helps us move faster. \
+> 
+> - **Contribute**: Join the development effort by contributing code, plugins, modules, or documentation. Check out the Contributing Guide for details.
+
 ---
 
 ## **Features**
@@ -28,6 +36,16 @@
 
 - **Flexible Generators**:  
   ReqSmith supports custom generators, allowing users to create their own functionalities.
+
+---
+
+## Useful information
+
+- Getting started with ReqSmith
+- [Documentation (on wiki pages)](https://github.com/kovihome/ReqSmith/wiki)
+- Release notes
+- FAQ
+- For developers
 
 ---
 

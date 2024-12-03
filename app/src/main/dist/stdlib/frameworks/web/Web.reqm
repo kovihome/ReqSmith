@@ -1,0 +1,9 @@
+/*
+ * Base framework
+ */
+
+module frameworks.Web {
+    generator: framework.web
+}
+
+//action print

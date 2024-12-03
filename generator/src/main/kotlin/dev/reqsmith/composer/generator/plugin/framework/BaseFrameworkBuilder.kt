@@ -24,7 +24,7 @@ import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.parser.entities.Property
 import dev.reqsmith.composer.parser.entities.ReqMSource
 
-class BaseFrameworkBuilder(reqmSource: ReqMSource) : DefaultFrameworkBuilder(reqmSource) {
+open class BaseFrameworkBuilder(reqmSource: ReqMSource) : DefaultFrameworkBuilder(reqmSource) {
 //    override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
 //        super.buildApplication(app, igm)
 //

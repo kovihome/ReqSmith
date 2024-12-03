@@ -1,0 +1,23 @@
+/*
+ * Command line application
+ */
+
+application applications.WebApplication from ApplicationBase {
+    description: 'Basic web application'
+    dependencies {
+        frameworks.Base
+        frameworks.Web
+    }
+    startView: WelcomePage
+//    events {
+//        applicationStart: startApplication
+//        sessionStart: startSession
+//    }
+    generator: framework.web
+}
+
+// action startApplication {
+// }
+
+// action startSession {
+// }

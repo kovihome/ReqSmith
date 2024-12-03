@@ -52,6 +52,8 @@ class Composer(private val project: Project, private val appHome: String) {
         if (reqmsrc.classes.isNotEmpty()) Log.info("  ${reqmsrc.classes.size} classes")
         if (reqmsrc.entities.isNotEmpty()) Log.info("  ${reqmsrc.entities.size} entities")
         if (reqmsrc.actions.isNotEmpty()) Log.info("  ${reqmsrc.actions.size} actions")
+        if (reqmsrc.views.isNotEmpty()) Log.info("  ${reqmsrc.views.size} views")
+        // TODO: if (reqmsrc.features.isNotEmpty()) Log.info("  ${reqmsrc.features.size} actions")
         Log.info("==========================================")
 
         // consolidate reqm source - inconsistencies, merge multiple element instances
@@ -111,7 +113,7 @@ class Composer(private val project: Project, private val appHome: String) {
         val outputDepFileName = "${project.outputFolder}/$fileName"
         Log.title("Saving dependencies to $outputDepFileName")
         writer.writeReqM(reqmModel, outputDepFileName, reqmFileHeader)
-        Log.info("=============== Dependencies ReqMSource ===============")
+        Log.info("=============== ${if (fileName.startsWith("dep")) "Dependencies" else "ReqMSource"} ===============")
         writer.printReqMSource(reqmModel)
         Log.info("==========================================")
     }
