@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter
 
 class ReqMWriter {
 
+    private val TAB_SIZE = 4
     private val eol = System.lineSeparator()
 
     fun writeReqM(source : ReqMSource, outFileName : String, reqmHeader: String) {
@@ -74,7 +75,8 @@ class ReqMWriter {
         if (definition != ActionDefinition.Undefined) {
             outs.write("{\n")
             definition.actionCalls.forEach {
-                outs.write("    ${it.actionName} ")
+                outs.write(tabs(1))
+                outs.write("${it.actionName} ")
                 outs.write (it.parameters.joinToString(", ") { s -> s.value!! })
                 outs.write("\n")
             }
@@ -120,7 +122,7 @@ class ReqMWriter {
     private fun writeEnumerationDefinition(definition: Definition, outs: OutputStreamWriter) {
         if (definition != Definition.Undefined) {
             outs.write("{\n")
-            outs.write("    ")
+            outs.write(tabs(1))
             val s = definition.properties.joinToString(", ") { it.key!! }
             outs.write(s)
             outs.write("\n")
@@ -157,8 +159,7 @@ class ReqMWriter {
         if (definition != Definition.Undefined && definition.properties.isNotEmpty()) {
             outs.write("{\n")
             for (prop in definition.properties) {
-                outs.write("    ")
-                writeProperty(prop, outs)
+                writeProperty(prop, outs, 1)
             }
             outs.write("}\n")
         } else {
@@ -166,26 +167,33 @@ class ReqMWriter {
         }
     }
 
-    private fun writeProperty(prop: Property, outs: OutputStreamWriter) {
+    private fun tabs(count: Int) : String {
+        return "".padStart(count * TAB_SIZE)
+    }
+
+    private fun writeProperty(prop: Property, outs: OutputStreamWriter, tc: Int) {
+        outs.write(tabs(tc))
         outs.write(prop.key!!)
         if (prop.type == StandardTypes.valueList.name) {
             outs.write(" {\n")
-            prop.valueList.forEach { outs.write("        ${it}\n") }
-            outs.write("    }")
+            prop.valueList.forEach {
+                outs.write(tabs(tc+1))
+                outs.write("${it}\n")
+            }
+            outs.write(tabs(tc))
+            outs.write("}")
         } else if (prop.type == StandardTypes.propertyList.name) {
             outs.write(" {\n")
             prop.simpleAttributes.forEach {
-                outs.write("        ${it.key}")
-                it.value?.let { v -> outs.write(": $v") }
-                outs.write("\n")
+                writeProperty(it, outs, tc+1)
             }
-            outs.write("    }")
+            outs.write(tabs(tc))
+            outs.write("}")
         } else {
-//            prop.type?.let { outs.write(": ") }
-            outs.write(": ")
             if (prop.value != null) {
-                outs.write(prop.value!!)
-            } else {
+                outs.write(": ${prop.value}")
+            } else if (prop.optionality != null || prop.type != null) {
+                outs.write(": ")
                 if (prop.optionality != null) {
                     outs.write(prop.optionality!!)
                     outs.write(" ")

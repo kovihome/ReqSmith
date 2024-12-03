@@ -22,11 +22,13 @@ import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.parser.ReqMParser
 import dev.reqsmith.composer.parser.entities.*
 import dev.reqsmith.composer.parser.enumeration.Optionality
+import dev.reqsmith.composer.parser.enumeration.StandardTypes
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
 
 class ModelMerger(private val finder: RepositoryFinder) {
+    private val parser = ReqMParser()
 
     /**
      * Merge referenced repository items to project items
@@ -89,13 +91,66 @@ class ModelMerger(private val finder: RepositoryFinder) {
             
         }
 
-        // TODO: merge views, features and styles
+        // add dependent views
+        reqmsrc.views.forEach { view ->
+            collectViewDependencies(view, dependencies)
+        }
+
+        // TODO: merge features and styles
 
         return dependencies
     }
 
+    private fun collectViewDependencies(view: View, dependencies: ReqMSource) {
+        if (view.sourceRef != null && view.sourceRef != QualifiedId.Undefined) {
+            collectViewSources(view.sourceRef!!, dependencies)
+            mergeViewRef(view, dependencies)
+        }
+        val layout = view.definition.properties.find { it.key == "layout" }
+        layout?.simpleAttributes?.let { collectViewLayoutDeps(it, dependencies) }
+    }
+
+    private fun mergeViewRef(view: View, dependencies: ReqMSource) {
+        var refId = view.sourceRef
+        while (refId != null && refId != QualifiedId.Undefined) {
+            val refView = dependencies.views.find { it.qid.toString() == refId.toString() }
+            if (refView != null) {
+                mergeProperties(view.definition.properties, refView.definition.properties)
+                refId = refView.sourceRef
+            } else {
+                refId = null
+            }
+        }
+    }
+
+    private fun collectViewSources(sourceRef: QualifiedId, dependencies: ReqMSource) {
+        val ic = finder.find(Ref.Type.vie, sourceRef.id!!, sourceRef.domain)
+        ic.items.forEach {
+            if (dependencies.views.find { d -> it.name == d.qid.toString() } == null) {
+                val actReqmSource = ReqMSource()
+                parser.parseReqMTree(it.filename!!, actReqmSource)
+                val depView = actReqmSource.views.find { v -> v.qid!!.id == it.name }
+                if (depView != null) {
+                    dependencies.views.add(depView)
+                    if (depView.sourceRef != null && depView.sourceRef != QualifiedId.Undefined) {
+                        collectViewSources(depView.sourceRef!!, dependencies)
+                    }
+                    collectViewDependencies(depView, dependencies)
+                }
+            }
+        }
+    }
+
+    private fun collectViewLayoutDeps(properties: MutableList<Property>, dependencies: ReqMSource) {
+        properties.forEach {
+            collectViewSources(QualifiedId(it.key), dependencies)
+            if (it.type == StandardTypes.propertyList.name) {
+                collectViewLayoutDeps(it.simpleAttributes, dependencies)
+            }
+        }
+    }
+
     private fun resolveEventActions(app: Application, reqmsrc: ReqMSource): Collection<Action> {
-        val parser = ReqMParser()
         val dependentActions : MutableList<Action> = ArrayList()
         val events = app.definition.properties.find { it.key == "events" }
         events?.simpleAttributes?.forEach { attr ->
@@ -133,7 +188,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
     }
 
     private fun collectActionSources(actionName: String): Collection<Action> {
-        val parser = ReqMParser()
         val reqmSource = ReqMSource()
         val actions : MutableList<Action> = ArrayList()
         val ic = finder.find(Ref.Type.acn, actionName, null)
@@ -178,7 +232,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
     }
 
     private fun collectEntitySources(ref: QualifiedId): List<Entity> {
-        val parser = ReqMParser()
         val reqmSource = ReqMSource()
         val entities : MutableList<Entity> = ArrayList()
         val ic = finder.find(Ref.Type.ent, ref.id!!, ref.domain)
@@ -205,7 +258,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
     }
 
     private fun collectClassSources(ref: QualifiedId): List<Classs> {
-        val parser = ReqMParser()
         val reqmSource = ReqMSource()
         val classes : MutableList<Classs> = ArrayList()
         val ic = finder.find(Ref.Type.cls, ref.id!!, ref.domain)
@@ -232,7 +284,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
     }
 
     private fun collectActorSources(ref: QualifiedId): List<Actor> {
-        val parser = ReqMParser()
         val reqmSource = ReqMSource()
         val actors : MutableList<Actor> = ArrayList()
         val ic = finder.find(Ref.Type.act, ref.id!!, ref.domain)
@@ -259,7 +310,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
      * @return List of the referenced application items
      */
     private fun collectApplicationSources(ref: QualifiedId): List<Application> {
-        val parser = ReqMParser()
         val reqmSource = ReqMSource()
         val applications : MutableList<Application> = ArrayList()
         val ic = finder.find(Ref.Type.app, ref.id!!, ref.domain)
@@ -282,7 +332,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
     private fun collectModuleSource(key: String?): List<Modul> {
         val ref = QualifiedId(key)
-        val parser = ReqMParser()
         val reqmSource = ReqMSource()
         val moduls : MutableList<Modul> = ArrayList()
         val ic = finder.find(Ref.Type.mod, ref.id!!, ref.domain)

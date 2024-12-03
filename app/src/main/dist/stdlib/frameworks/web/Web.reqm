@@ -7,3 +7,22 @@ module frameworks.Web {
 }
 
 //action print
+
+view image
+
+view text
+
+view header from panel {
+    logo: String
+    title: String
+    layout {
+        image: logo
+        text: title
+    }
+}
+
+view footer from panel {
+}
+
+view panel {
+}

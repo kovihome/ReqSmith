@@ -41,7 +41,8 @@ class : 'class' qualifiedId (KWATOMIC | (KWENUMERATION enumDefinitionClosure) | 
 
 entity : 'entity' qualifiedId parent? sourceRef? definitionClosure? ;
 
-view : 'view' qualifiedId parent? sourceRef? typelessDefinitionClosure? ;
+//view : 'view' qualifiedId parent? sourceRef? typelessDefinitionClosure? ;
+view : 'view' qualifiedId parent? sourceRef? viewDefinitionClosure? ;
 
 feature : 'feature' qualifiedId sourceRef? definitionClosure? ;
 
@@ -86,6 +87,13 @@ applicationDefinitionClosure : closureStart extensionRef*? applicationProperty*?
 applicationProperty : simpleApplicationProperty | compoundTypelessProperty ;
 
 simpleApplicationProperty: qualifiedId (':' applicationPropertyValue)? ;
+
+// NEW: view definition closure
+viewDefinitionClosure : closureStart extensionRef*? viewProperty*? closureEnd ;
+
+viewProperty:  simpleTypelessProperty |  compundViewProperty ;
+
+compundViewProperty: qualifiedId closureStart viewProperty*? closureEnd ;
 
 
 extensionRef : '@' qualifiedId (closureStart property*? closureEnd)? ;

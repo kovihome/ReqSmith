@@ -46,8 +46,16 @@ class ReferenceExtractor {
         source.classes.forEach { extractClasss(it, refs) }
         source.entities.forEach { extractEntity(it, refs) }
         source.actions.forEach { extractAction(it, refs) }
+        source.views.forEach { extractView(it, refs) }
         Log.info("---------------------------------------------------------------------------------------")
         return refs
+    }
+
+    private fun extractView(view: View, refs: References) {
+        Log.info(" view ${view.qid}")
+        refs.items.add(Ref(Ref.Type.vie, view.qid!!, null, view.sourceFileName))
+        extractSourceRef(view.qid!!, view.sourceRef, refs)
+        extractDefinition(view.definition, view.qid!!, refs)
     }
 
     private fun extractAction(action: Action, refs: References) {

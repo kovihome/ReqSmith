@@ -79,8 +79,36 @@ class ReqMParser {
             saveSourceInfo(vw, view.start)
             vw.qid = parseQualifiedId(view.qualifiedId())
             vw.sourceRef = parseSourceDef(view.sourceRef())
-            vw.definition = parseTypelessDefinitionClosure(view.typelessDefinitionClosure())
+            vw.definition = parseViewDefinitionClosure(view.viewDefinitionClosure())
             reqmSource.views.add(vw)
+        }
+    }
+
+    private fun parseViewDefinitionClosure(viewDefinitionClosure: ReqMParserParser.ViewDefinitionClosureContext?): Definition {
+        return if (viewDefinitionClosure != null && viewDefinitionClosure.viewProperty().isNotEmpty()) {
+            val definition = Definition()
+            viewDefinitionClosure.viewProperty().forEach { 
+                definition.properties.add(parseViewProperty(it))
+            }
+            definition
+        } else {
+            Definition.Undefined
+        }
+    }
+
+    private fun parseViewProperty(viewProperty: ReqMParserParser.ViewPropertyContext): Property {
+        if (viewProperty.simpleTypelessProperty() != null) {
+            return parseSimpleTypelessProperty(viewProperty.simpleTypelessProperty())
+        } else if (viewProperty.compundViewProperty() != null) {
+            val property = Property()
+            viewProperty.compundViewProperty().viewProperty().forEach {
+                property.simpleAttributes.add(parseViewProperty(it))
+            }
+            property.key = viewProperty.compundViewProperty().qualifiedId().text
+            property.type = StandardTypes.propertyList.name
+            return property
+        } else {
+            return Property.Undefined
         }
     }
 
@@ -88,8 +116,8 @@ class ReqMParser {
         return if (typelessDefinitionClosure != null && typelessDefinitionClosure.typelessProperty().isNotEmpty()) {
             val definition = Definition()
             saveSourceInfo(definition, typelessDefinitionClosure.start)
-            for (property in typelessDefinitionClosure.typelessProperty()) {
-                definition.properties.add(parseTypelessProperty(property))
+            typelessDefinitionClosure.typelessProperty().forEach { 
+                definition.properties.add(parseTypelessProperty(it))
             }
             definition
         } else {
