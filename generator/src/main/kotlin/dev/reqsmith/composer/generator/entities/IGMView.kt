@@ -16,8 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.composer.common.plugin
+package dev.reqsmith.composer.generator.entities
 
-class PluginDef(val name: String, val type: PluginType, val compatibility: Map<PluginType, List<String>> = mapOf()) {
+class IGMView(val id: String) {
+    var layout = IGMNode()
+
+    class IGMNode {
+        var name: String = ""
+        var text : String = ""
+        val children : MutableList<IGMNode> = ArrayList()
+        override fun toString(): String {
+            return "$name { ${children.joinToString(", ") { it.name }} }"
+        }
+    }
+
+    override fun toString(): String {
+        val sb = StringBuilder("IGMView $id\n")
+        sb.append("    $layout")
+        return sb.toString()
+    }
 
 }
+

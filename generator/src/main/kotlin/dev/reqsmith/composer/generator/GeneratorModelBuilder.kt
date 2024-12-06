@@ -21,6 +21,7 @@ package dev.reqsmith.composer.generator
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.entities.IGMAction
 import dev.reqsmith.composer.generator.entities.IGMClass
+import dev.reqsmith.composer.generator.entities.IGMView
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilder
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilderManager
@@ -53,7 +54,28 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
         val templateContext = getTemplateContext(reqMSource)
         reqMSource.actions.forEach { createAction(it, igm, templateContext) }
 
+        // create view descriptors
+        reqMSource.views.forEach { createView(it, igm, templateContext) }
+
         return igm
+    }
+
+    private fun createView(viewModel: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
+        val view = igm.getView(viewModel.qid.toString())
+        val layout = viewModel.definition.properties.find { it.key == "layout" }
+        view.layout = layout?.let { propertyToNode(it, templateContext) }!!
+    }
+
+    private fun propertyToNode(prop: Property, templateContext: Map<String, String>): IGMView.IGMNode {
+        val node = IGMView.IGMNode()
+        val template = Template()
+        node.name = prop.key!!
+        if (prop.type == StandardTypes.propertyList.name) {
+            prop.simpleAttributes?.forEach { node.children.add(propertyToNode(it, templateContext)) }
+        } else if (prop.value?.isNotBlank() == true) {
+            node.text = template.translate(templateContext, prop.value!!)
+        }
+        return node
     }
 
     private fun getTemplateContext(reqMSource: ReqMSource): Map<String, String> {

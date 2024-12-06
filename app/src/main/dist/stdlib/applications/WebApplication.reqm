@@ -9,15 +9,15 @@ application applications.WebApplication from ApplicationBase {
         frameworks.Web
     }
     startView: WelcomePage
-//    events {
-//        applicationStart: startApplication
+    events {
+        applicationStart: startApplication
 //        sessionStart: startSession
-//    }
+    }
     generator: framework.web
 }
 
-// action startApplication {
-// }
+action startApplication {
+}
 
 // action startSession {
 // }

@@ -21,10 +21,7 @@ package dev.reqsmith.composer.generator.plugin.language
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
-import dev.reqsmith.composer.generator.entities.IGMAction
-import dev.reqsmith.composer.generator.entities.IGMClass
-import dev.reqsmith.composer.generator.entities.IGMClassMember
-import dev.reqsmith.composer.generator.entities.IGMEnumeration
+import dev.reqsmith.composer.generator.entities.*
 import dev.reqsmith.composer.parser.enumeration.Optionality
 import dev.reqsmith.composer.parser.enumeration.StandardTypes
 
@@ -154,6 +151,10 @@ class KotlinBuilder : LanguageBuilder, Plugin {
 
     override fun addImport(imported: String, indent: Int): String {
         return "import $imported"
+    }
+
+    override fun createView(view: IGMView): String {
+        TODO("Not yet implemented")
     }
 
     private fun addEnumValues(values: List<String>, indent: Int): Any {

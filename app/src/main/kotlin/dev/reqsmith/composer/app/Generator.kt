@@ -25,6 +25,7 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.CodeGenerator
 import dev.reqsmith.composer.generator.GeneratorModelBuilder
+import dev.reqsmith.composer.generator.ViewGenerator
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilderManager
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
 import dev.reqsmith.composer.parser.entities.Definition
@@ -47,16 +48,22 @@ class Generator(private val project: Project, private val reqMSource: ReqMSource
         // create internal generator model
         Log.debug("Build InternalGeneratorModel...")
         val igm = GeneratorModelBuilder(reqMSource).build()
-        Log.debug("$igm")
+        Log.info("=============== InternalGeneratorModel ===============\n$igm")
+        Log.info("======================================================\n")
 
         // generate the source code
         Log.debug("Generate SourceCode...")
         val success = CodeGenerator(langBuilder, project).generate(igm, getFileHeader())
 
+        // generate views
+        val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, "html") // TODO: manage default language
+        val successView = ViewGenerator(viewLangBuilder, project).generate(igm)
+
+
         // update build script
         generateBuildScripts()
 
-        return success
+        return success.and(successView)
     }
 
     /**

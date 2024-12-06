@@ -20,6 +20,7 @@ package dev.reqsmith.composer.generator.plugin.language
 
 import dev.reqsmith.composer.generator.entities.IGMClass
 import dev.reqsmith.composer.generator.entities.IGMEnumeration
+import dev.reqsmith.composer.generator.entities.IGMView
 
 interface LanguageBuilder {
     val extension: String
@@ -29,5 +30,6 @@ interface LanguageBuilder {
     fun addEnumeration(enum: IGMEnumeration, indent: Int = 0): String
     fun addComment(text: String, indent: Int = 0): String
     fun addImport(imported: String, indent: Int = 0): String
+    fun createView(view: IGMView): String
 
 }

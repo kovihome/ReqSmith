@@ -8,15 +8,21 @@ commons-io = "2.18.0"
 commons-text = "1.12.0"
 jupiter = "5.11.3"
 versions = "0.51.0"
+kotlin-html = "0.11.0"
 
 [libraries]
 kotlin-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli-jvm", version.ref = "kotlin-cli"}
+kotlin-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlin-html"}
+kotlin-html-jvm = { module = "org.jetbrains.kotlinx:kotlinx-html-jvm", version.ref = "kotlin-html"}
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io"}
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml"}
 antlr = { module = "org.antlr:ST4", version.ref = "antlr"}
 slf4j = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" } # thymeleaf logging provider
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jupiter" }
+
+[bundles]
+kotlin-html = ["kotlin-html", "kotlin-html-jvm"]
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }

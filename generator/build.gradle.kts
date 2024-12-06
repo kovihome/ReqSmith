@@ -23,4 +23,6 @@ plugins {
 dependencies {
     api(project(":common"))
     api(project(":parser"))
+
+    implementation(libs.bundles.kotlin.html)
 }
