@@ -160,27 +160,35 @@ class ModelMerger(private val finder: RepositoryFinder) {
             if (srcAction == null) {
                 // not exists, search dependencies for it
                 val ic = finder.find(Ref.Type.acn, actionName!!, null)
-                var ix = 0
-                while (ix < ic.items.size) {
-                    val item = ic.items[ix]
-                    val actReqmSource = ReqMSource()
-                    parser.parseReqMTree(item.filename!!, actReqmSource)
-                    val act = actReqmSource.actions.find { item.name == it.qid.toString() }
-                    if (act != null) {
-                        dependentActions.add(act)
-                        act.increaseRefCount()
-                        act.definition.actionCalls.forEach { call ->
-                            when {
-                                call.actionName == "call" -> {
-                                    // TODO
-                                }
-                                else -> {
-                                    addDependecyToList(QualifiedId(call.actionName), Ref.Type.acn, ic)
+                if (ic.items.isNotEmpty()) {
+                    var ix = 0
+                    while (ix < ic.items.size) {
+                        val item = ic.items[ix]
+                        val actReqmSource = ReqMSource()
+                        parser.parseReqMTree(item.filename!!, actReqmSource)
+                        val act = actReqmSource.actions.find { item.name == it.qid.toString() }
+                        if (act != null) {
+                            dependentActions.add(act)
+                            act.increaseRefCount()
+                            act.definition.actionCalls.forEach { call ->
+                                when {
+                                    call.actionName == "call" -> {
+                                        // TODO
+                                    }
+                                    else -> {
+                                        addDependecyToList(QualifiedId(call.actionName), Ref.Type.acn, ic)
+                                    }
                                 }
                             }
+                        } else {
+                            Log.error("Index problem with ${item.filename}; do reindexing the repository")
                         }
+                        ix++
                     }
-                    ix++
+                } else {
+                    // no actions found for this event, create an empty one, and send warning
+                    dependentActions.add(Action().apply { qid = QualifiedId(actionName) })
+                    Log.warning("Action $actionName is not found for event ${attr.key}; create an empty action")
                 }
             }
         }
@@ -320,7 +328,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
             parser.parseReqMTree(item.filename!!, reqmSource)
             val app = reqmSource.applications.find { item.name == it.qid.toString() }
             if (app != null) {
-//                Log.debug("$app")
                 app.increaseRefCount()
                 applications.add(app)
                 addDependecyToList(app.sourceRef, Ref.Type.app, ic)

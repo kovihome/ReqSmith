@@ -97,8 +97,8 @@ class ReqMParser {
     }
 
     private fun parseViewProperty(viewProperty: ReqMParserParser.ViewPropertyContext): Property {
-        if (viewProperty.simpleTypelessProperty() != null) {
-            return parseSimpleTypelessProperty(viewProperty.simpleTypelessProperty())
+        return if (viewProperty.simpleTypelessProperty() != null) {
+            parseSimpleTypelessProperty(viewProperty.simpleTypelessProperty())
         } else if (viewProperty.compundViewProperty() != null) {
             val property = Property()
             viewProperty.compundViewProperty().viewProperty().forEach {
@@ -106,9 +106,9 @@ class ReqMParser {
             }
             property.key = viewProperty.compundViewProperty().qualifiedId().text
             property.type = StandardTypes.propertyList.name
-            return property
+            property
         } else {
-            return Property.Undefined
+            Property.Undefined
         }
     }
 
@@ -130,35 +130,11 @@ class ReqMParser {
         saveSourceInfo(prop, property.start)
         prop.key = property.qualifiedId().text
         prop.value = property.propertyValue()?.text
-//        if (property.propertyValue() != null) {
-//            when {
-//                property.propertyValue().StringLiteral() != null -> {
-//                    prop.type = StandardTypes.stringLiteral.name
-//                    prop.value = property.propertyValue().StringLiteral().text
-//                }
-//                property.propertyValue().SemanticVersionNumber() != null -> {
-//                    prop.type = StandardTypes.versionNumber.name
-//                    prop.value = property.propertyValue().SemanticVersionNumber().text
-//                }
-//                property.propertyValue().INT() != null -> {
-//                    prop.type = "numeric"
-//                    prop.value = property.propertyValue().text
-//                }
-//                property.propertyValue().propertyType() != null -> {
-//                    prop.type = property.propertyValue().propertyType().ID().text
-//                    prop.listOf = property.propertyValue().propertyType().KWLISTOF() != null
-//                }
-//                property.propertyValue().qualifiedId() != null -> {
-//                    prop.type = "valiable"
-//                    prop.value = property.propertyValue().text
-//                }
-//            }
-//        }
         return prop
     }
 
     private fun parseTypelessProperty(property: ReqMParserParser.TypelessPropertyContext?): Property {
-        if (property != null) {
+        return if (property != null) {
             if (property.simpleTypelessProperty() != null) {
                 return parseSimpleTypelessProperty(property.simpleTypelessProperty())
             } else if (property.compoundTypelessProperty() != null) {
@@ -170,12 +146,12 @@ class ReqMParser {
                     val p = parseSimpleTypelessProperty(it)
                     prop.simpleAttributes.add(p)
                 }
-                return prop
+                prop
             } else {
-                return Property.Undefined
+                Property.Undefined
             }
         } else {
-            return Property.Undefined
+            Property.Undefined
         }
     }
 
@@ -184,14 +160,13 @@ class ReqMParser {
             val acn = Action()
             saveSourceInfo(acn, action.start)
             acn.qid = parseQualifiedId(action.qualifiedId())
-//            acn.sourceRef = parseSourceDef(action.sourceRef())
             acn.definition = parseActionDefinitionClosure(action.actionDefinitionClosure())
             reqmSource.actions.add(acn)
         }
     }
 
     private fun parseActionDefinitionClosure(actionDefinitionClosure: ReqMParserParser.ActionDefinitionClosureContext?): ActionDefinition {
-        return if (actionDefinitionClosure != null && actionDefinitionClosure.actionCall().isNotEmpty()) {
+        return if (actionDefinitionClosure != null) {
             val definition = ActionDefinition()
             saveSourceInfo(definition, actionDefinitionClosure.start)
             actionDefinitionClosure.actionCall().forEach { call ->
@@ -377,7 +352,7 @@ class ReqMParser {
     }
 
     private fun parseApplicationProperty(property: ReqMParserParser.ApplicationPropertyContext?): Property {
-        if (property != null) {
+        return if (property != null) {
             if (property.simpleApplicationProperty() != null) {
                 return parseSimpleApplicationProperty(property.simpleApplicationProperty())
             } else if (property.compoundTypelessProperty() != null) {
@@ -389,12 +364,12 @@ class ReqMParser {
                     val p = parseSimpleTypelessProperty(it)
                     prop.simpleAttributes.add(p)
                 }
-                return prop
+                prop
             } else {
-                return Property.Undefined
+                Property.Undefined
             }
         } else {
-            return Property.Undefined
+            Property.Undefined
         }
     }
 

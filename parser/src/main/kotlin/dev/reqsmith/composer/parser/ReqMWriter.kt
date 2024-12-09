@@ -23,8 +23,6 @@ import dev.reqsmith.composer.parser.entities.*
 import dev.reqsmith.composer.parser.enumeration.StandardTypes
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 
 class ReqMWriter {

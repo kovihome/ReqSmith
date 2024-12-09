@@ -90,7 +90,7 @@ class ModelValidator {
      * @param dependenciesReqMModel The ReqM model of the dependencies
      * @return Error list (empty list = no errors found)
      */
-    fun resolveActionOwnership(reqmsrc: ReqMSource, dependenciesReqMModel: ReqMSource): MutableList<String> {
+    fun resolveActionOwnership(reqmsrc: ReqMSource, dependenciesReqMModel: ReqMSource): List<String> {
         val errors: MutableList<String> = ArrayList()
 
         // search event actions in event sources

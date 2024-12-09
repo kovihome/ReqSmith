@@ -131,8 +131,22 @@ class RepositoryFinder {
 
     private fun loadIndex(repo: ReqMRepository, path: Path): Boolean {
         val repoIndexFile = File("${path}/index")
-        val index = if (!repoIndexFile.exists()) buildIndexFile(path) else loadIndexFile(repoIndexFile)
+        val indexIsValid = checkIndexValidity(path)
+        val index = if (!indexIsValid) buildIndexFile(path) else loadIndexFile(repoIndexFile)
         if (index.index.isNotEmpty()) repo.indices.add(index)
+        return true
+    }
+
+    private fun checkIndexValidity(path: Path): Boolean {
+        val indexFileName = "$path/index"
+        val files = path.toFile().listFiles()?.filter { it.extension == "reqm" }
+        val indexFile = File(indexFileName)
+        if (!indexFile.exists()) return false
+
+        val indexModifiedTime = indexFile.lastModified()
+        files?.forEach { file ->
+            if (file.lastModified() > indexModifiedTime) return false
+        }
         return true
     }
 
