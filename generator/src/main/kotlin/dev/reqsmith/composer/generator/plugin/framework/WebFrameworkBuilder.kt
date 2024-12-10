@@ -45,8 +45,12 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
         }
         val template = Template()
         if (prop.type == StandardTypes.propertyList.name) {
-            node.attributes.addAll(prop.simpleAttributes.filter { it.type != StandardTypes.propertyList.name }.map { it.key!! to (it.value ?: "")})
-            prop.simpleAttributes?.filter{ it.type == StandardTypes.propertyList.name }?.forEach { node.children.add(propertyToNode(it, templateContext)) }
+            node.attributes.addAll(prop.simpleAttributes.filter { it.type != StandardTypes.propertyList.name }.map {
+                val value = it.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                it.key!! to value
+            })
+            prop.simpleAttributes.filter{ it.type == StandardTypes.propertyList.name }
+                .forEach { node.children.add(propertyToNode(it, templateContext)) }
         } else if (prop.value?.isNotBlank() == true) {
             node.text = template.translate(templateContext, prop.value!!)
         }

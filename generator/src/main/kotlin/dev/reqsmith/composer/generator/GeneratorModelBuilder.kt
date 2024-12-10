@@ -64,23 +64,7 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
 
     private fun createView(viewModel: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
         val builder = PluginManager.get<FrameworkBuilder>(PluginType.Framework, "framework.web.bootstrap")
-//        val view = igm.getView(viewModel.qid.toString())
         builder.buildView(viewModel, igm, templateContext)
-
-//        val layout = viewModel.definition.properties.find { it.key == "layout" }
-//        view.layout = layout?.let { propertyToNode(it, templateContext) }!!
-    }
-
-    private fun propertyToNode(prop: Property, templateContext: Map<String, String>): IGMView.IGMNode {
-        val node = IGMView.IGMNode()
-        val template = Template()
-        node.name = prop.key!!
-        if (prop.type == StandardTypes.propertyList.name) {
-            prop.simpleAttributes?.forEach { node.children.add(propertyToNode(it, templateContext)) }
-        } else if (prop.value?.isNotBlank() == true) {
-            node.text = template.translate(templateContext, prop.value!!)
-        }
-        return node
     }
 
     private fun getTemplateContext(reqMSource: ReqMSource): Map<String, String> {
@@ -202,7 +186,7 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
             it.definition.actionCalls.forEach {call ->
                 val stmt = IGMAction.IGMActionStmt(call.actionName)
                 call.parameters.forEach { p ->
-                    var newparam = if (p.value != null && (p.type == StandardTypes.string.name || p.type == StandardTypes.stringLiteral.name)) {
+                    val newparam = if (p.value != null && (p.type == StandardTypes.string.name || p.type == StandardTypes.stringLiteral.name)) {
                             template.translate(templateContext, p.value!!)
                         } else {
                             p.value!!

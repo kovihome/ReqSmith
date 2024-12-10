@@ -65,16 +65,16 @@ open class HtmlBuilder: LanguageBuilder, Plugin {
         }
     }
 
-    fun createNode(node: IGMView.IGMNode): String {
-        if (node.children.isNotEmpty()) {
-            return createHTML().div {
+    private fun createNode(node: IGMView.IGMNode): String {
+        return if (node.children.isNotEmpty()) {
+            createHTML().div {
                 id = node.name
                 node.children.forEach {
                     unsafe { raw(createNode(it)) }
                 }
             }
         } else {
-            return when (node.name) {
+            when (node.name) {
                 "header" -> createHeader(node)
                 "footer" -> createFooter(node)
                 "panel" -> createPanel(node)

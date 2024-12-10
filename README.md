@@ -96,11 +96,11 @@ These patterns adapt automatically to the requirement models.
 
    Create a project structure and a minimal requirement model file.
 
-```bash
-   mkdir MyProjectFolder
-   cd MyProjectFolder
-   compose --init -p MyProject
-```
+    ```bash
+    mkdir MyProjectFolder
+    cd MyProjectFolder
+    compose --init -p MyProject
+    ```
 
 2. **Define a Requirement Model**:  
    Write down your project requirements in ReqM format.
@@ -109,15 +109,16 @@ These patterns adapt automatically to the requirement models.
 3. **Generate Code**:  
    Based on the requirements, ReqSmith creates the required source code with the appropriate modules for the required language and build system.
 
-```bash
+    ```bash
    compose -l kotlin -b gradle
-```
+    ```
+
 4. **Build your application**:
    Build the application with the generated build script.
 
-```bash
+    ```bash
    ./gradlew build
-```
+    ```
 
 5. **Customization**:  
    Extend the predefined modules or create your own modules and generators.

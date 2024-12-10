@@ -21,6 +21,7 @@ package dev.reqsmith.composer.common.plugin.buildsys
 interface BuildSystem {
     val buildFolder: String
     val sourceFolder: String
+    val resourceFolder: String
 
     fun updateBuildScript(params: MutableMap<String, String>)
 }

@@ -87,7 +87,7 @@ class ReqMParser {
     private fun parseViewDefinitionClosure(viewDefinitionClosure: ReqMParserParser.ViewDefinitionClosureContext?): Definition {
         return if (viewDefinitionClosure != null && viewDefinitionClosure.viewProperty().isNotEmpty()) {
             val definition = Definition()
-            viewDefinitionClosure.viewProperty().forEach { 
+            viewDefinitionClosure.viewProperty().forEach {
                 definition.properties.add(parseViewProperty(it))
             }
             definition

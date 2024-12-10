@@ -30,7 +30,7 @@ open class QualifiedId(var id: String? = null, var domain: String? = null) : Ele
         fun fromString(s: String) : QualifiedId {
             val id = s.substringAfterLast('.')
             val domain = s.substringBeforeLast('.', "")
-            return QualifiedId(id, if (domain.isNotEmpty()) domain else null)
+            return QualifiedId(id, domain.ifEmpty { null })
         }
     }
 }

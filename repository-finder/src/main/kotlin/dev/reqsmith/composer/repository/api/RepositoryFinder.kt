@@ -231,10 +231,4 @@ class RepositoryFinder {
         return false
     }
 
-    fun addProjectIndex(refs : References) {
-        val index = RepositoryIndex()
-        addToIndex(index, refs)
-        projectRepo.indices.add(index)
-    }
-
 }

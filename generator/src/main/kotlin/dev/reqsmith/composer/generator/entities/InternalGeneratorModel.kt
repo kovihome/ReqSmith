@@ -18,21 +18,11 @@
 
 package dev.reqsmith.composer.generator.entities
 
-class InternalGeneratorModel(val rootPackage: String) {
-    // optional parameters
-//    private var fileHeader = ""
-
+class InternalGeneratorModel(private val rootPackage: String) {
     // model containers
     val classes: MutableMap<String, IGMClass> = HashMap()
     val enumerations: MutableMap<String, IGMEnumeration> = HashMap()
     val views: MutableMap<String, IGMView> = HashMap()
-//    val events: MutableMap<String, IGMEvent> = HashMap()
-
-    // builder for optional parameters
-//    fun fileHeader(headerText: String): InternalGeneratorModel {
-//        this.fileHeader = headerText
-//        return this
-//    }
 
     // container functions
     fun getClass(id: String): IGMClass {
@@ -47,16 +37,11 @@ class InternalGeneratorModel(val rootPackage: String) {
         return views.getOrPut(viewId) { IGMView(viewId) }
     }
 
-//    fun getEvent(eventId: String): IGMEvent {
-//        return events.getOrPut(eventId) { IGMEvent(eventId) }
-//    }
-
     override fun toString(): String {
         val sb = StringBuilder("package $rootPackage\n")
         classes.forEach { sb.append("${it.value}\n") }
         enumerations.forEach { sb.append("${it.value}\n") }
         views.forEach { sb.append("${it.value}\n") }
-//        events.forEach { sb.append("${it.value}\n") }
         return sb.toString()
     }
 

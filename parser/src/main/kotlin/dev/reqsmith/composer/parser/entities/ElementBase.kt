@@ -24,7 +24,7 @@ open class ElementBase {
     var col : Int = 0
     var row : Int = 0
     var errors : MutableList<String> = ArrayList()
-    var refCount : Int = 0
+    private var refCount : Int = 0
 
     fun increaseRefCount() {
         refCount += 1

@@ -23,7 +23,6 @@ import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.composer.ModelMerger
 import dev.reqsmith.composer.parser.ReqMParser
-import dev.reqsmith.composer.parser.ReqMWriter
 import dev.reqsmith.composer.parser.entities.*
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.validator.ModelValidator
@@ -79,6 +78,9 @@ class Composer(private val project: Project, private val appHome: String) {
         // compose fully defined reqm from reqm source and repository search result
         Log.title("Merge model with identified references")
         val dependenciesReqMModel = merger.merge(reqmsrc)
+
+        // copy view resources to effective model
+        merger.copyViewResources(reqmsrc, project)
 
         // resolve ownership of actions
         Log.info("Resolve actions' ownership")
