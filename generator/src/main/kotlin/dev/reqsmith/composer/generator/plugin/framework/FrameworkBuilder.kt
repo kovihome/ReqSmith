@@ -20,8 +20,21 @@ package dev.reqsmith.composer.generator.plugin.framework
 
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.parser.entities.Application
+import dev.reqsmith.composer.parser.entities.View
 
 interface FrameworkBuilder {
+    /**
+     * Build an application IGM from ReqM application elem
+     * @param app The ReqM application model
+     * @param igm IGM container, which will hold the application IGM
+     */
     fun buildApplication(app: Application, igm: InternalGeneratorModel)
 
+    /**
+     * Build a view IGM from ReqM view model
+     * @param view The ReqM view model
+     * @param igm IGM container, which will hold the view IGM
+     * @param templateContext Templating context to substitute string values
+     */
+    fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>)
 }

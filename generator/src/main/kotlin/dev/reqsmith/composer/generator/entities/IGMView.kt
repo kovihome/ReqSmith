@@ -20,11 +20,26 @@ package dev.reqsmith.composer.generator.entities
 
 class IGMView(val id: String) {
     var layout = IGMNode()
+    val imports: MutableList<String> = ArrayList()
 
     class IGMNode {
         var name: String = ""
         var text : String = ""
+        var link: String = "#"
+//        var tag: String = ""
+        val attributes: MutableList<Pair<String, String>> = ArrayList()
+//        var classes: MutableList<String> = ArrayList()
         val children : MutableList<IGMNode> = ArrayList()
+
+        fun addNode(name: String, tag: String): IGMNode {
+            val childNode = IGMNode().apply {
+                this@IGMNode.name = name
+//                this@IGMNode.tag = tag
+            }
+            children.add(childNode)
+            return childNode
+        }
+
         override fun toString(): String {
             return "$name { ${children.joinToString(", ") { it.name }} }"
         }

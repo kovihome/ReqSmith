@@ -18,6 +18,8 @@
 
 package dev.reqsmith.composer.generator
 
+import dev.reqsmith.composer.common.plugin.PluginManager
+import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.entities.IGMAction
 import dev.reqsmith.composer.generator.entities.IGMClass
@@ -61,9 +63,12 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
     }
 
     private fun createView(viewModel: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
-        val view = igm.getView(viewModel.qid.toString())
-        val layout = viewModel.definition.properties.find { it.key == "layout" }
-        view.layout = layout?.let { propertyToNode(it, templateContext) }!!
+        val builder = PluginManager.get<FrameworkBuilder>(PluginType.Framework, "framework.web.bootstrap")
+//        val view = igm.getView(viewModel.qid.toString())
+        builder.buildView(viewModel, igm, templateContext)
+
+//        val layout = viewModel.definition.properties.find { it.key == "layout" }
+//        view.layout = layout?.let { propertyToNode(it, templateContext) }!!
     }
 
     private fun propertyToNode(prop: Property, templateContext: Map<String, String>): IGMView.IGMNode {

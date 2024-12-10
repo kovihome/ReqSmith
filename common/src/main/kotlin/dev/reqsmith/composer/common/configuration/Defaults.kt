@@ -43,4 +43,9 @@ object Defaults {
      * Default build system
      */
     var buildsys = "gradle"
+
+    /**
+     * Default framework
+     */
+    var framework = "framework.web.bootstrap"
 }

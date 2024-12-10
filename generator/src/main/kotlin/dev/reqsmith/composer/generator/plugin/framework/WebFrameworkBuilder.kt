@@ -20,11 +20,38 @@ package dev.reqsmith.composer.generator.plugin.framework
 
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.composer.common.templating.Template
+import dev.reqsmith.composer.generator.entities.IGMView
+import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
+import dev.reqsmith.composer.parser.entities.Property
+import dev.reqsmith.composer.parser.entities.View
+import dev.reqsmith.composer.parser.enumeration.StandardTypes
 
-class WebFrameworkBuilder : BaseFrameworkBuilder() {
+open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
     override fun definition(): PluginDef {
         return PluginDef("framework.web", PluginType.Framework)
     }
+
+    override fun buildView(viewModel: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
+        val view = igm.getView(viewModel.qid.toString())
+        val layout = viewModel.definition.properties.find { it.key == "layout" }
+        view.layout = layout?.let { propertyToNode(it, templateContext) }!!
+    }
+
+    private fun propertyToNode(prop: Property, templateContext: Map<String, String>): IGMView.IGMNode {
+        val node = IGMView.IGMNode().apply {
+            name = prop.key!!
+        }
+        val template = Template()
+        if (prop.type == StandardTypes.propertyList.name) {
+            node.attributes.addAll(prop.simpleAttributes.filter { it.type != StandardTypes.propertyList.name }.map { it.key!! to (it.value ?: "")})
+            prop.simpleAttributes?.filter{ it.type == StandardTypes.propertyList.name }?.forEach { node.children.add(propertyToNode(it, templateContext)) }
+        } else if (prop.value?.isNotBlank() == true) {
+            node.text = template.translate(templateContext, prop.value!!)
+        }
+        return node
+    }
+
 
 }

@@ -18,6 +18,12 @@
 
 package dev.reqsmith.composer.common.plugin
 
+/**
+ * Plugin definition
+ * @param name Plugin name
+ * @param type The type of the plugin, defined in PluginType enum
+ * @param compatibility Compatibility of this plugin for every plugin types
+ */
 class PluginDef(val name: String, val type: PluginType, val compatibility: Map<PluginType, List<String>> = mapOf()) {
 
 }

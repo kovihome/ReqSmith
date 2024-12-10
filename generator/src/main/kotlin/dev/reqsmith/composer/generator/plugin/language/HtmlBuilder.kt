@@ -27,7 +27,7 @@ import dev.reqsmith.composer.generator.entities.IGMView
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
 
-class HtmlBuilder: LanguageBuilder, Plugin {
+open class HtmlBuilder: LanguageBuilder, Plugin {
     override val extension: String = "html"
     override val language: String = "html"
 
@@ -38,6 +38,25 @@ class HtmlBuilder: LanguageBuilder, Plugin {
     override fun createView(view: IGMView): String {
         // build source code in string builder
         return createHTML().html {
+            head {
+                meta { charset = Charsets.UTF_8.name() }
+                meta {
+                    name = "viewport"
+                    content = "width=device-width, initial-scale=1.0"
+                }
+                title { text(view.id) }
+                view.imports.filter { it.endsWith(".css") }.forEach {
+                    link {
+                        href = it
+                        rel = "stylesheet"
+                    }
+                }
+                view.imports.filter { it.endsWith(".js") }.forEach {
+                    script {
+                        src = it
+                    }
+                }
+            }
             body {
                 unsafe {
                     raw(createNode(view.layout))
@@ -46,7 +65,7 @@ class HtmlBuilder: LanguageBuilder, Plugin {
         }
     }
 
-    private fun createNode(node: IGMView.IGMNode): String {
+    fun createNode(node: IGMView.IGMNode): String {
         if (node.children.isNotEmpty()) {
             return createHTML().div {
                 id = node.name
@@ -56,10 +75,31 @@ class HtmlBuilder: LanguageBuilder, Plugin {
             }
         } else {
             return when (node.name) {
-                "image" -> createHTML(true).img(src = node.text)
-                "text" -> createHTML(true).p { text(node.text) }
+                "header" -> createHeader(node)
+                "footer" -> createFooter(node)
+                "panel" -> createPanel(node)
+//                "image" -> createHTML(true).img(src = node.text)
+//                "text" -> createHTML(true).p { text(node.text) }
                 else -> createHTML(true).p { text("Unknown node: ${node.name}") }
             }
+        }
+    }
+
+    open fun createPanel(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
+        }
+    }
+
+    open fun createFooter(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
+        }
+    }
+
+    open fun createHeader(node: IGMView.IGMNode): String {
+        return createHTML(true).div { 
+            
         }
     }
 

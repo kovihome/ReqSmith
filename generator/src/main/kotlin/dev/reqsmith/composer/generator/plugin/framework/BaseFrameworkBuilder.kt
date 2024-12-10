@@ -24,6 +24,7 @@ import dev.reqsmith.composer.generator.entities.IGMAction
 import dev.reqsmith.composer.generator.entities.IGMClass
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.parser.entities.Property
+import dev.reqsmith.composer.parser.entities.View
 
 open class BaseFrameworkBuilder : DefaultFrameworkBuilder() {
 
@@ -46,6 +47,10 @@ open class BaseFrameworkBuilder : DefaultFrameworkBuilder() {
             else -> super.processEvent(prop, cls, igm)
         }
 
+    }
+
+    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
+        TODO("Not yet implemented")
     }
 
 }

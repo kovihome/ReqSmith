@@ -26,6 +26,7 @@ import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.parser.entities.Application
 import dev.reqsmith.composer.parser.entities.Definition
 import dev.reqsmith.composer.parser.entities.Property
+import dev.reqsmith.composer.parser.entities.View
 
 open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
 
@@ -34,11 +35,11 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
     }
 
     override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
-        val cls = igm.getClass(app.qid.toString())
-        cls.mainClass = true
+        processEvents(app.definition, igm.getClass(app.qid.toString()).apply { mainClass = true }, igm)
+    }
 
-        processEvents(app.definition, cls, igm)
-
+    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
+        TODO("Not yet implemented")
     }
 
     private fun processEvents(definition: Definition, cls: IGMClass, igm: InternalGeneratorModel) {

@@ -6,3 +6,4 @@ applicationType: applications.CommandLineApplication
 propertyType: String
 language: kotlin
 buildsys: gradle
+framework: framework.web.bootstrap

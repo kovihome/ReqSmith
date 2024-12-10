@@ -34,7 +34,7 @@ import java.util.*
 
 class Generator(private val project: Project, private val reqMSource: ReqMSource, private val appHome: String, private val lang: String) {
 
-    private val langBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, lang)     // LanguageBuilder.get(lang)
+    private val langBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, lang)
     private val srcPath = project.srcPath(lang)
 
     fun generate(): Boolean {
@@ -56,9 +56,8 @@ class Generator(private val project: Project, private val reqMSource: ReqMSource
         val success = CodeGenerator(langBuilder, project).generate(igm, getFileHeader())
 
         // generate views
-        val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, "html") // TODO: manage default language
+        val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, "html.bootstrap") // TODO: manage default language
         val successView = ViewGenerator(viewLangBuilder, project).generate(igm)
-
 
         // update build script
         generateBuildScripts()
