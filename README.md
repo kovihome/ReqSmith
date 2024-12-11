@@ -10,16 +10,10 @@
 2. **Automatically generate source code** based on the requirements.
 3. **Leverage pre-built building blocks**, which are modular components that include software design patterns, best practices and predefined solutions, along with requirements and generators.
 
-> **ℹ️ Information:** ReqSmith is in its **proof-of-concept state**. While we've taken the first steps toward building a revolutionary application development tool, **it’s not fully functional yet**. This is just the beginning of a journey to create a platform that generates complete, high-quality source code based on user requirements for any programming language or framework. \
-> \
-> To achieve the full potential of ReqSmith, we need **your help**! Here's how you can contribute:
-> 
-> - **Donate**: Help support development and bring ReqSmith closer to a fully functional version. Every contribution, big or small, helps us move faster. \
-> 
-> - **Contribute**: Join the development effort by contributing code, plugins, modules, or documentation. Check out the Contributing Guide for details.
-
----
-
+| **ℹ️ Important Notice:** |
+| :----------------- |
+| ReqSmith is in its **proof-of-concept state**.<br>While we've taken the first steps toward building a revolutionary application development tool, **it’s not fully functional yet**. This is just the beginning of a journey to create a platform that generates complete, high-quality source code based on user requirements for any programming language or framework.<br><br>To achieve the full potential of ReqSmith, we need **your help**! Here's how you can contribute:<br><br><ul><li>**Donate**: Help support development and bring ReqSmith closer to a fully functional version. Every contribution, big or small, helps us move faster.</li><li>**Contribute**: Join the development effort by contributing code, plugins, modules, or documentation. Check out the Contributing Guide for details.</li></ul> |
+  
 ## **Features**
 
 - **Requirement Modeling**:  
@@ -37,17 +31,13 @@
 - **Flexible Generators**:  
   ReqSmith supports custom generators, allowing users to create their own functionalities.
 
----
-
 ## Useful information
 
-- Getting started with ReqSmith
+- [Getting started with ReqSmith](https://github.com/kovihome/ReqSmith/wiki/Getting-Started)
 - [Documentation (on wiki pages)](https://github.com/kovihome/ReqSmith/wiki)
 - Release notes
 - FAQ
 - For developers
-
----
 
 ## **Use Cases**
 
@@ -63,8 +53,6 @@ Based on the requirements, ReqSmith can generate:
 The modular approach enables integration of design patterns.
 
 These patterns adapt automatically to the requirement models.
-
----
 
 ## **Installation**
 
@@ -88,7 +76,6 @@ These patterns adapt automatically to the requirement models.
    ```bash
    unzip ./app/build/distributions/composer-0.1.0.zip -d any-folder-you-want
    ```
----
 
 ## **How to Use**
 
@@ -155,8 +142,6 @@ fun main(args: Array<String>) {
 }
 ```
 
----
-
 ## **Additional Features**
 
 - **Extensibility**:  
@@ -168,8 +153,6 @@ fun main(args: Array<String>) {
 - **CI/CD Support**:  
   The application can be configured to work in automated environments, such as Jenkins or GitHub Actions.
 
----
-
 ## **Contribution**
 
 We welcome community contributions! If you want to improve ReqSmith:
@@ -180,13 +163,9 @@ We welcome community contributions! If you want to improve ReqSmith:
    ```
 3. Submit a pull request with your changes.
 
----
-
 ## **License**
 
 This project is licensed under the [GNU GPL V3 License](./LICENSE). See the license file for details.
-
----
 
 ## **Contact**
 
