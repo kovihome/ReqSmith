@@ -48,7 +48,7 @@ open class IGMAction(val actionId: String) {
                    if ((value.startsWith('\'') and value.endsWith('\'')) || (value.startsWith('\"') and value.endsWith('\"')))
                        "\"${value.substring(1, value.length-1)}\""
                    else
-                       "\"$value\""
+                       value
                 }
                 StandardTypes.stringLiteral.name -> {
                     "\"${value.substring(1, value.length-1)}\""

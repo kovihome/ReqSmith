@@ -79,7 +79,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
                         val clsVar = cls.lowercase()
                         sb.append("val $clsVar = $cls()\n$pre2$clsVar.")
                     }
-                    sb.append("$func (${params.joinToString(",") { p -> p.format() }})")
+                    sb.append("$func(${params.joinToString(",") { p -> p.format() }})")
                 }
                 "print" -> {
                     sb.append("println (${st.parameters.joinToString(",") { p -> p.format() }})")
@@ -94,11 +94,13 @@ class KotlinBuilder : LanguageBuilder, Plugin {
     }
 
     override fun addClass(cls: IGMClass, indent: Int): String {
-//        println("add class ${qid}")
         val pre = prefix(indent)
+        val sb = StringBuilder()
+        // start with annotations
+        cls.annotations.forEach { sb.append("$pre@$it\n") }
         // class signature
         val clsname = cls.id.substringAfterLast('.')
-        val sb = StringBuilder("${pre}class $clsname")
+        sb.append("${pre}class $clsname")
         if (cls.parent.isNotBlank()) {
             sb.append(" : ${cls.parent}")
         }

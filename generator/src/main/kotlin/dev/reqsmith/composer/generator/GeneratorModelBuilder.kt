@@ -163,7 +163,8 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
 
     private fun createApplication(app: Application, igm: InternalGeneratorModel): Boolean {
 
-        val builder = getGenerator(app.qid.toString())
+        // TODO: manage plugins and defaults correctly
+        val builder = getGenerator("framework.web.spring")// getGenerator(app.qid.toString())
         builder.buildApplication(app, igm)
 
         val cls = igm.getClass(app.qid.toString())

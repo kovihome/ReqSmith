@@ -23,6 +23,8 @@ class IGMClass(val id: String) {
     var mainClass: Boolean = false
     val actions : MutableMap<String, IGMAction> = HashMap()
     val members: MutableMap<String, IGMClassMember> = HashMap()
+    val annotations: MutableList<String> = ArrayList()
+    val imports: MutableList<String> = ArrayList()
 
     fun getAction(actionId: String): IGMAction {
         return actions.getOrPut(actionId) { IGMAction(actionId) }
@@ -40,6 +42,12 @@ class IGMClass(val id: String) {
         members.forEach { sb.append("${it.value}\n") }
         actions.forEach { sb.append("${it.value}\n") }
         return sb.toString()
+    }
+
+    fun addImport(import: String) {
+        if (!imports.contains(import)) {
+            imports.add(import)
+        }
     }
 
 }

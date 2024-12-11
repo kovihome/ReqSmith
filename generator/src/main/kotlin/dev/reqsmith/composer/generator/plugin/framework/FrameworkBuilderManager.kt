@@ -38,7 +38,7 @@ object FrameworkBuilderManager {
     }
 
     fun getBuilder(moduleId: String) : FrameworkBuilder {
-        val generatorId = modules[moduleId] ?: "framework.default"
+        val generatorId = modules[moduleId] ?: "framework.web.spring"// "framework.default"
         return generators.getOrPut(generatorId) { PluginManager.get<FrameworkBuilder>(PluginType.Framework, generatorId) }
     }
 

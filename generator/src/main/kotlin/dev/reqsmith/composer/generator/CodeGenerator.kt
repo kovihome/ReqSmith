@@ -121,6 +121,7 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
                 imports.add(it.value.type)
             }
         }
+        cls.imports.forEach { imports.add(it) }
 
         // TODO: sort imports
 
