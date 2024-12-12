@@ -32,4 +32,6 @@ interface LanguageBuilder {
     fun addImport(imported: String, indent: Int = 0): String
     fun createView(view: IGMView): String
 
+    fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>)
+
 }

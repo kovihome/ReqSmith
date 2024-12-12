@@ -30,7 +30,12 @@ import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
 import dev.reqsmith.composer.parser.entities.ReqMSource
 import java.util.*
 
-class Generator(private val project: Project, private val reqMSource: ReqMSource, private val appHome: String, private val lang: String) {
+class Generator(
+    private val project: Project,
+    private val reqMSource: ReqMSource,
+    private val appHome: String,
+    private val lang: String
+) {
 
     private val langBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, lang)
     private val srcPath = project.srcPath(lang)
@@ -58,7 +63,25 @@ class Generator(private val project: Project, private val reqMSource: ReqMSource
         }
 
         // update build script
-        generateBuildScripts()
+//        val buildScriptUpdates = mapOf(
+//            "plugins" to listOf(
+//                "org.springframework.boot:3.4.0",
+//                "io.spring.dependency-management:1.1.6"
+//            ),
+//            "dependencies" to listOf(
+//                "org.springframework.boot:spring-boot-starter-web",
+//                "com.fasterxml.jackson.module:jackson-module-kotlin",
+//                "org.jetbrains.kotlin:kotlin-reflect"
+//            )
+//        )
+        val buildScriptUpdates = mapOf(
+            "plugins" to mutableListOf<String>(),
+            "dependencies" to mutableListOf()
+        )
+        langBuilder.collectBuildScriptElement(buildScriptUpdates)
+        gmb.codeBuilder?.collectBuildScriptElement(buildScriptUpdates)
+
+        generateBuildScripts(buildScriptUpdates)
 
         return success.and(successView)
     }
@@ -66,9 +89,9 @@ class Generator(private val project: Project, private val reqMSource: ReqMSource
     /**
      * Generate/update build script
      */
-    private fun generateBuildScripts() {
+    private fun generateBuildScripts(buildScriptUpdates: Map<String, List<String>>) {
         val version = reqMSource.applications[0].definition.properties.find { it.key == "version" }?.value ?: "0.1.0"
-        project.updateBuildScript(appHome, lang, reqMSource.applications[0].qid.toString(), version)
+        project.updateBuildScript(appHome, lang, reqMSource.applications[0].qid.toString(), version, buildScriptUpdates)
     }
 
 //    private fun getImports(qid: QualifiedId, definition: Definition): String {
@@ -92,9 +115,11 @@ class Generator(private val project: Project, private val reqMSource: ReqMSource
         // TODO: use different licence model templates
         val thisApplication = reqMSource.applications[0]
         val appName = thisApplication.qid?.id ?: "NamelessApplication"
-        val description = thisApplication.definition.properties.find { it.key == "description" }?.value ?: "No description"
+        val description =
+            thisApplication.definition.properties.find { it.key == "description" }?.value ?: "No description"
         val author = thisApplication.definition.properties.find { it.key == "author" }?.value ?: "Author"
-        val authorMail = thisApplication.definition.properties.find { it.key == "author-mail" }?.value ?: "author@reqsmith.dev"
+        val authorMail =
+            thisApplication.definition.properties.find { it.key == "author-mail" }?.value ?: "author@reqsmith.dev"
         val context = mapOf(
             "appName" to appName,
             "description" to description,

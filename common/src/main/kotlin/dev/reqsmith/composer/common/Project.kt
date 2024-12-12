@@ -131,7 +131,23 @@ class Project(var projectFolder: String?, private val buildSystem: BuildSystem) 
 
     fun srcPath(language: String): String = "$buildFolder/${buildSystem.sourceFolder}/$language"
 
-    fun updateBuildScript(appHome: String, language: String, mainClass: String, appVersion: String) {
+    fun updateBuildScript(
+        appHome: String,
+        language: String,
+        mainClass: String,
+        appVersion: String,
+        buildScriptUpdates: Map<String, List<String>>
+    ) {
+        val plugins = buildScriptUpdates["plugins"]!!
+        val pluginsBlock = plugins.joinToString("\n") {
+            if (it.startsWith("id:"))
+                "    id(\"${it.substring(3).substringBefore(":")}\") version \"${it.substringAfterLast(":")}\""
+            else
+                "    ${it.substringBefore(":")} version \"${it.substringAfterLast(":")}\""
+        }
+        val dependecies = buildScriptUpdates["dependencies"]!!
+        val dependenciesBlock = dependecies.joinToString("\n") { "    implementation(\"$it\")" }
+
         val params = mutableMapOf (
             "composerCommand" to "${appHome.replace('\\', '/')}/bin/composer".replace("//", "/"),
             "projectName" to mainClass.substringAfterLast('.').lowercase(),
@@ -140,7 +156,9 @@ class Project(var projectFolder: String?, private val buildSystem: BuildSystem) 
             "projectRootFolder" to projectFolder!!,
             "language" to language,
             "reqmSourceDir" to inputFolder!!,
-            "reqmOutputDir" to outputFolder!!
+            "reqmOutputDir" to outputFolder!!,
+            "plugins" to pluginsBlock,
+            "dependencies" to dependenciesBlock
         )
         buildSystem.updateBuildScript(params)
     }

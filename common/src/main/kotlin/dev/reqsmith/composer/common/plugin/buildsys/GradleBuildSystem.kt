@@ -33,6 +33,10 @@ class GradleBuildSystem : BuildSystem, Plugin {
 
     private val taskName = "composeReqm"
 
+    override fun definition(): PluginDef {
+        return PluginDef("gradle", PluginType.BuildSystem)
+    }
+
     override fun updateBuildScript(params: MutableMap<String, String>) {
         // create compose task script
         val cmd = params["composerCommand"] ?: "composer"
@@ -44,15 +48,15 @@ class GradleBuildSystem : BuildSystem, Plugin {
 
         // check gradle build script existence
         val script = File("${projectRootFolder}/build.gradle.kts")
-        if (!script.exists()) {
+//        if (!script.exists()) {
             // create new build script
             val s = Template().translateFile(params, "templates/build.gradle.st")
-            FileWriter(script).use {
+            FileWriter(script, false).use {
                 it.write(s)
 //                it.write(taskScript)
             }
-        } else {
-            FileReader(script).useLines { scl ->
+//        } else {
+//            FileReader(script).useLines { scl ->
                 // TODO: update dependencies, plugins, etc. if changed
 //                if (scl.none { it.contains("tasks.register(\"${taskName}\")") }) {
 //                    // build script exists, but it does not contain reqm composer task
@@ -60,8 +64,8 @@ class GradleBuildSystem : BuildSystem, Plugin {
 //                        it.append(taskScript)
 //                    }
 //                }
-            }
-        }
+//            }
+//        }
 
         // check gradle settings script existence
         val settings = File("${projectRootFolder}/settings.gradle.kts")
@@ -72,10 +76,6 @@ class GradleBuildSystem : BuildSystem, Plugin {
                 it.write(s)
             }
         }
-    }
-
-    override fun definition(): PluginDef {
-        return PluginDef("gradle", PluginType.BuildSystem)
     }
 
 }

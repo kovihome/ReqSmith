@@ -38,6 +38,12 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         return PluginDef(language, PluginType.Language)
     }
 
+    override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
+        buildScriptUpdates["plugins"]?.addAll(listOf(
+            "kotlin(\"jvm\"):2.0.20"
+        ))
+    }
+
     private fun prefix(size : Int) : String = if (size > 0) " ".repeat(size) else ""
 
     private fun typeMapper(type : String?) : String = when (type) {

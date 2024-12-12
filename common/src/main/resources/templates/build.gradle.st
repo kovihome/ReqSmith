@@ -7,12 +7,16 @@
 version = "<version>"
 
 plugins {
-    kotlin("jvm") version "2.0.20"
     application
+<plugins>
 }
 
 repositories {
     mavenCentral()
+}
+
+dependencies {
+<dependencies>
 }
 
 kotlin {

@@ -65,6 +65,10 @@ open class HtmlBuilder: LanguageBuilder, Plugin {
         }
     }
 
+    override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
+        TODO("Not yet implemented")
+    }
+
     private fun createNode(node: IGMView.IGMNode): String {
         return if (node.children.isNotEmpty()) {
             createHTML().div {

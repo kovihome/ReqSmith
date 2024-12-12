@@ -53,6 +53,10 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         }
     }
 
+    override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
+        TODO("Not yet implemented")
+    }
+
     override fun createPanel(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         return createHTML(true).div {

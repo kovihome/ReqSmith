@@ -39,4 +39,5 @@ interface FrameworkBuilder {
     fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>)
 
     fun getViewLanguage(): String
+    fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>)
 }

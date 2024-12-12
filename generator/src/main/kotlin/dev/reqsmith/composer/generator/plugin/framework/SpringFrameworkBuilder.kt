@@ -39,9 +39,25 @@ class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         appClass.addImport("org.springframework.boot.autoconfigure.SpringBootApplication")
 
         val mainAction = appClass.getAction("main")
+        // TODO a generic paraméter megadásának legyen külön módja
+        // TODO a *args-t is valami módosítóval lehessen megadni
         val call = IGMAction.IGMActionStmt("call").withParam("runApplication<${app.qid!!.id}>").withParam("*${mainAction.parameters[0].name}")
         mainAction.statements.add(call)
         appClass.addImport("org.springframework.boot.runApplication")
+    }
+
+    override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
+        super.collectBuildScriptElement(buildScriptUpdates)
+        buildScriptUpdates["plugins"]?.addAll(listOf(
+                "kotlin(\"plugin.spring\"):2.0.20", // TODO ez függ a nyelvtől
+                "id:org.springframework.boot:3.4.0",
+                "id:io.spring.dependency-management:1.1.6"
+        ))
+        buildScriptUpdates["dependencies"]?.addAll(listOf(
+                "org.springframework.boot:spring-boot-starter-web",
+                "com.fasterxml.jackson.module:jackson-module-kotlin",
+                "org.jetbrains.kotlin:kotlin-reflect"
+        ))
     }
 
 }
