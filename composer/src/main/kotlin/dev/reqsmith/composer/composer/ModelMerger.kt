@@ -153,7 +153,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 if (depView != null) {
                     it.type = StandardTypes.propertyList.name
                     it.simpleAttributes.addAll(depView.definition.properties.filter { p -> p.type != StandardTypes.propertyList.name })
-                    // TODO: warning
                     Log.warning("View layout element ${it.key} is undefined, but found in dependencies; attributes merged")
                 } else {
                     // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni

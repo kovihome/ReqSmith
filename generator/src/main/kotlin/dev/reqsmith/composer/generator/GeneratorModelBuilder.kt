@@ -18,28 +18,54 @@
 
 package dev.reqsmith.composer.generator
 
+import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.entities.IGMAction
 import dev.reqsmith.composer.generator.entities.IGMClass
-import dev.reqsmith.composer.generator.entities.IGMView
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilder
-import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilderManager
 import dev.reqsmith.composer.parser.entities.*
 import dev.reqsmith.composer.parser.enumeration.StandardTypes
 
 class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
     private val appRootPackage = reqMSource.applications[0].qid?.domain ?: "com.sample.app"
+    var viewGeneratorName = ""
+    var codeBuilder: FrameworkBuilder? = null
+    var viewBuilder: FrameworkBuilder? = null
+
+    fun determineBuilders() {
+        // determine code generator
+        val app = reqMSource.applications[0]
+        var generatorName = app.definition.properties.find { it.key == "generator" }?.value ?: "framework.base"
+        codeBuilder = determineFrameworkBuilder(generatorName)
+
+        // determine view builder
+        val viewLang = codeBuilder!!.getViewLanguage()
+        val plugin = ConfigManager.defaults[viewLang]
+        viewBuilder = if (plugin != null) {
+            PluginManager.get<FrameworkBuilder>(PluginType.Framework, "$generatorName.$plugin")
+        } else {
+            codeBuilder
+        }
+
+        //
+        if (plugin != null) {
+            viewGeneratorName = "$viewLang.$plugin"
+        }
+    }
 
     fun build(): InternalGeneratorModel {
         // create internal generator model
         val igm = InternalGeneratorModel(appRootPackage)
 
+        // determine code and view generator
+        determineBuilders()
+
         // create application
         val app = reqMSource.applications[0]
-        createApplication(app, igm)
+        createApplication(app, igm, codeBuilder!!)
 
         // create classes for classes
         reqMSource.classes.forEach {
@@ -57,13 +83,12 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
         reqMSource.actions.forEach { createAction(it, igm, templateContext) }
 
         // create view descriptors
-        reqMSource.views.forEach { createView(it, igm, templateContext) }
+        reqMSource.views.forEach { createView(it, igm, templateContext, viewBuilder!!) }
 
         return igm
     }
 
-    private fun createView(viewModel: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
-        val builder = PluginManager.get<FrameworkBuilder>(PluginType.Framework, "framework.web.bootstrap")
+    private fun createView(viewModel: View, igm: InternalGeneratorModel, templateContext: Map<String, String>, builder: FrameworkBuilder) {
         builder.buildView(viewModel, igm, templateContext)
     }
 
@@ -161,20 +186,18 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
 
     }
 
-    private fun createApplication(app: Application, igm: InternalGeneratorModel): Boolean {
-
-        // TODO: manage plugins and defaults correctly
-        val builder = getGenerator("framework.web.spring")// getGenerator(app.qid.toString())
+    private fun createApplication(app: Application, igm: InternalGeneratorModel, builder: FrameworkBuilder): Boolean {
         builder.buildApplication(app, igm)
-
-        val cls = igm.getClass(app.qid.toString())
-        cls.mainClass = true
-
+        igm.getClass(app.qid.toString()).apply {
+            mainClass = true
+        }
         return true
     }
 
-    private fun getGenerator(moduleId: String): FrameworkBuilder {
-        return FrameworkBuilderManager.getBuilder(moduleId)
+    private fun determineFrameworkBuilder(generatorName: String): FrameworkBuilder {
+        var impl = ConfigManager.defaults[generatorName]
+        impl = if (!impl.isNullOrBlank()) "$generatorName.$impl" else generatorName
+        return PluginManager.get<FrameworkBuilder>(PluginType.Framework, impl)
     }
 
     private fun addActionToClass(actionName: String, cls: IGMClass, templateContext: Map<String, String>) {

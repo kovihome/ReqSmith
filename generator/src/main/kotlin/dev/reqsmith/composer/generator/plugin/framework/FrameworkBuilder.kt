@@ -37,4 +37,6 @@ interface FrameworkBuilder {
      * @param templateContext Templating context to substitute string values
      */
     fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>)
+
+    fun getViewLanguage(): String
 }

@@ -110,7 +110,7 @@ class Project(var projectFolder: String?, private val buildSystem: BuildSystem) 
         return true
     }
 
-    fun getSourceFiles(): MutableList<String> {
+    fun getSourceFiles(): List<String> {
         val filenames : MutableList<String> = ArrayList()
         val infolder = File(inputFolder!!)
         if (infolder.isDirectory) {

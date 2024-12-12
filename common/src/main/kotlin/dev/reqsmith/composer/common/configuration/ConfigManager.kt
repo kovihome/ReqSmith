@@ -34,7 +34,18 @@ import kotlin.io.path.Path
  * Configuration manager singleton
  */
 object ConfigManager {
-    var defaults = Defaults
+//    var defaults = Defaults
+    var defaults = mapOf(
+        "domainName" to "dev.reqsmith.sample",
+        "applicationType" to "applications.CommandLineApplication",
+        "propertyType" to "String",
+
+        "framework.base" to "",
+        "framework.web" to "spring",
+        "language" to "kotlin",
+        "html" to "bootstrap",
+        "buildsys" to "gradle"
+    )
 
     private val dumpOpt = DumperOptions().apply {
         isCanonical = false
@@ -47,9 +58,9 @@ object ConfigManager {
         isDereferenceAliases = true
     }
     private val representer = Representer(dumpOpt).apply {
-        addClassTag(Defaults.javaClass, Tag.MAP)
+        addClassTag(defaults.javaClass, Tag.MAP)
     }
-    private val yaml = Yaml(Constructor(Defaults.javaClass, LoaderOptions()), representer, dumpOpt)
+    private val yaml = Yaml(Constructor(defaults.javaClass, LoaderOptions()), representer, dumpOpt)
 
     private const val DEFAULTS_FILE_NAME = "defaults.yaml"
     private const val DEFAULTS_HEADER = "#\n# ReqSmith::composer configuration for default values\n#\n\n"

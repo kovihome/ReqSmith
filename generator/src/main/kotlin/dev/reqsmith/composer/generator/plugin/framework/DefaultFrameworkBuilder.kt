@@ -34,6 +34,8 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
         return PluginDef("framework.default", PluginType.Framework)
     }
 
+    override fun getViewLanguage(): String = ""
+
     override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
         processEvents(app.definition, igm.getClass(app.qid.toString()).apply { mainClass = true }, igm)
     }

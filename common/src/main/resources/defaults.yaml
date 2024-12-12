@@ -4,6 +4,9 @@
 domainName: dev.reqsmith.sample
 applicationType: applications.CommandLineApplication
 propertyType: String
+
+framework.base:
+framework.web: spring
 language: kotlin
+html: bootstrap
 buildsys: gradle
-framework: framework.web.bootstrap

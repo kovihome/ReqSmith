@@ -28,13 +28,14 @@ class ModelValidator {
 
     fun validateCompleteness(model: ReqMSource): Boolean {
         // Search for typeless properties, and assign default type to them
-        model.applications.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, "string") }
-        model.modules.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, "string") }
-        model.actors.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, ConfigManager.defaults.propertyType) }
-        model.classes.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, ConfigManager.defaults.propertyType) }
-        model.entities.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, ConfigManager.defaults.propertyType) }
+        val defPropertyType = ConfigManager.defaults["propertyType"] ?: "String"
+        model.applications.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, defPropertyType) }
+        model.modules.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, defPropertyType) }
+        model.actors.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, defPropertyType) }
+        model.classes.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, defPropertyType) }
+        model.entities.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, defPropertyType) }
 
-        // find orfan actions
+        // find orphan actions
         model.actions.filter { it.owner == null }.forEach { Log.warning("Action ${it.qid} has no owner (application, module)") }
 
         // TODO search for missing reference in srcRef (applications and modules? excluded), property types, features
@@ -66,12 +67,12 @@ class ModelValidator {
         if (reqmsrc.applications.isNotEmpty()) {
             val app = reqmsrc.applications[0]
             if (app.qid?.domain.isNullOrBlank()) {
-                Log.warning("application ${app.qid} has no domain name; set the default domain name ${ConfigManager.defaults.domainName} to it.")
-                app.qid?.domain = ConfigManager.defaults.domainName
+                Log.warning("application ${app.qid} has no domain name; set the default domain name ${ConfigManager.defaults["domainName"]} to it.")
+                app.qid?.domain = ConfigManager.defaults["domainName"]
             }
             if (app.sourceRef == null || app.sourceRef == QualifiedId.Undefined) {
-                Log.warning("application ${app.qid} has no application type; set the default application type ${ConfigManager.defaults.applicationType}")
-                app.sourceRef = QualifiedId.fromString(ConfigManager.defaults.applicationType)
+                Log.warning("application ${app.qid} has no application type; set the default application type ${ConfigManager.defaults["applicationType"]}")
+                app.sourceRef = QualifiedId.fromString(ConfigManager.defaults["applicationType"] ?: "QualifiedId.Undefined")
             }
         }
 
@@ -147,6 +148,6 @@ class ModelValidator {
             } else {
                 "action ${it.qid} owner ${it.owner} referenced twice to it"
             }
-        } ?: null
+        }
     }
 }

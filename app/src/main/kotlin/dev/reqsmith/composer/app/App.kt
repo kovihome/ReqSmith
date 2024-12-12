@@ -46,9 +46,9 @@ class App(private val args: Array<String>) {
     // general options
     private val projectDir by argParser.argument(ArgType.String, description = "project root directory (default: ./").optional()
     private val buildSystemName by argParser.option(fullName = "build", shortName = "b", type = ArgType.String, description = "build system name").default(
-        ConfigManager.defaults.buildsys)
+        ConfigManager.defaults["buildsys"] ?: "gradle")
     private val language by argParser.option(fullName = "language", shortName = "l", type = ArgType.String, description = "language for generated source code").default(
-        ConfigManager.defaults.language)
+        ConfigManager.defaults["language"] ?: "kotlin")
     private val info by argParser.option(fullName = "info", type = ArgType.Boolean, description = "info log level")
     private val debug by argParser.option(fullName = "debug", type = ArgType.Boolean, description = "debug log level")
 
@@ -157,6 +157,7 @@ fun main(args: Array<String>) {
     val elapsedTime = measureTimeMillis {
 
         // load default values first
+        // TODO
         ConfigManager.load(System.getenv("APP_HOME") ?: ".")
 
         // create the app
