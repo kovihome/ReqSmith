@@ -40,7 +40,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         classes = setOf("me-3")
                         src = "$artPathPrefix/${attr["logo"]}"
                         alt = "logo"
-                        style = "width: 50px; height: 50px;"
+//                        style = "width: 50px; height: 50px;"
                         viewArts.add(attr["logo"]!!)
                     }
                 }
@@ -64,7 +64,16 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
             classes = setOf("container", "mt-4")
             if (attr.contains("text")) {
                 p {
-                    text(attr["text"]!!)
+                    // write multiline text
+                    val texts = attr["text"]!!.split("\\n")
+                    text(texts[0])
+                    if (texts.size > 1) {
+                        texts.subList(1, texts.size).forEach {
+                            br()
+                            text(it)
+                        }
+                    }
+                    // --------------------
                 }
             }
 
@@ -74,7 +83,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun createFooter(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         return createHTML(true).footer {
-            classes = setOf("bg-dark", "text-white", "py-4", "mt-5")
+            classes = setOf("bg-dark", "text-white", "py-4", "mt-5", "fixed-bottom")
             div {
                 classes = setOf("container")
                 div {
@@ -99,7 +108,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     // footer info
                     div {
                         classes = setOf("col-md-6", "text-md-end")
-                        listOf("&copy; 2024 ReqSmith Ltd. All rights reserved.", "Powered by Bootstrap.").forEach {
+                        listOf("\\&copy; 2024 ReqSmith Ltd. All rights reserved.", "Powered by Bootstrap.").forEach {
                             p {
                                 classes = setOf("mb-0")
                                 text(it)

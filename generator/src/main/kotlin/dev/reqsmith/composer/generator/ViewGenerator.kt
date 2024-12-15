@@ -20,6 +20,7 @@ package dev.reqsmith.composer.generator
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.entities.IGMView
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
@@ -31,11 +32,19 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val projec
 
     private fun String.toPath():String = this.replace('.', '/')
 
-    fun generate(igm: InternalGeneratorModel): Boolean {
+    fun generate(igm: InternalGeneratorModel, welcomePage: String): Boolean {
         langBuilder.artPathPrefix = "art"
 
         // generate view files
         igm.views.forEach { buildView(it.value) }
+
+        // generate index.html page
+        if (!igm.views.containsKey("index")) {
+            val context = mapOf( "WelcomePage" to welcomePage)
+            val indexContent = Template().translateFile(context, "templates/index.html.st")
+            FileWriter("$viewResourceFolderName/index.html", false).use { it.write(indexContent) }
+            Log.info("Generating view $viewResourceFolderName/index.html")
+        }
 
         return true
     }

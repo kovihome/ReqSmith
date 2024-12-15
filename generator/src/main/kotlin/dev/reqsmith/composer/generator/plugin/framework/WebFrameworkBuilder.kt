@@ -50,7 +50,10 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
         val template = Template()
         if (prop.type == StandardTypes.propertyList.name) {
             node.attributes.addAll(prop.simpleAttributes.filter { it.type != StandardTypes.propertyList.name }.map {
-                val value = it.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                var value = it.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                if (it.key == "text") {
+                    value = template.translate(templateContext, value)
+                }
                 it.key!! to value
             })
             prop.simpleAttributes.filter{ it.type == StandardTypes.propertyList.name }

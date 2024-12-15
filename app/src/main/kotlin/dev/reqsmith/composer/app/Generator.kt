@@ -63,7 +63,8 @@ class Generator(
             val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, gmb.viewGeneratorName)
             val viewResourceFolderName = "$resourcesFolderName/${gmb.suggestedWebFolderName}"
             val viewGenerator = ViewGenerator(viewLangBuilder, project, viewResourceFolderName)
-            successView = viewGenerator.generate(igm)
+            val welcomePage = reqMSource.applications[0].definition.properties.find { it.key == "startView" }?.value ?: "WelcomePage"
+            successView = viewGenerator.generate(igm, welcomePage)
 
             val successCopy = viewGenerator.copyArts()
 
