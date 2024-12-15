@@ -45,6 +45,12 @@ interface FrameworkBuilder {
     fun getViewLanguage(): String
 
     /**
+     * Get the folder name of view resources (web pages, etc.)
+     * @return The view folder name, relative to resources folder
+     */
+    fun getViewFolder(): String
+
+    /**
      * Returns build script elements (plugins, dependecies) belongs to this framework
      * @param buildScriptUpdates The elements of the build script
      */

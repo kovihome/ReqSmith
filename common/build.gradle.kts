@@ -29,7 +29,5 @@ dependencies {
     implementation(libs.snakeyaml)
     implementation(libs.antlr)
 
-//    runtimeOnly("org.slf4j:slf4j-nop:2.0.16") // thymeleaf logging provider
     runtimeOnly(libs.slf4j) // thymeleaf logging provider
 }
-

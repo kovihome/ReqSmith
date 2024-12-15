@@ -26,10 +26,13 @@ import dev.reqsmith.composer.generator.entities.IGMEnumeration
 import dev.reqsmith.composer.generator.entities.IGMView
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
+import java.nio.file.Path
 
-open class HtmlBuilder: LanguageBuilder, Plugin {
+open class HtmlBuilder : LanguageBuilder, Plugin {
     override val extension: String = "html"
     override val language: String = "html"
+    override var artPathPrefix: String = ""
+    override val viewArts: MutableList<String> = ArrayList()
 
     override fun definition(): PluginDef {
         return PluginDef(language, PluginType.Language)

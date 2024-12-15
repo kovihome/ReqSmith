@@ -22,6 +22,7 @@ dependencies {
 kotlin {
     sourceSets["main"].apply {
         kotlin.srcDir("build/src/main/kotlin")
+        resources.srcDir(listOf("build/src/main/resources"))
     }
 }
 
@@ -31,3 +32,7 @@ application {
     mainClass.set("<mainClass>Kt")
 }
 
+tasks.withType\<ProcessResources>() {
+    exclude("src/main/resources")
+    duplicatesStrategy = DuplicatesStrategy.WARN
+}

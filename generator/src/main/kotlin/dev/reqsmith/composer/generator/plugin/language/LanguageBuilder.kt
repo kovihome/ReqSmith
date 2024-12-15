@@ -26,6 +26,9 @@ interface LanguageBuilder {
     val extension: String
     val language: String
 
+    var artPathPrefix: String
+    val viewArts : MutableList<String>
+
     fun addClass(cls: IGMClass, indent: Int = 0): String
     fun addEnumeration(enum: IGMEnumeration, indent: Int = 0): String
     fun addComment(text: String, indent: Int = 0): String

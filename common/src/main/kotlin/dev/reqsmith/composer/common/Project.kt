@@ -35,7 +35,7 @@ import kotlin.io.path.notExists
  * -- build/src/main/reqm : output reqm and index files
  * -- build/src/main/<lang> : generated source code folder
  */
-class Project(var projectFolder: String?, private val buildSystem: BuildSystem) {
+class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
     var inputFolder: String? = null
     var outputFolder: String? = null
     var artFolder: String = "${buildSystem.resourceFolder}/art"

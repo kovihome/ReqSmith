@@ -33,11 +33,13 @@ import java.io.FileWriter
 import java.util.Properties
 
 class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
-    var applicationName : String? = null
+    private var applicationName : String? = null
 
     override fun definition(): PluginDef {
         return PluginDef("framework.web.spring", PluginType.Framework)
     }
+
+    override fun getViewFolder(): String  = "static"
 
     override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
         super.buildApplication(app, igm)

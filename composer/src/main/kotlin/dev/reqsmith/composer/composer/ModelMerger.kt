@@ -19,7 +19,6 @@
 package dev.reqsmith.composer.composer
 
 import dev.reqsmith.composer.common.Log
-import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.parser.ReqMParser
 import dev.reqsmith.composer.parser.entities.*
 import dev.reqsmith.composer.parser.enumeration.Optionality
@@ -27,7 +26,6 @@ import dev.reqsmith.composer.parser.enumeration.StandardTypes
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
-import java.io.File
 
 class ModelMerger(private val finder: RepositoryFinder) {
     private val parser = ReqMParser()
@@ -412,41 +410,5 @@ class ModelMerger(private val finder: RepositoryFinder) {
     private val layoutResources = mapOf(
         "header" to listOf("logo")
     )
-
-    /**
-     * Copy all art resources to the build folder, which are referenced in view layout
-     * @param reqmsrc ReqM source
-     * @param project The project descriptor
-     */
-    fun copyViewResources(reqmsrc: ReqMSource, project: Project) {
-        val copyFrom = "${project.projectFolder}/${project.artFolder}"
-        val copyTo = "${project.buildFolder}/${project.artFolder}"
-        reqmsrc.views.forEach { view ->
-            val layout = view.definition.properties.find { it.key == "layout" }
-            layout?.let { processViewResources(layout, copyFrom, copyTo) }
-        }
-    }
-
-    private fun processViewResources(node: Property, copyFrom: String, copyTo: String) {
-        if (layoutResources.containsKey(node.key)) {
-            node.simpleAttributes.filter { it.type != StandardTypes.propertyList.name }.forEach { item ->
-                if (layoutResources[node.key]?.contains(item.key) == true) {
-                    val resourceFileName = item.value?.removeSurrounding("'")?.removeSurrounding("\"")
-                    val src = "$copyFrom/$resourceFileName"
-                    val dest = "$copyTo/$resourceFileName"
-                    val infile = File(src)
-                    if (!infile.exists()) {
-                        Log.warning("Resource file $resourceFileName is not exist in the art folder")
-                    } else {
-                        infile.copyTo(File(dest), true)
-                        Log.debug("Copy resource file $resourceFileName into build folder")
-                    }
-                }
-            }
-        }
-        node.simpleAttributes.filter { it.type == StandardTypes.propertyList.name }.forEach {
-            processViewResources(it, copyFrom, copyTo)
-        }
-    }
 
 }

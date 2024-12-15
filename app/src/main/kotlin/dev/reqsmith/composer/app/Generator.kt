@@ -46,7 +46,7 @@ class Generator(
 
         // create internal generator model
         Log.debug("Build InternalGeneratorModel...")
-        val resourcesFolderName = "${project.buildFolder}/src/main/resources"
+        val resourcesFolderName = "${project.buildFolder}/${project.buildSystem.resourceFolder}"
         project.ensureFolderExists(resourcesFolderName)
         val gmb = GeneratorModelBuilder(reqMSource, resourcesFolderName)
         val igm = gmb.build()
@@ -61,21 +61,15 @@ class Generator(
         var successView = true
         if (reqMSource.views.isNotEmpty()) {
             val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, gmb.viewGeneratorName)
-            successView = ViewGenerator(viewLangBuilder, project).generate(igm)
+            val viewResourceFolderName = "$resourcesFolderName/${gmb.suggestedWebFolderName}"
+            val viewGenerator = ViewGenerator(viewLangBuilder, project, viewResourceFolderName)
+            successView = viewGenerator.generate(igm)
+
+            val successCopy = viewGenerator.copyArts()
+
         }
 
         // update build script
-//        val buildScriptUpdates = mapOf(
-//            "plugins" to listOf(
-//                "org.springframework.boot:3.4.0",
-//                "io.spring.dependency-management:1.1.6"
-//            ),
-//            "dependencies" to listOf(
-//                "org.springframework.boot:spring-boot-starter-web",
-//                "com.fasterxml.jackson.module:jackson-module-kotlin",
-//                "org.jetbrains.kotlin:kotlin-reflect"
-//            )
-//        )
         val buildScriptUpdates = mapOf(
             "plugins" to mutableListOf<String>(),
             "dependencies" to mutableListOf()
@@ -95,23 +89,6 @@ class Generator(
         val version = reqMSource.applications[0].definition.properties.find { it.key == "version" }?.value ?: "0.1.0"
         project.updateBuildScript(appHome, lang, reqMSource.applications[0].qid.toString(), version, buildScriptUpdates)
     }
-
-//    private fun getImports(qid: QualifiedId, definition: Definition): String {
-//        val imports: MutableSet<String> = HashSet()
-//        if (qid.domain != null) {
-//            imports.add(qid.toString())
-//        }
-//        definition.properties.forEach {
-//            if (it.type != null && !StandardTypes.has(it.type!!)) {
-//                imports.add(it.type!!)
-//            }
-//        }
-//
-//        val sb = StringBuilder()
-//        imports.forEach { sb.append("import $it\n") }
-//        sb.append("\n")
-//        return sb.toString()
-//    }
 
     private fun getFileHeader(): String {
         // TODO: use different licence model templates

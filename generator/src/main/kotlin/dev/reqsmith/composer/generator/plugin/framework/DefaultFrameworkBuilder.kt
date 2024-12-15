@@ -36,6 +36,8 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
 
     override fun getViewLanguage(): String = ""
 
+    override fun getViewFolder(): String = ""
+
     override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
         // nothing to do
     }

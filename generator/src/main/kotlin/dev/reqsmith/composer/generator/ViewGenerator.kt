@@ -27,17 +27,15 @@ import java.io.File
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
 
-class ViewGenerator(private val langBuilder: LanguageBuilder, private val project: Project) {
-
-    private val srcPath = project.srcPath("resources/${langBuilder.language}")
+class ViewGenerator(private val langBuilder: LanguageBuilder, private val project: Project, private val viewResourceFolderName: String) {
 
     private fun String.toPath():String = this.replace('.', '/')
 
     fun generate(igm: InternalGeneratorModel): Boolean {
+        langBuilder.artPathPrefix = "art"
+
         // generate view files
         igm.views.forEach { buildView(it.value) }
-
-        // TODO: copy view resources
 
         return true
     }
@@ -51,7 +49,7 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val projec
 
         // create file path
         val entPath = view.id.toPath()
-        val entFilePath = "$srcPath/$entPath.${langBuilder.extension}"
+        val entFilePath = "$viewResourceFolderName/$entPath.${langBuilder.extension}"
         Log.info("Generating view $entFilePath")
         val success = project.ensureFolderExists(File(entFilePath).parent)
         if (!success) {
@@ -59,6 +57,26 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val projec
         }
 
         FileWriter(entFilePath, StandardCharsets.UTF_8).use { it.write(sb.toString()) }
+        return true
+    }
+
+    fun copyArts(): Boolean {
+        val copyFrom = "${project.projectFolder}/${project.artFolder}"
+        val copyTo = "$viewResourceFolderName/art"
+        project.ensureFolderExists(copyTo)
+
+        langBuilder.viewArts.forEach {
+            val resourceFileName = it.removeSurrounding("'").removeSurrounding("\"")
+            val src = "$copyFrom/$resourceFileName"
+            val dest = "$copyTo/$resourceFileName"
+            val infile = File(src)
+            if (!infile.exists()) {
+                Log.warning("Art file $resourceFileName is not exist in the art folder $copyFrom")
+            } else {
+                infile.copyTo(File(dest), true)
+                Log.info("Copy art file $copyTo/$resourceFileName")
+            }
+        }
         return true
     }
 

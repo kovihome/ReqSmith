@@ -32,6 +32,7 @@ import dev.reqsmith.composer.parser.enumeration.StandardTypes
 class GeneratorModelBuilder(private val reqMSource: ReqMSource, val resourcesFolderName: String) {
     private val appRootPackage = reqMSource.applications[0].qid?.domain ?: "com.sample.app"
     var viewGeneratorName = ""
+    var suggestedWebFolderName = ""
     var codeBuilder: FrameworkBuilder? = null
     var viewBuilder: FrameworkBuilder? = null
 
@@ -53,6 +54,7 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource, val resourcesFol
         //
         if (plugin != null) {
             viewGeneratorName = "$viewLang.$plugin"
+            suggestedWebFolderName = codeBuilder!!.getViewFolder()
         }
     }
 

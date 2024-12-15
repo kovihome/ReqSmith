@@ -79,9 +79,6 @@ class Composer(private val project: Project, private val appHome: String) {
         Log.title("Merge model with identified references")
         val dependenciesReqMModel = merger.merge(reqmsrc)
 
-        // copy view resources to effective model
-        merger.copyViewResources(reqmsrc, project)
-
         // resolve ownership of actions
         Log.info("Resolve actions' ownership")
         val errorList = validator.resolveActionOwnership(reqmsrc, dependenciesReqMModel)

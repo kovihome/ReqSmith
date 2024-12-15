@@ -38,9 +38,10 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 if (attr.contains("logo")) {
                     img {
                         classes = setOf("me-3")
-                        src = attr["logo"]!!
+                        src = "$artPathPrefix/${attr["logo"]}"
                         alt = "logo"
                         style = "width: 50px; height: 50px;"
+                        viewArts.add(attr["logo"]!!)
                     }
                 }
                 if (attr.contains("title")) {

@@ -35,6 +35,8 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
     override fun getViewLanguage(): String = "html"
 
+    override fun getViewFolder(): String  = "html"
+
     override fun buildView(viewModel: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
         val view = igm.getView(viewModel.qid.toString())
         val layout = viewModel.definition.properties.find { it.key == "layout" }
