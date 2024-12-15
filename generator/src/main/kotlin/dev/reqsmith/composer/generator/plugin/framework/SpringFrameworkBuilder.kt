@@ -26,8 +26,15 @@ import dev.reqsmith.composer.generator.entities.IGMClass
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.parser.entities.Application
 import dev.reqsmith.composer.parser.entities.Property
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.FileWriter
+import java.util.Properties
 
 class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
+    var applicationName : String? = null
+
     override fun definition(): PluginDef {
         return PluginDef("framework.web.spring", PluginType.Framework)
     }
@@ -44,6 +51,8 @@ class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         val call = IGMAction.IGMActionStmt("call").withParam("runApplication<${app.qid!!.id}>").withParam("*${mainAction.parameters[0].name}")
         mainAction.statements.add(call)
         appClass.addImport("org.springframework.boot.runApplication")
+
+        applicationName = app.qid!!.id
     }
 
     override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
@@ -58,6 +67,23 @@ class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                 "com.fasterxml.jackson.module:jackson-module-kotlin",
                 "org.jetbrains.kotlin:kotlin-reflect"
         ))
+    }
+
+    override fun processResources(resourcesFolderName: String) {
+        super.processResources(resourcesFolderName)
+
+        // create or update application.properties
+        val props = Properties()
+        val propFileName = "$resourcesFolderName/application.properties"
+        if (File(propFileName).exists()) {
+            FileInputStream(propFileName).use {
+                props.load(it)
+            }
+        }
+        props.setProperty("spring.application.name", "$applicationName.")
+        FileOutputStream(propFileName, false).use {
+            props.store(it, "Spring application properties for $applicationName")
+        }
     }
 
 }

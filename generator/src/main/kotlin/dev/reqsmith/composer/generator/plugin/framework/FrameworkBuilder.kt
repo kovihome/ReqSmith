@@ -38,6 +38,21 @@ interface FrameworkBuilder {
      */
     fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>)
 
+    /**
+     * Get the view language
+     * @return The view language plugin ID
+     */
     fun getViewLanguage(): String
+
+    /**
+     * Returns build script elements (plugins, dependecies) belongs to this framework
+     * @param buildScriptUpdates The elements of the build script
+     */
     fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>)
+
+    /**
+     * Process additional resources
+     * @param resourcesFolderName Folder name for the project resources
+     */
+    fun processResources(resourcesFolderName: String)
 }

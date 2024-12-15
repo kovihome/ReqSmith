@@ -40,6 +40,10 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
         // nothing to do
     }
 
+    override fun processResources(resourcesFolderName: String) {
+        // nothing to do
+    }
+
     override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
         processEvents(app.definition, igm.getClass(app.qid.toString()).apply { mainClass = true }, igm)
     }

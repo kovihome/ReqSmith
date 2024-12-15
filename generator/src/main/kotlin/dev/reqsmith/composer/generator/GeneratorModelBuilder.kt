@@ -29,7 +29,7 @@ import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilder
 import dev.reqsmith.composer.parser.entities.*
 import dev.reqsmith.composer.parser.enumeration.StandardTypes
 
-class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
+class GeneratorModelBuilder(private val reqMSource: ReqMSource, val resourcesFolderName: String) {
     private val appRootPackage = reqMSource.applications[0].qid?.domain ?: "com.sample.app"
     var viewGeneratorName = ""
     var codeBuilder: FrameworkBuilder? = null
@@ -84,6 +84,9 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource) {
 
         // create view descriptors
         reqMSource.views.forEach { createView(it, igm, templateContext, viewBuilder!!) }
+
+        // manage additional resources
+        codeBuilder!!.processResources(resourcesFolderName)
 
         return igm
     }
