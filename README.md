@@ -74,7 +74,7 @@ These patterns adapt automatically to the requirement models.
    or install it from the distribution package
 
    ```bash
-   unzip ./app/build/distributions/composer-0.1.0.zip -d any-folder-you-want
+   unzip ./app/build/distributions/forge-0.1.0.zip -d any-folder-you-want
    ```
 
 ## **How to Use**

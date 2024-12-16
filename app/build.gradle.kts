@@ -34,7 +34,7 @@ dependencies {
 }
 
 application {
-    applicationName = "composer"
+    applicationName = "forge"
     version = project.version
     // Define the main class for the application.
     mainClass.set("dev.reqsmith.composer.app.AppKt")

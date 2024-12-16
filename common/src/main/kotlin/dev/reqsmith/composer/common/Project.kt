@@ -149,7 +149,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
         val dependenciesBlock = dependecies.joinToString("\n") { "    implementation(\"$it\")" }
 
         val params = mutableMapOf (
-            "composerCommand" to "${appHome.replace('\\', '/')}/bin/composer".replace("//", "/"),
+            "composerCommand" to "${appHome.replace('\\', '/')}/bin/forge".replace("//", "/"),
             "projectName" to mainClass.substringAfterLast('.').lowercase(),
             "version" to appVersion,
             "mainClass" to mainClass,

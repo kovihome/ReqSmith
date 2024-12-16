@@ -1,5 +1,5 @@
 #
-# ReqSmith::composer configuration for default values
+# ReqSmith::forge configuration for default values
 #
 domainName: dev.reqsmith.sample
 applicationType: applications.CommandLineApplication

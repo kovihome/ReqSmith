@@ -142,8 +142,8 @@ class Composer(private val project: Project, private val appHome: String) {
     private fun getReqmFileHeader(appName: String, headerFileName: String): String {
         val context = mapOf(
             "appName" to appName,
-            "composerName" to "ReqSmith::composer",
-            "version" to "0.1.0-PoC",
+            "composerName" to "ReqSmith::forge",
+            "version" to "0.2.0-Web",
             "now" to LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
         )
         return Template().translateFile(context, headerFileName)

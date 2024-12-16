@@ -39,7 +39,7 @@ class GradleBuildSystem : BuildSystem, Plugin {
 
     override fun updateBuildScript(params: MutableMap<String, String>) {
         // create compose task script
-        val cmd = params["composerCommand"] ?: "composer"
+        val cmd = params["composerCommand"] ?: "forge"
         params["commandAndArgs"] = "\"${cmd}\""
         params["taskName"] = taskName
 

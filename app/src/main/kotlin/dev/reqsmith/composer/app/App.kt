@@ -39,7 +39,7 @@ class App(private val args: Array<String>) {
     val composerDesc = "Requirement composer and code generator"
 
     val path = System.getenv("APP_HOME") ?: "."
-    val name = System.getenv("APP_BASE_NAME") ?: "composer"
+    val name = System.getenv("APP_BASE_NAME") ?: "forge"
 
     private val argParser = ArgParser(name)
 
@@ -52,7 +52,7 @@ class App(private val args: Array<String>) {
     private val info by argParser.option(fullName = "info", type = ArgType.Boolean, description = "info log level")
     private val debug by argParser.option(fullName = "debug", type = ArgType.Boolean, description = "debug log level")
 
-    // compose options
+    // forge options
     private val inputDir by argParser.option(fullName = "in", shortName = "i", type = ArgType.String, description = "input directory (relative to project folder)")
     private val outputDir by argParser.option(fullName = "out", shortName = "o", type = ArgType.String, description = "output directory (relative to project folder)")
 
@@ -94,7 +94,7 @@ class App(private val args: Array<String>) {
     }
 
     fun compose() : Boolean {
-        Log.title("Compose ReqM model")
+        Log.title("Forge ReqM model")
 
         // select build system
         val buildSystem = try {
@@ -181,5 +181,5 @@ fun main(args: Array<String>) {
 
     }
 
-    Log.text("\nCOMPOSE ${if (success) "SUCCESSFUL" else "FAILED"} in ${if (elapsedTime > 1000) elapsedTime/1000 else elapsedTime}${if (elapsedTime > 1000) "s" else "ms"}")
+    Log.text("\nFORGE ${if (success) "SUCCESSFUL" else "FAILED"} in ${if (elapsedTime > 1000) elapsedTime/1000 else elapsedTime}${if (elapsedTime > 1000) "s" else "ms"}")
 }

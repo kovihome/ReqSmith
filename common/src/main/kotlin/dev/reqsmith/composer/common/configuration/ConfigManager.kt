@@ -63,7 +63,7 @@ object ConfigManager {
     private val yaml = Yaml(Constructor(defaults.javaClass, LoaderOptions()), representer, dumpOpt)
 
     private const val DEFAULTS_FILE_NAME = "defaults.yaml"
-    private const val DEFAULTS_HEADER = "#\n# ReqSmith::composer configuration for default values\n#\n\n"
+    private const val DEFAULTS_HEADER = "#\n# ReqSmith::forge configuration for default values\n#\n\n"
 
     /**
      * Loads default values from defaults.yaml config file
