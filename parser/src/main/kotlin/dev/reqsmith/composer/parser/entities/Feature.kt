@@ -16,12 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.composer.common.plugin
+package dev.reqsmith.composer.parser.entities
 
-/**
- * Plugin definition
- * @param name Plugin name
- * @param type The type of the plugin, defined in PluginType enum
- * @param compatibility Compatibility of this plugin for every plugin types
- */
-class PluginDef(val name: String, val type: PluginType, val compatibility: Map<PluginType, List<String>> = mapOf())
+class Feature : ElementBase() {
+    var qid: QualifiedId? = null
+    var parent: QualifiedId = QualifiedId.Undefined
+    var sourceRef: QualifiedId? = null
+    var definition: Definition = Definition()
+    override fun toString(): String {
+        return "Feature(qid=$qid, sourceRef=$sourceRef)"
+    }
+}

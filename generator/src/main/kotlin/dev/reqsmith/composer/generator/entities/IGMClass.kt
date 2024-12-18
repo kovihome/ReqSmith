@@ -23,7 +23,7 @@ class IGMClass(val id: String) {
     var mainClass: Boolean = false
     val actions : MutableMap<String, IGMAction> = HashMap()
     val members: MutableMap<String, IGMClassMember> = HashMap()
-    val annotations: MutableList<String> = ArrayList()
+    val annotations: MutableList<IGMAction.IGMAnnotation> = ArrayList()
     val imports: MutableList<String> = ArrayList()
 
     fun getAction(actionId: String): IGMAction {

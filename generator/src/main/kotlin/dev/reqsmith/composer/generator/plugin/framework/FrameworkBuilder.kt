@@ -20,6 +20,7 @@ package dev.reqsmith.composer.generator.plugin.framework
 
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.parser.entities.Application
+import dev.reqsmith.composer.parser.entities.ReqMSource
 import dev.reqsmith.composer.parser.entities.View
 
 interface FrameworkBuilder {
@@ -58,7 +59,9 @@ interface FrameworkBuilder {
 
     /**
      * Process additional resources
-     * @param resourcesFolderName Folder name for the project resources
+     * @param reqmResourcesFolderName Source folder name for the project resources
+     * @param buildResourcesFolderName Build folder name for the project resources
+     * @param reqm ReqM model of the application
      */
-    fun processResources(resourcesFolderName: String)
+    fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, reqm: ReqMSource)
 }

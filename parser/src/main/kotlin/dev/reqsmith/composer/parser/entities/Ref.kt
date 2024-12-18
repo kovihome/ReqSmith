@@ -22,7 +22,7 @@ package dev.reqsmith.composer.parser.entities
  * Reference
  *
  * @param type Item type
- * @param qid Id of the item, which contains the reference
+ * @param qid ID of the item, which contains the reference
  * @param referred The ID of the reference, or null for the item record
  * @param filename Filename of the reference or the item, if the reference is null
  */

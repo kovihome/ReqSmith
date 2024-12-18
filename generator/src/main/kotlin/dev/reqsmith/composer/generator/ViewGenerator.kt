@@ -39,12 +39,12 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val projec
         igm.views.forEach { buildView(it.value) }
 
         // generate index.html page
-        if (!igm.views.containsKey("index")) {
-            val context = mapOf( "WelcomePage" to welcomePage)
-            val indexContent = Template().translateFile(context, "templates/index.html.st")
-            FileWriter("$viewResourceFolderName/index.html", false).use { it.write(indexContent) }
-            Log.info("Generating view $viewResourceFolderName/index.html")
-        }
+//        if (!igm.views.containsKey("index")) {
+//            val context = mapOf( "WelcomePage" to welcomePage)
+//            val indexContent = Template().translateFile(context, "templates/index.html.st")
+//            FileWriter("$viewResourceFolderName/index.html", false).use { it.write(indexContent) }
+//            Log.info("Generating view $viewResourceFolderName/index.html")
+//        }
 
         return true
     }

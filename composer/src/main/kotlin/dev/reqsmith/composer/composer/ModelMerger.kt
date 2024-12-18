@@ -376,6 +376,9 @@ class ModelMerger(private val finder: RepositoryFinder) {
      */
     private fun mergeApplicationRef(app: Application, refApps: List<Application>) {
         refApps.forEach {
+            if (app.sourceRef != QualifiedId.Undefined && app.sourceRef?.id == it.qid?.id && app.sourceRef?.domain.isNullOrBlank() && !it.qid?.domain.isNullOrBlank()) {
+                app.sourceRef?.domain = it.qid?.domain
+            }
             if (app.definition == Definition.Undefined && it.definition != Definition.Undefined) {
                 app.definition = Definition()
             }

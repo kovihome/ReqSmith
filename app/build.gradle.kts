@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":composer"))
     implementation(project(":generator"))
 
+    implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.cli)
     implementation(libs.commons.text)
 }

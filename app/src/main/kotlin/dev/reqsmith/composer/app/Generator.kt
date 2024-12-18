@@ -29,6 +29,7 @@ import dev.reqsmith.composer.generator.ViewGenerator
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
 import dev.reqsmith.composer.parser.entities.ReqMSource
 import java.util.*
+import kotlin.reflect.full.isSubclassOf
 
 class Generator(
     private val project: Project,
@@ -48,7 +49,7 @@ class Generator(
         Log.debug("Build InternalGeneratorModel...")
         val resourcesFolderName = "${project.buildFolder}/${project.buildSystem.resourceFolder}"
         project.ensureFolderExists(resourcesFolderName)
-        val gmb = GeneratorModelBuilder(reqMSource, resourcesFolderName)
+        val gmb = GeneratorModelBuilder(reqMSource, resourcesFolderName, project)
         val igm = gmb.build()
         Log.info("=============== InternalGeneratorModel ===============\n$igm")
         Log.info("======================================================\n")
@@ -59,7 +60,7 @@ class Generator(
 
         // generate views
         var successView = true
-        if (reqMSource.views.isNotEmpty()) {
+        if (igm.views.isNotEmpty()) {
             val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, gmb.viewGeneratorName)
             val viewResourceFolderName = "$resourcesFolderName/${gmb.suggestedWebFolderName}"
             val viewGenerator = ViewGenerator(viewLangBuilder, project, viewResourceFolderName)
@@ -67,7 +68,6 @@ class Generator(
             successView = viewGenerator.generate(igm, welcomePage)
 
             val successCopy = viewGenerator.copyArts()
-
         }
 
         // update build script
@@ -76,7 +76,10 @@ class Generator(
             "dependencies" to mutableListOf()
         )
         langBuilder.collectBuildScriptElement(buildScriptUpdates)
-        gmb.codeBuilder?.collectBuildScriptElement(buildScriptUpdates)
+        if (!gmb.viewBuilder!!::class.isSubclassOf(gmb.codeBuilder!!::class)) {
+            gmb.codeBuilder?.collectBuildScriptElement(buildScriptUpdates)
+        }
+        gmb.viewBuilder?.collectBuildScriptElement(buildScriptUpdates)
 
         generateBuildScripts(buildScriptUpdates)
 

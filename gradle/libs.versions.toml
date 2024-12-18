@@ -14,6 +14,7 @@ kotlin-html = "0.11.0"
 kotlin-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli-jvm", version.ref = "kotlin-cli"}
 kotlin-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "kotlin-html"}
 kotlin-html-jvm = { module = "org.jetbrains.kotlinx:kotlinx-html-jvm", version.ref = "kotlin-html"}
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io"}
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml"}

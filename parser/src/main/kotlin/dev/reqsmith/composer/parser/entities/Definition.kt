@@ -20,6 +20,7 @@ package dev.reqsmith.composer.parser.entities
 
 open class Definition : ElementBase() {
 
+    val featureRefs: MutableList<FeatureRef> = ArrayList()
     val properties: MutableList<Property> = ArrayList()
 
     object Undefined : Definition()

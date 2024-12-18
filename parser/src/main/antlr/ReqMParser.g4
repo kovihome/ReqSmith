@@ -56,7 +56,7 @@ sourceRef : 'from' qualifiedId ;
 parent : 'is' qualifiedId ;
 
 // general definition closure rules
-definitionClosure : closureStart extensionRef*? property*? closureEnd;
+definitionClosure : closureStart featureRef*? property*? closureEnd;
 
 // simple definition closure rules
 simpleDefinitionClosure : closureStart property*? closureEnd;
@@ -77,26 +77,26 @@ paramList : (paramValue ',')*? paramValue ;
 paramValue : INT | StringLiteral | SemanticVersionNumber | qualifiedId ;
 
 // typeless definition closure rules
-typelessDefinitionClosure : closureStart extensionRef*? typelessProperty*? closureEnd ;
+typelessDefinitionClosure : closureStart featureRef*? typelessProperty*? closureEnd ;
 
 typelessProperty : simpleTypelessProperty | compoundTypelessProperty ;
 
 // NEW: application definition closure rules
-applicationDefinitionClosure : closureStart extensionRef*? applicationProperty*? closureEnd ;
+applicationDefinitionClosure : closureStart featureRef*? applicationProperty*? closureEnd ;
 
 applicationProperty : simpleApplicationProperty | compoundTypelessProperty ;
 
 simpleApplicationProperty: qualifiedId (':' applicationPropertyValue)? ;
 
 // NEW: view definition closure
-viewDefinitionClosure : closureStart extensionRef*? viewProperty*? closureEnd ;
+viewDefinitionClosure : closureStart featureRef*? viewProperty*? closureEnd ;
 
 viewProperty:  simpleTypelessProperty |  compundViewProperty ;
 
 compundViewProperty: qualifiedId closureStart viewProperty*? closureEnd ;
 
 
-extensionRef : '@' qualifiedId (closureStart property*? closureEnd)? ;
+featureRef : '@' qualifiedId (closureStart property*? closureEnd)? ;
 
 simpleTypelessProperty : qualifiedId (':' propertyValue)? ;
 

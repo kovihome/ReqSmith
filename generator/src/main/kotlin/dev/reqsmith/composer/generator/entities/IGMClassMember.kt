@@ -27,7 +27,7 @@ class IGMClassMember(val memberId: String) {
 
     override fun toString(): String {
         val sb = StringBuilder("    IGMClassMember $memberId:")
-        sb.append(if (listOf) "listOf $type" else "$type")
+        sb.append(if (listOf) "listOf $type" else type)
         value?.let { sb.append(" = $value") }
         return sb.toString()
     }

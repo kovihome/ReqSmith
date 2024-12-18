@@ -42,7 +42,16 @@ class ReqMWriter {
             source.entities.forEach { writeEntity(it, outs) }
             source.actions.forEach { writeAction(it, outs) }
             source.views.forEach { writeView(it, outs) }
+            source.features.forEach { writeFeature(it, outs) }
         }
+    }
+
+    private fun writeFeature(feature: Feature, outs: OutputStreamWriter) {
+        outs.write("feature ")
+        writeQualifiedId(feature.qid, outs)
+        writeSourceRef(feature.sourceRef, outs)
+        writeDefinition(feature.definition, outs)
+        outs.write("\n")
     }
 
     private fun writeView(view: View, outs: OutputStreamWriter) {
@@ -154,15 +163,24 @@ class ReqMWriter {
     }
 
     private fun writeDefinition(definition: Definition, outs: OutputStreamWriter) {
-        if (definition != Definition.Undefined && definition.properties.isNotEmpty()) {
+        if (definition != Definition.Undefined) {
             outs.write("{\n")
-            for (prop in definition.properties) {
-                writeProperty(prop, outs, 1)
-            }
+            definition.featureRefs.forEach { writeFeatureRef(it, outs, 1) }
+            definition.properties.forEach { writeProperty(it, outs, 1) }
             outs.write("}\n")
         } else {
             outs.write("\n")
         }
+    }
+
+    private fun writeFeatureRef(featureRef: FeatureRef, outs: OutputStreamWriter, tc: Int) {
+        outs.write(tabs(tc))
+        outs.write("@")
+        writeQualifiedId(featureRef.qid, outs)
+
+        outs.write(" {\n")
+        featureRef.properties.forEach { writeProperty(it, outs, tc+1) }
+        outs.write("${tabs(tc)}}\n")
     }
 
     private fun tabs(count: Int) : String {
@@ -253,6 +271,10 @@ class ReqMWriter {
             Log.info(it.toString())
             printDefinition(it.definition)
         }
+        source.features.forEach {
+            Log.info(it.toString())
+            printDefinition(it.definition)
+        }
     }
 
     private fun printActionDefinition(definition: ActionDefinition) {
@@ -260,6 +282,7 @@ class ReqMWriter {
     }
 
     private fun printDefinition(definition: Definition) {
+        definition.featureRefs.forEach { Log.info("  - $it") }
         definition.properties.forEach { Log.info("  - $it")}
     }
 

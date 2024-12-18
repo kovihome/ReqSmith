@@ -24,5 +24,6 @@ dependencies {
     api(project(":common"))
     api(project(":parser"))
 
+    implementation(libs.kotlin.reflect)
     implementation(libs.bundles.kotlin.html)
 }

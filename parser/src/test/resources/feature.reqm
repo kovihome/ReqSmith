@@ -1,0 +1,16 @@
+/*
+ * Sample application Requirement Model: feature
+ */
+
+// Template feature
+feature Template {
+    file
+    templateType: 'st4'
+    generator: 'framework.template'
+}
+
+view TemplatePage {
+    @Template {
+        file: 'templates/test.st'
+    }
+}

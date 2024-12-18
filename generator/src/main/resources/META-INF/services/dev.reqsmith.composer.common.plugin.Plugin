@@ -24,3 +24,4 @@ dev.reqsmith.composer.generator.plugin.framework.BaseFrameworkBuilder
 dev.reqsmith.composer.generator.plugin.framework.WebFrameworkBuilder
 dev.reqsmith.composer.generator.plugin.framework.BootstrapFrameworkBuilder
 dev.reqsmith.composer.generator.plugin.framework.SpringFrameworkBuilder
+dev.reqsmith.composer.generator.plugin.framework.ThymeleafSpringFrameworkBuilder

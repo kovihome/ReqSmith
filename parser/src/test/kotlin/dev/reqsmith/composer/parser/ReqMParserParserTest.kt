@@ -22,7 +22,10 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.junit.jupiter.api.Test
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
+import dev.reqsmith.composer.parser.entities.Definition
 import dev.reqsmith.composer.parser.entities.ReqMSource
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 
 class ReqMParserParserTest {
 
@@ -75,7 +78,44 @@ class ReqMParserParserTest {
         val s = ReqMSource()
         parser.parseReqMTree("src/test/resources/view.reqm", s)
         assert(s.views.isNotEmpty())
-        assert(s.views[0].qid?.id.equals("Terminal"))
+        assert(s.views[0].qid?.id.equals("SimplePage"))
     }
 
+    @Test fun testLoadFeatures() {
+        // load feature.reqm model
+        val parser = ReqMParser()
+        val s = ReqMSource()
+        assertDoesNotThrow {
+            parser.parseReqMTree("src/test/resources/feature.reqm", s)
+        }
+
+        // check feature item
+        assert(s.features.isNotEmpty())
+        val f = s.features[0]
+        assert(f.qid?.id.equals("Template"))
+        assert(f.definition != Definition.Undefined)
+        assert(f.definition.properties.isNotEmpty())
+        val pFile = f.definition.properties.find { it.key == "file" }
+        assert(pFile != null)
+        assert(pFile?.value == null)
+        val pType = f.definition.properties.find { it.key == "templateType" }
+        assert(pType != null)
+        assert(pType?.value != null && pType.value == "'st4'")
+        val pGen = f.definition.properties.find { it.key == "generator" }
+        assert(pGen != null)
+        assert(pGen?.value != null && pGen.value == "'framework.template'")
+
+        // check templated view item
+        assert(s.views.isNotEmpty())
+        val v = s.views[0]
+        assert(v.qid?.id.equals("TemplatePage"))
+        assert(v.definition != Definition.Undefined)
+        assert(v.definition.featureRefs.isNotEmpty())
+        val frTemp = v.definition.featureRefs.find { it.qid.toString() == "Template" }
+        assert(frTemp != null)
+        assert(frTemp?.properties!!.isNotEmpty())
+        val fpFile = frTemp.properties.find { it.key == "file" }
+        assert(fpFile != null)
+        assert(fpFile?.value == "'templates/test.st'")
+    }
 }

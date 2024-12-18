@@ -29,6 +29,34 @@ class KotlinBuilder : LanguageBuilder, Plugin {
 
     class Variable(val name: String, val type: String)
 
+    class LocalVariables {
+        private val variables : MutableMap<String, String> = HashMap()
+        val imports : MutableList<String> = ArrayList()
+
+        fun setParameters(parameters: List<IGMAction.IGMActionParam>) {
+            parameters.forEach {
+                if (it.type[0].isUpperCase() && !variables.containsKey(it.name)) variables[it.name] = it.type
+            }
+        }
+
+        fun instantiateClass(classs: String): String {
+            val pkg = classs.substringBeforeLast('.', "")
+            val cls = classs.substringAfterLast('.')
+
+            if (cls[0].isLowerCase() && variables.containsKey(cls)) return "$cls."
+
+            if (cls[0].isUpperCase()) {
+                variables.forEach { (k, v) -> if (v == cls) return "$k." }
+            }
+
+            if (pkg.isNotEmpty() && !imports.contains(classs)) imports.add(classs)
+
+            val clsVar = cls.lowercase()
+            variables[clsVar] = cls
+            return "val $clsVar = $cls()\n$clsVar."
+        }
+    }
+
     override val extension: String = "kt"
     override val language: String = "kotlin"
     override var artPathPrefix: String = ""
@@ -66,47 +94,75 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         return sb.toString()
     }
 
-    private fun addClassMethod(sb: StringBuilder, id: String?, params: List<IGMAction.IGMActionParam>, statements: List<IGMAction.IGMActionStmt>, indent:Int) {
+    private fun addClassMethod(sb: StringBuilder, action: IGMAction, indent:Int) {
         val pre = prefix(indent)
-        val pa = params.joinToString(",") { if (it.listof) "${it.name}: Array<${it.type}>" else "${it.name}: ${it.type}" }
-        sb.append(pre).append("fun ").append(id).append("(").append(pa).append(") {\n")
+        val localVars = LocalVariables().apply {
+            setParameters(action.parameters)
+        }
+
+        // start with annotations
+        addAnnotations(sb, action.annotations, indent)
+
+        val pa = action.parameters.joinToString(",") { if (it.listof) "${it.name}: Array<${it.type}>" else "${it.name}: ${it.type}" }
+        val returns = if (action.returnType.isNotBlank()) ": ${action.returnType} " else ""
+        sb.append(pre).append("fun ${action.actionId}($pa) $returns{\n")
         val pre2 = prefix(indent+tabsize)
-        statements.forEach { st ->
+        action.statements.forEach { st ->
             sb.append(pre2)
             when (st.actionName) {
                 "call" -> {
-                    val calledfunction = st.parameters[0].value
+                    val calledFunction = st.parameters[0].value
                     val params = st.parameters.subList(1, st.parameters.size)
-                    val classs = calledfunction.substringBeforeLast('.', "")
-                    val func = calledfunction.substringAfterLast('.')
+                    val classs = calledFunction.substringBeforeLast('.', "")
+                    val func = calledFunction.substringAfterLast('.')
                     if (classs.isNotEmpty()) {
-                        val pkg = classs.substringBeforeLast('.', "")
-                        val cls = classs.substringAfterLast('.')
-                        if (pkg.isNotEmpty()) {
-                            addImport(classs)
-                        }
-                        val clsVar = cls.lowercase()
-                        sb.append("val $clsVar = $cls()\n$pre2$clsVar.")
+                        // check class, if exists in local vars
+                        val instantiateStmt = localVars.instantiateClass(classs)
+                        // create local var for this class
+                        sb.append(instantiateStmt.replace("\n", "\n$pre2"))
                     }
                     sb.append("$func(${params.joinToString(",") { p -> p.format() }})")
                 }
                 "print" -> {
                     sb.append("println (${st.parameters.joinToString(",") { p -> p.format() }})")
                 }
+                "return" -> {
+                    sb.append("return ${st.parameters[0].format()}")
+                }
                 else -> {
                     sb.append("${st.actionName} (${st.parameters.joinToString(",") { p -> p.format() }})")
                 }
             }
+            localVars.imports.forEach { addImport(it) }
             sb.append("\n")
         }
         sb.append(pre).append("}\n\n")
     }
 
+    private fun parameterValues(parameters: List<IGMAction.IGMActionParam>): String {
+        return parameters.joinToString(", ") {
+            when (it.type) {
+                StandardTypes.stringLiteral.name -> "\"${it.name}\""
+                else -> it.name
+            }
+        }
+    }
+
+    private fun addAnnotations(sb: StringBuilder, annotations: List<IGMAction.IGMAnnotation>, indent: Int) {
+        val pre = prefix(indent)
+        annotations.forEach {
+            sb.append("$pre@${it.annotationName}")
+            if (it.parameters.isNotEmpty()) sb.append("(${parameterValues(it.parameters)})")
+            sb.append("\n")
+        }
+    }
+
+
     override fun addClass(cls: IGMClass, indent: Int): String {
         val pre = prefix(indent)
         val sb = StringBuilder()
         // start with annotations
-        cls.annotations.forEach { sb.append("$pre@$it\n") }
+        addAnnotations(sb, cls.annotations, indent)
         // class signature
         val clsname = cls.id.substringAfterLast('.')
         sb.append("${pre}class $clsname")
@@ -120,10 +176,9 @@ class KotlinBuilder : LanguageBuilder, Plugin {
             addClassMember(sb, it.value, indent+tabsize)
         }
 
-        cls.actions.forEach {
-            // TODO: method content
-            if (!it.value.isMain) {
-                addClassMethod(sb, it.value.actionId, it.value.parameters, it.value.statements, indent + tabsize)
+        cls.actions.forEach { (_, action) ->
+            if (!action.isMain) {
+                addClassMethod(sb, action, indent + tabsize)
             }
         }
 
@@ -134,7 +189,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         if (cls.mainClass) {
             sb.append("\n\n")
             cls.actions.filter { it.value.isMain }.forEach { (_, action) ->
-                addClassMethod(sb, action.actionId, action.parameters, action.statements, indent)
+                addClassMethod(sb, action, indent)
             }
         }
 

@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.generator
 
+import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
@@ -28,25 +29,32 @@ import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilder
 import dev.reqsmith.composer.parser.entities.*
 import dev.reqsmith.composer.parser.enumeration.StandardTypes
+import kotlin.reflect.full.isSubclassOf
 
-class GeneratorModelBuilder(private val reqMSource: ReqMSource, val resourcesFolderName: String) {
+class GeneratorModelBuilder(private val reqMSource: ReqMSource, private val resourcesFolderName: String, private val project: Project) {
     private val appRootPackage = reqMSource.applications[0].qid?.domain ?: "com.sample.app"
     var viewGeneratorName = ""
     var suggestedWebFolderName = ""
     var codeBuilder: FrameworkBuilder? = null
     var viewBuilder: FrameworkBuilder? = null
 
-    fun determineBuilders() {
+    private fun determineBuilders() {
         // determine code generator
         val app = reqMSource.applications[0]
-        var generatorName = app.definition.properties.find { it.key == "generator" }?.value ?: "framework.base"
+        val generatorName = app.definition.properties.find { it.key == "generator" }?.value ?: "framework.base"
         codeBuilder = determineFrameworkBuilder(generatorName)
 
         // determine view builder
         val viewLang = codeBuilder!!.getViewLanguage()
-        val plugin = ConfigManager.defaults[viewLang]
-        viewBuilder = if (plugin != null) {
-            PluginManager.get<FrameworkBuilder>(PluginType.Framework, "$generatorName.$plugin")
+        val templGen = searchViewFeatureGenerator(reqMSource)
+        var generatorId = ConfigManager.defaults[templGen]
+        var plugin: String? = null
+        if (generatorId == null) {
+            plugin = ConfigManager.defaults[viewLang]
+            generatorId = if (plugin != null) "$generatorName.$plugin" else null
+        }
+        viewBuilder = if (generatorId != null) {
+            PluginManager.get<FrameworkBuilder>(PluginType.Framework, generatorId)
         } else {
             codeBuilder
         }
@@ -55,7 +63,26 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource, val resourcesFol
         if (plugin != null) {
             viewGeneratorName = "$viewLang.$plugin"
             suggestedWebFolderName = codeBuilder!!.getViewFolder()
+        } else if (generatorId != null) {
+            suggestedWebFolderName = viewBuilder!!.getViewFolder()
         }
+    }
+
+    private fun searchViewFeatureGenerator(reqMSource: ReqMSource): String? {
+        val generators: MutableList<String> = ArrayList()
+        reqMSource.views.forEach { view ->
+            view.definition.featureRefs.filter { it.qid.toString() == "Template" }.forEach { fr ->
+                val feature = reqMSource.features.find { it.qid.toString() == fr.qid.toString() }
+                feature?.let {
+                    feature.definition.properties.forEach {
+                        if (it.key == "generator") {
+                            generators.add(it.value!!.removeSurrounding("'").removeSurrounding("\""))
+                        }
+                    }
+                }
+            }
+        }
+        return if (generators.isNotEmpty()) generators[0] else null
     }
 
     fun build(): InternalGeneratorModel {
@@ -88,7 +115,11 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource, val resourcesFol
         reqMSource.views.forEach { createView(it, igm, templateContext, viewBuilder!!) }
 
         // manage additional resources
-        codeBuilder!!.processResources(resourcesFolderName)
+        val reqmResourceFolder = "${project.projectFolder}/${project.buildSystem.resourceFolder}"
+        if (!viewBuilder!!::class.isSubclassOf(codeBuilder!!::class)) {
+            codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName, reqMSource)
+        }
+        viewBuilder?.processResources(reqmResourceFolder, resourcesFolderName, reqMSource)
 
         return igm
     }

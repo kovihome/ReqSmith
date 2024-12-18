@@ -64,7 +64,7 @@ class Template {
 //        return outs
 //    }
 
-    fun translateWithStringTemplate(context : Map<String, String>, ins: String) : String {
+    private fun translateWithStringTemplate(context : Map<String, String>, ins: String) : String {
         val st = ST(ins)
         context.forEach {
             st.add(it.key, it.value)

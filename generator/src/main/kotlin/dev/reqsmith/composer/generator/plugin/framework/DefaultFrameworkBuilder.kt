@@ -23,10 +23,7 @@ import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.generator.entities.IGMClass
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
-import dev.reqsmith.composer.parser.entities.Application
-import dev.reqsmith.composer.parser.entities.Definition
-import dev.reqsmith.composer.parser.entities.Property
-import dev.reqsmith.composer.parser.entities.View
+import dev.reqsmith.composer.parser.entities.*
 
 open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
 
@@ -42,7 +39,7 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
         // nothing to do
     }
 
-    override fun processResources(resourcesFolderName: String) {
+    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, reqm: ReqMSource) {
         // nothing to do
     }
 

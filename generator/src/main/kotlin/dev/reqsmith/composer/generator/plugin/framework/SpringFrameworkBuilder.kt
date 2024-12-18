@@ -18,21 +18,22 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
+import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.entities.IGMAction
-import dev.reqsmith.composer.generator.entities.IGMClass
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.parser.entities.Application
-import dev.reqsmith.composer.parser.entities.Property
+import dev.reqsmith.composer.parser.entities.ReqMSource
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.FileWriter
 import java.util.Properties
 
-class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
+open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     private var applicationName : String? = null
 
     override fun definition(): PluginDef {
@@ -44,7 +45,7 @@ class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
         super.buildApplication(app, igm)
         val appClass = igm.getClass(app.qid!!.toString())
-        appClass.annotations.add("SpringBootApplication")
+        appClass.annotations.add(IGMAction.IGMAnnotation("SpringBootApplication"))
         appClass.addImport("org.springframework.boot.autoconfigure.SpringBootApplication")
 
         val mainAction = appClass.getAction("main")
@@ -71,21 +72,37 @@ class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         ))
     }
 
-    override fun processResources(resourcesFolderName: String) {
-        super.processResources(resourcesFolderName)
+    open fun addSpringApplicationProperties(props: Properties) {
+        props.setProperty("spring.application.name", "$applicationName.")
+    }
+
+    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, reqm: ReqMSource) {
+        super.processResources(reqmResourcesFolderName, buildResourcesFolderName, reqm)
 
         // create or update application.properties
         val props = Properties()
-        val propFileName = "$resourcesFolderName/application.properties"
+        val propFileName = "$buildResourcesFolderName/application.properties"
         if (File(propFileName).exists()) {
             FileInputStream(propFileName).use {
                 props.load(it)
             }
         }
-        props.setProperty("spring.application.name", "$applicationName.")
+        if (applicationName.isNullOrBlank()) applicationName = reqm.applications[0].qid!!.id
+        addSpringApplicationProperties(props)
         FileOutputStream(propFileName, false).use {
             props.store(it, "Spring application properties for $applicationName")
         }
+
+        // generate index.html page
+        if (reqm.views.none { it.qid.toString() == "index" }) {
+            val startView = reqm.applications[0].definition.properties.find { it.key == "startView" }
+            val viewName = if (startView != null) startView.value!! else "#"
+            val context = mapOf( "WelcomePage" to viewName)
+            val indexContent = Template().translateFile(context, "templates/index.html.st")
+            FileWriter("$buildResourcesFolderName/index.html", false).use { it.write(indexContent) }
+            Log.info("Generating view $buildResourcesFolderName/index.html")
+        }
+
     }
 
 }

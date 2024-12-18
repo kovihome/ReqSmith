@@ -52,7 +52,7 @@ class Composer(private val project: Project, private val appHome: String) {
         if (reqmsrc.entities.isNotEmpty()) Log.info("  ${reqmsrc.entities.size} entities")
         if (reqmsrc.actions.isNotEmpty()) Log.info("  ${reqmsrc.actions.size} actions")
         if (reqmsrc.views.isNotEmpty()) Log.info("  ${reqmsrc.views.size} views")
-        // TODO: if (reqmsrc.features.isNotEmpty()) Log.info("  ${reqmsrc.features.size} actions")
+        if (reqmsrc.features.isNotEmpty()) Log.info("  ${reqmsrc.features.size} features")
         Log.info("==========================================")
 
         // consolidate reqm source - inconsistencies, merge multiple element instances
