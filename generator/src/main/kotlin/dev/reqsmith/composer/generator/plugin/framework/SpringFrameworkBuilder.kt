@@ -19,6 +19,7 @@
 package dev.reqsmith.composer.generator.plugin.framework
 
 import dev.reqsmith.composer.common.Log
+import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
@@ -81,16 +82,18 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
         // create or update application.properties
         val props = Properties()
-        val propFileName = "$buildResourcesFolderName/application.properties"
-        if (File(propFileName).exists()) {
-            FileInputStream(propFileName).use {
+        val propFile = File("$buildResourcesFolderName/application.properties")
+
+        if (propFile.exists()) {
+            propFile.bufferedReader().use {
                 props.load(it)
             }
         }
         if (applicationName.isNullOrBlank()) applicationName = reqm.applications[0].qid!!.id
         addSpringApplicationProperties(props)
-        FileOutputStream(propFileName, false).use {
-            props.store(it, "Spring application properties for $applicationName")
+        propFile.bufferedWriter().use { writer ->
+            writer.write("# Spring application properties for $applicationName\n\n")
+            props.forEach { k, v -> writer.write("$k=$v\n") }
         }
 
         // generate index.html page
@@ -99,7 +102,8 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             val viewName = if (startView != null) startView.value!! else "#"
             val context = mapOf( "WelcomePage" to viewName)
             val indexContent = Template().translateFile(context, "templates/index.html.st")
-            FileWriter("$buildResourcesFolderName/index.html", false).use { it.write(indexContent) }
+            Project.ensureFolderExists("$buildResourcesFolderName/${getViewFolder()}", null)
+            FileWriter("$buildResourcesFolderName/${getViewFolder()}/index.html", false).use { it.write(indexContent) }
             Log.info("Generating view $buildResourcesFolderName/index.html")
         }
 

@@ -49,7 +49,7 @@ open class BaseFrameworkBuilder : DefaultFrameworkBuilder() {
 
     }
 
-    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
+    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
         TODO("Not yet implemented")
     }
 

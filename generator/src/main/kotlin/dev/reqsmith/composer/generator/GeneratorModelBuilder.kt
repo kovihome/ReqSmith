@@ -108,7 +108,7 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource, private val reso
         reqMSource.entities.forEach { createEntity(it, igm) }
 
         // create class methods for actions
-        val templateContext = getTemplateContext(reqMSource)
+        val templateContext = TemplateContextCollector().getItemTemplateContext(reqMSource.applications[0].qid, reqMSource.applications[0].definition.properties, "app")
         reqMSource.actions.forEach { createAction(it, igm, templateContext) }
 
         // create view descriptors
@@ -124,17 +124,8 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource, private val reso
         return igm
     }
 
-    private fun createView(viewModel: View, igm: InternalGeneratorModel, templateContext: Map<String, String>, builder: FrameworkBuilder) {
+    private fun createView(viewModel: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>, builder: FrameworkBuilder) {
         builder.buildView(viewModel, igm, templateContext)
-    }
-
-    private fun getTemplateContext(reqMSource: ReqMSource): Map<String, String> {
-        val context = mutableMapOf<String, String>()
-        context["name"] = reqMSource.applications[0].qid!!.id!!
-        reqMSource.applications[0].definition.properties.filter { it.value != null }.associateTo(context) {
-            it.key!! to if (it.type == StandardTypes.stringLiteral.name) it.value!!.trim('\'', '\"') else it.value!!
-        }
-        return context
     }
 
     private fun createAction(act: Action, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
@@ -166,7 +157,7 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource, private val reso
             member.value = it.value
         }
 
-        // TODO: add actions as class methods
+        // TODO v0.3: add actions as class methods
 
 //            cls.actions.forEach {
 //                addClassMethod(it.qid?.id, emptyList(), emptyList())

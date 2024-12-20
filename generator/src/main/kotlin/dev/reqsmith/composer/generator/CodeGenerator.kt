@@ -68,7 +68,7 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
         val entPath = enum.enumId.toPath()
         val entFilePath = "$srcPath/$entPath.${langBuilder.extension}"
         Log.info("Generating enumeration $entFilePath")
-        val success = project.ensureFolderExists(File(entFilePath).parent)
+        val success = Project.ensureFolderExists(File(entFilePath).parent, null)
         if (!success) {
             return false
         }
@@ -102,7 +102,7 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
         val entPath = cls.id.toPath()
         val entFilePath = "$srcPath/$entPath.${langBuilder.extension}"
         Log.info("Generating entity $entFilePath")
-        val success = project.ensureFolderExists(File(entFilePath).parent)
+        val success = Project.ensureFolderExists(File(entFilePath).parent, null)
         if (!success) {
             return false
         }

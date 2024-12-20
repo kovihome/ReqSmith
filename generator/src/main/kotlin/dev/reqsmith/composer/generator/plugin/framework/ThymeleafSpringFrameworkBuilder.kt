@@ -19,18 +19,18 @@
 package dev.reqsmith.composer.generator.plugin.framework
 
 import dev.reqsmith.composer.common.Log
+import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.composer.generator.TemplateContextCollector
 import dev.reqsmith.composer.generator.entities.IGMAction
 import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
 import dev.reqsmith.composer.parser.entities.ReqMSource
 import dev.reqsmith.composer.parser.entities.View
 import dev.reqsmith.composer.parser.enumeration.StandardTypes
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.*
 
 open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
@@ -42,7 +42,7 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
 
     override fun getViewFolder(): String = "templates"
 
-    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
+    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
         // create a controller class for this view
         val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else /* TODO: application domain */ ConfigManager.defaults["domainName"]
         val className = view.qid!!.id!!
@@ -57,7 +57,10 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
                 parameters.add(IGMAction.IGMActionParam("model", "Model"))
                 imports.add("org.springframework.ui.Model")
                 returnType = "String"
-                templateContext.forEach {
+                val viewTemplateContext = TemplateContextCollector().getItemTemplateContext(view.qid, view.definition.properties, "view").apply {
+                    putAll(templateContext)
+                }
+                viewTemplateContext.forEach {
                     statements.add(IGMAction.IGMActionStmt("call" ).withParam("model.addAttribute").withParam(it.key, StandardTypes.stringLiteral.name).withParam(it.value, StandardTypes.stringLiteral.name))
                 }
                 statements.add(IGMAction.IGMActionStmt("return").withParam(className, StandardTypes.stringLiteral.name))
@@ -99,8 +102,8 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
 
         // copy arts
         val copyFrom = "$reqmResourcesFolderName/art"
-        val copyTo = "$buildResourcesFolderName/art"
-//        project.ensureFolderExists(copyTo)
+        val copyTo = "$buildResourcesFolderName/${getViewFolder()}/art"
+        Project.ensureFolderExists(copyTo, null)
 
         File(copyFrom).listFiles()?.filter { it.isFile }?.forEach { file ->
             try {

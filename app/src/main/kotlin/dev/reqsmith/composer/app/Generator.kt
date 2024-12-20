@@ -48,7 +48,7 @@ class Generator(
         // create internal generator model
         Log.debug("Build InternalGeneratorModel...")
         val resourcesFolderName = "${project.buildFolder}/${project.buildSystem.resourceFolder}"
-        project.ensureFolderExists(resourcesFolderName)
+        Project.ensureFolderExists(resourcesFolderName, null)
         val gmb = GeneratorModelBuilder(reqMSource, resourcesFolderName, project)
         val igm = gmb.build()
         Log.info("=============== InternalGeneratorModel ===============\n$igm")

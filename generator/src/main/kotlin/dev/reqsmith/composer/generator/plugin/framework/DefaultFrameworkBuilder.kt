@@ -47,7 +47,7 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
         processEvents(app.definition, igm.getClass(app.qid.toString()).apply { mainClass = true }, igm)
     }
 
-    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
+    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
         TODO("Not yet implemented")
     }
 

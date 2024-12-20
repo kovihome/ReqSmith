@@ -37,7 +37,7 @@ interface FrameworkBuilder {
      * @param igm IGM container, which will hold the view IGM
      * @param templateContext Templating context to substitute string values
      */
-    fun buildView(view: View, igm: InternalGeneratorModel, templateContext: Map<String, String>)
+    fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>)
 
     /**
      * Get the view language

@@ -28,7 +28,7 @@ class BootstrapFrameworkBuilder: WebFrameworkBuilder() {
         return PluginDef("framework.web.bootstrap", PluginType.Framework)
     }
 
-    override fun buildView(viewModel: View, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
+    override fun buildView(viewModel: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
         super.buildView(viewModel, igm, templateContext)
 
         val view = igm.getView(viewModel.qid.toString())

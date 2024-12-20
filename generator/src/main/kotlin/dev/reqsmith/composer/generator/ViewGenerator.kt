@@ -60,7 +60,7 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val projec
         val entPath = view.id.toPath()
         val entFilePath = "$viewResourceFolderName/$entPath.${langBuilder.extension}"
         Log.info("Generating view $entFilePath")
-        val success = project.ensureFolderExists(File(entFilePath).parent)
+        val success = Project.ensureFolderExists(File(entFilePath).parent, null)
         if (!success) {
             return false
         }
@@ -72,7 +72,7 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val projec
     fun copyArts(): Boolean {
         val copyFrom = "${project.projectFolder}/${project.artFolder}"
         val copyTo = "$viewResourceFolderName/art"
-        project.ensureFolderExists(copyTo)
+        Project.ensureFolderExists(copyTo, null)
 
         langBuilder.viewArts.forEach {
             val resourceFileName = it.removeSurrounding("'").removeSurrounding("\"")

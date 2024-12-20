@@ -49,17 +49,19 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
      * @param folder the folder must be existing
      * @return *true* - if the folder exists, *false* - if some errors has occured in creating the folder
      */
-    fun ensureFolderExists(folder: String): Boolean {
-        val folderPath = Path(folder)
-        if (folderPath.notExists()) {
-            try {
-                folderPath.createDirectories()
-            } catch (e: Exception) {
-                errors.add("Create directory $outputFolder failed - ${e.localizedMessage}")
-                return false
+    companion object {
+        fun ensureFolderExists(folder: String, errors: MutableList<String>?): Boolean {
+            val folderPath = Path(folder)
+            if (folderPath.notExists()) {
+                try {
+                    folderPath.createDirectories()
+                } catch (e: Exception) {
+                    errors?.add("Create directory $folder failed - ${e.localizedMessage}")
+                    return false
+                }
             }
+            return true
         }
-        return true
     }
 
     fun calculateFolders(forInit : Boolean = false): Boolean {
@@ -76,7 +78,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
         }
         Log.debug("Input folder = $inputFolder")
         if (forInit) {
-            ensureFolderExists(inputFolder!!)
+            ensureFolderExists(inputFolder!!, errors)
         } else {
             val infolder = File(inputFolder!!)
             if (!infolder.exists()) {
@@ -93,7 +95,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
 //            else -> Path(inputFolder!!).parent.absolutePathString()
 //        }
         buildFolder = "$projectFolder/${buildSystem.buildFolder}"
-        if (!forInit && !ensureFolderExists(buildFolder)) {
+        if (!forInit && !ensureFolderExists(buildFolder, errors)) {
             return false
         }
         Log.debug("Build folder = $buildFolder")
@@ -102,7 +104,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
         if (outputFolder == null) {
             outputFolder = "$buildFolder/${buildSystem.sourceFolder}/$reqmFolderName"
         }
-        if (!forInit && !ensureFolderExists(outputFolder!!)) {
+        if (!forInit && !ensureFolderExists(outputFolder!!, errors)) {
             return false
         }
         Log.debug("Output folder = $outputFolder")
