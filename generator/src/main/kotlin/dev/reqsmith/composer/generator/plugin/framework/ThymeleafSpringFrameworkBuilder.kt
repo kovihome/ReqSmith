@@ -102,7 +102,7 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
 
         // copy arts
         val copyFrom = "$reqmResourcesFolderName/art"
-        val copyTo = "$buildResourcesFolderName/${getViewFolder()}/art"
+        val copyTo = "$buildResourcesFolderName/${super.getViewFolder()}/art"   // TODO: get art folder name from project
         Project.ensureFolderExists(copyTo, null)
 
         File(copyFrom).listFiles()?.filter { it.isFile }?.forEach { file ->
