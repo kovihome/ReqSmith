@@ -163,6 +163,19 @@ We welcome community contributions! If you want to improve ReqSmith:
    ```
 3. Submit a pull request with your changes.
 
+## Support This Project
+
+If you find this project useful, please consider supporting it:
+
+<!--
+- [GitHub Sponsors](https://github.com/sponsors/yourusername)
+- [Patreon](https://www.patreon.com/yourproject)
+- [Open Collective](https://opencollective.com/yourproject)
+- [Liberapay]()
+- [Buy me a coffee](https://buymeacoffee.com)
+-->
+- **[PayPal](https://paypal.me/yourlink)**
+
 ## **License**
 
 This project is licensed under the [GNU GPL V3 License](./LICENSE). See the license file for details.

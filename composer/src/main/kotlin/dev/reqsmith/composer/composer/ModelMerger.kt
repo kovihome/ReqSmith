@@ -108,6 +108,29 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
         val layout = view.definition.properties.find { it.key == "layout" }
         layout?.simpleAttributes?.let { collectViewLayoutDeps(it, dependencies) }
+
+        collectFeatures(view.definition.featureRefs, dependencies)
+
+    }
+
+    private fun collectFeatures(featureRefs: MutableList<FeatureRef>, dependencies: ReqMSource) {
+        val reqmSource = ReqMSource()
+        featureRefs.forEach { featureRef ->
+            val ic = finder.find(Ref.Type.ftr, featureRef.qid.id!!, featureRef.qid.domain)
+            var ix = 0
+            while (ix < ic.items.size) {
+                val item = ic.items[ix]
+                Log.debug("${item.itemType} ${item.name} in ${item.filename}")
+                parser.parseReqMTree(item.filename!!, reqmSource)
+                val feature = reqmSource.features.find { item.name == it.qid.toString() }
+                if (feature != null) {
+                    feature.increaseRefCount()
+                    dependencies.features.add(feature)
+                    addDependecyToList(feature.sourceRef, Ref.Type.ftr, ic)
+                }
+                ix++
+            }
+        }
     }
 
     private fun mergeViewRef(view: View, dependencies: ReqMSource) {

@@ -12,10 +12,3 @@ view WelcomePage {
         file: 'templates/WelcomePage.html'
     }
 }
-
-// Template feature TODO: move to the StdRepo
-feature Template {
-    file
-    templateType: 'thymeleaf'
-    generator: 'feature.template'
-}

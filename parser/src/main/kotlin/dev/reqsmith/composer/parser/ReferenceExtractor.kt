@@ -47,16 +47,28 @@ class ReferenceExtractor {
         source.entities.forEach { extractEntity(it, refs) }
         source.actions.forEach { extractAction(it, refs) }
         source.views.forEach { extractView(it, refs) }
+        source.features.forEach { extractFeature(it, refs) }
         Log.info("---------------------------------------------------------------------------------------")
         return refs
     }
 
-    private fun extractView(view: View, refs: References) {
-        Log.info(" view ${view.qid}")
-        refs.items.add(Ref(Ref.Type.vie, view.qid!!, null, view.sourceFileName))
-        extractSourceRef(view.qid!!, view.sourceRef, refs)
-        extractDefinition(view.definition, view.qid!!, refs)
+    private fun extractElement(
+        refs: References,
+        refType: Ref.Type,
+        qid: QualifiedId,
+        sourceRef: QualifiedId?,
+        definition: Definition,
+        sourceFileName: String
+    ) {
+        Log.info(" ${refType.name} $qid")
+        refs.items.add(Ref(refType, qid, null, sourceFileName))
+        sourceRef?.let { extractSourceRef(qid, sourceRef, refs) }
+        extractDefinition(definition, qid, refs)
     }
+
+    private fun extractFeature(feature: Feature, refs: References) = extractElement(refs, Ref.Type.ftr, feature.qid!!, feature.sourceRef, feature.definition, feature.sourceFileName)
+
+    private fun extractView(view: View, refs: References) = extractElement(refs, Ref.Type.vie, view.qid!!, view.sourceRef, view.definition, view.sourceFileName)
 
     private fun extractAction(action: Action, refs: References) {
         Log.info(" action ${action.qid}")
@@ -64,41 +76,20 @@ class ReferenceExtractor {
         extractActionDefinition(action.definition, action.qid!!, refs)
     }
 
-    private fun extractModule(module: Modul, refs: References) {
-        Log.info(" module ${module.qid}")
-        refs.items.add(Ref(Ref.Type.mod, module.qid!!, null, module.sourceFileName))
-        extractSourceRef(module.qid!!, module.sourceRef, refs)
-        extractDefinition(module.definition, module.qid!!, refs)
-    }
+    private fun extractModule(module: Modul, refs: References) = extractElement(refs, Ref.Type.mod, module.qid!!, module.sourceRef, module.definition, module.sourceFileName)
 
-    private fun extractApplication(application: Application, refs: References) {
-        Log.info(" application ${application.qid}")
-        refs.items.add(Ref(Ref.Type.app, application.qid!!, null, application.sourceFileName))
-        extractSourceRef(application.qid!!, application.sourceRef, refs)
-        extractDefinition(application.definition, application.qid!!, refs)
-    }
+    private fun extractApplication(application: Application, refs: References) = extractElement(refs, Ref.Type.app, application.qid!!, application.sourceRef, application.definition, application.sourceFileName)
 
-    private fun extractActor(act: Actor, refs: References) {
-        Log.info(" actor ${act.qid}")
-        refs.items.add(Ref(Ref.Type.act, act.qid!!, null, act.sourceFileName))
-        extractSourceRef(act.qid!!, act.sourceRef, refs)
-        extractDefinition(act.definition, act.qid!!, refs)
-    }
+    private fun extractActor(act: Actor, refs: References) = extractElement(refs, Ref.Type.act, act.qid!!, act.sourceRef, act.definition, act.sourceFileName)
 
     private fun extractClasss(cls: Classs, refs: References) {
-        Log.info(" class ${cls.qid}")
-        refs.items.add(Ref(Ref.Type.cls, cls.qid!!, null, cls.sourceFileName))
+        extractElement(refs, Ref.Type.cls, cls.qid!!, cls.sourceRef, cls.definition, cls.sourceFileName)
         extractSourceRef(cls.qid!!, cls.parent, refs)
-        extractSourceRef(cls.qid!!, cls.sourceRef, refs)
-        extractDefinition(cls.definition, cls.qid!!, refs)
     }
 
     private fun extractEntity(ent: Entity, refs: References) {
-        Log.info(" entity ${ent.qid}")
-        refs.items.add(Ref(Ref.Type.ent, ent.qid!!, null, ent.sourceFileName))
+        extractElement(refs, Ref.Type.ent, ent.qid!!, ent.sourceRef, ent.definition, ent.sourceFileName)
         extractSourceRef(ent.qid!!, ent.parent, refs)
-        extractSourceRef(ent.qid!!, ent.sourceRef, refs)
-        extractDefinition(ent.definition, ent.qid!!, refs)
     }
 
     private fun extractSourceRef(referredQid: QualifiedId, sourceRef: QualifiedId?, refs: References) {

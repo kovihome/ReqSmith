@@ -1,0 +1,13 @@
+/*
+ * Template feature
+ *
+ * file - path of the template file, relative to the project src/main/resource folder, mandatory
+ * templateType - type of the templating language, default is ThymeLeaf (at least in Spring environment)
+ * generator - generator plugin ID
+ */
+
+feature Template {
+    file
+    templateType: 'thymeleaf'
+    generator: 'feature.template'
+}

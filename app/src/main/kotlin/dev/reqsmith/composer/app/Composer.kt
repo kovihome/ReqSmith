@@ -121,6 +121,9 @@ class Composer(private val project: Project, private val appHome: String) {
         // copy relevant actions
         reqmsrc.actions.addAll(dependenciesReqMModel.actions.filter { it.definition != ActionDefinition.Undefined })
 
+        // copy features
+        reqmsrc.features.addAll(dependenciesReqMModel.features)
+
         // TODO: copy other relevant elements into model
     }
 
