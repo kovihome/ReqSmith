@@ -132,7 +132,7 @@ If you find this project useful, please consider supporting it:
 - [Liberapay]()
 - [Buy me a coffee](https://buymeacoffee.com)
 -->
-- **[PayPal](https://paypal.me/yourlink)**
+- **[PayPal](https://paypal.me/kovihome?country.x=HU&locale.x=hu_HU)**
 
 ## **License**
 
