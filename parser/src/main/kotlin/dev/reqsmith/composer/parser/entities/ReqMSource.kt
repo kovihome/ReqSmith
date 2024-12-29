@@ -19,8 +19,11 @@
 package dev.reqsmith.composer.parser.entities
 
 class ReqMSource : ElementBase() {
-    fun getAction(actionName: String): Action? {
-        return actions.find { it.qid?.id == actionName }
+    fun getAction(actionName: String, sourceFileName: String? = null): Action? {
+        return actions.find {
+            if (sourceFileName == null) it.qid?.id == actionName
+            else it.qid?.id == actionName && it.sourceFileName == sourceFileName
+        }
     }
 
     val applications: MutableList<Application> = ArrayList()

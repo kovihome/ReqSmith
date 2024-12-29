@@ -11,6 +11,6 @@ application HelloWorld from applications.CommandLineApplication {
 /*
  * Default action (when application starts): print 'Hello World!' to the terminal
  */
-action start {
+action startApplication {
     print 'Hello World!'
 }

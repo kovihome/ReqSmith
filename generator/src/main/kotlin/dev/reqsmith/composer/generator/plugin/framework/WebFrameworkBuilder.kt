@@ -51,7 +51,7 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
         if (prop.type == StandardTypes.propertyList.name) {
             node.attributes.addAll(prop.simpleAttributes.filter { it.type != StandardTypes.propertyList.name }.map {
                 var value = it.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
-                if (it.key == "text") {
+                if (it.key in listOf("text", "title")) {
                     value = template.translate(templateContext, value)
                 }
                 it.key!! to value

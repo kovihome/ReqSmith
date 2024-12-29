@@ -8,13 +8,13 @@ application applications.CommandLineApplication from ApplicationBase {
         frameworks.Base
     }
     events {
-        applicationStart: start
+        applicationStart: startApplication
     }
     generator: framework.base
 }
 
-action start {
-    print "<name>, version <version>"
-    print "<description>"
+action startApplication {
+    print "<appName>, version <appVersion>"
+    print "<appDescription>"
 }
 

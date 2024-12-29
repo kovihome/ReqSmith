@@ -42,7 +42,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             // collect reference applications
             if (app.sourceRef != null && app.sourceRef != QualifiedId.Undefined) {
                 val apps = collectApplicationSources(app.sourceRef!!)
-//                dependencies.applications.addAll(apps)
+                dependencies.applications.addAll(apps)
                 // TODO: sort the list by score
                 mergeApplicationRef(app, apps)
             }

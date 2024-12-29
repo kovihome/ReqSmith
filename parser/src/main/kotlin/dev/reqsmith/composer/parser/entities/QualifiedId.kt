@@ -22,6 +22,12 @@ open class QualifiedId(var id: String? = null, var domain: String? = null) : Ele
 
     object Undefined : QualifiedId()
 
+    override fun equals(other: Any?): Boolean {
+        return if (other is QualifiedId) {
+            id == other.id && domain == other.domain
+        } else false
+    }
+
     override fun toString(): String {
         return if (domain == null) { "$id" } else { "$domain.$id" }
     }

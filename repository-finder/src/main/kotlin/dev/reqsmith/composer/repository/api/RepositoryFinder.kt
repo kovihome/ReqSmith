@@ -201,19 +201,19 @@ class RepositoryFinder {
     }
 
     private fun addToIndex(index: RepositoryIndex, refs: References, filename: String = "") {
-        for (item in refs.items) {
+        refs.items.forEach { item ->
             val ix = RepositoryIndex.IndexRecord(RepositoryIndex.RecordType.content, item.type, item.qid.toString(), item.filename)
-            if (!findIndex(index, ix)) {
+//            if (!findIndex(index, ix)) {
                 index.index.add(ix)
-            }
+//            }
         }
-        for (srcref in refs.sourceRefs) {
+        refs.sourceRefs.forEach { srcref ->
             val ix = RepositoryIndex.IndexRecord(RepositoryIndex.RecordType.dependency, srcref.type, srcref.referred.toString(), srcref.filename)
             if (!findIndex(index, ix) && !findIndex(index, RepositoryIndex.IndexRecord(RepositoryIndex.RecordType.content, srcref.type, srcref.referred.toString(), srcref.filename))) {
                 index.index.add(ix)
             }
         }
-        for (t in refs.types) {
+        refs.types.forEach { t ->
             val ix = RepositoryIndex.IndexRecord(RepositoryIndex.RecordType.dependency, Ref.Type.cls, t.qid.toString(), t.filename)
             if (!findIndex(index, ix) && !findIndex(index, RepositoryIndex.IndexRecord(RepositoryIndex.RecordType.content, Ref.Type.cls, t.qid.toString(), filename)) && !findIndex(index, RepositoryIndex.IndexRecord(
                     RepositoryIndex.RecordType.content, Ref.Type.ent, t.qid.toString(), t.filename))) {

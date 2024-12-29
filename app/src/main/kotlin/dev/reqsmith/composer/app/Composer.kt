@@ -87,6 +87,9 @@ class Composer(private val project: Project, private val appHome: String) {
             return null
         }
 
+        // drop applications from dependencies
+        dependenciesReqMModel.applications.clear()
+
         // validate model completeness
         Log.title("Validate model completeness")
         val isComplete = validator.validateCompleteness(reqmsrc)
@@ -119,7 +122,7 @@ class Composer(private val project: Project, private val appHome: String) {
 
     private fun addDependenciesToGenerate(reqmsrc: ReqMSource, dependenciesReqMModel: ReqMSource) {
         // copy relevant actions
-        reqmsrc.actions.addAll(dependenciesReqMModel.actions.filter { it.definition != ActionDefinition.Undefined })
+        reqmsrc.actions.addAll(dependenciesReqMModel.actions.filter { it.definition != ActionDefinition.Undefined && it.owner != null })
 
         // copy features
         reqmsrc.features.addAll(dependenciesReqMModel.features)

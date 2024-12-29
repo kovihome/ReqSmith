@@ -20,9 +20,7 @@ package dev.reqsmith.composer.validator
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.configuration.ConfigManager
-import dev.reqsmith.composer.parser.entities.Definition
-import dev.reqsmith.composer.parser.entities.QualifiedId
-import dev.reqsmith.composer.parser.entities.ReqMSource
+import dev.reqsmith.composer.parser.entities.*
 
 class ModelValidator {
 
@@ -66,6 +64,10 @@ class ModelValidator {
         // check the application item
         if (reqmsrc.applications.isNotEmpty()) {
             val app = reqmsrc.applications[0]
+            if (app.qid?.id?.get(0)?.isLowerCase() == true) {
+                Log.warning("application name ${app.qid?.id} starts with lower case letter; converted to upper case letter")
+                app.qid!!.id = app.qid!!.id!!.replaceFirstChar { it.uppercaseChar() }
+            }
             if (app.qid?.domain.isNullOrBlank()) {
                 Log.warning("application ${app.qid} has no domain name; set the default domain name ${ConfigManager.defaults["domainName"]} to it.")
                 app.qid?.domain = ConfigManager.defaults["domainName"]
@@ -96,10 +98,10 @@ class ModelValidator {
 
         // search event actions in event sources
         reqmsrc.applications.forEach { app ->
-            resolveActionOwnershipFromEvents(app.qid!!, app.definition, reqmsrc, dependenciesReqMModel, errors)
+            resolveActionOwnershipFromAppEvents(app, reqmsrc, dependenciesReqMModel, errors)
         }
         dependenciesReqMModel.modules.forEach { mod ->
-            resolveActionOwnershipFromEvents(mod.qid!!, mod.definition, reqmsrc, dependenciesReqMModel, errors)
+            resolveActionOwnershipFromModEvents(mod, reqmsrc, dependenciesReqMModel, errors)
         }
 
         // search modules/applications for orfan actions
@@ -123,13 +125,20 @@ class ModelValidator {
         }
     }
 
-    private fun resolveActionOwnershipFromEvents(qid: QualifiedId, definition: Definition, reqmsrc: ReqMSource, reqmdep: ReqMSource, errors: MutableList<String>) {
-        val events = definition.properties.find { it.key == "events" }
+    private fun resolveActionOwnershipFromAppEvents(app: Application, reqmsrc: ReqMSource, reqmdep: ReqMSource, errors: MutableList<String>) {
+        val events = app.definition.properties.find { it.key == "events" }
         events?.simpleAttributes?.forEach { ev ->
             val actionName = ev.value
-            var result = searchActionOwnerInModel(reqmsrc, actionName, qid)
-            if (result == null) {
-                result = searchActionOwnerInModel(reqmdep, actionName, qid)
+            var result = searchActionOwnerInModel(reqmsrc, actionName, app.qid!!, null)
+            var srcRef: QualifiedId? = app.sourceRef
+            while (result == null && srcRef != null) {
+                val parent = reqmdep.applications.find { it.qid == srcRef }
+                result = if (parent != null) {
+                    searchActionOwnerInModel(reqmdep, actionName, app.qid!!, parent.sourceFileName)
+                } else {
+                    "action ${actionName} was not found."
+                }
+                srcRef = parent?.sourceRef
             }
             if (result != null && result != "OK") {
                 errors.add(result)
@@ -137,8 +146,34 @@ class ModelValidator {
         }
     }
 
-    private fun searchActionOwnerInModel(reqmsrc: ReqMSource, actionName: String?, qid: QualifiedId): String? {
-        return reqmsrc.getAction(actionName!!)?.let {
+    private fun resolveActionOwnershipFromModEvents(mod: Modul, reqmsrc: ReqMSource, reqmdep: ReqMSource, errors: MutableList<String>) {
+        val events = mod.definition.properties.find { it.key == "events" }
+        events?.simpleAttributes?.forEach { ev ->
+            val actionName = ev.value
+            var result = searchActionOwnerInModel(reqmsrc, actionName, mod.qid!!, null)
+            var srcRef: QualifiedId? = mod.sourceRef
+            while (result == null && srcRef != null) {
+                val parent = reqmdep.modules.find { it.qid == srcRef }
+                result = if (parent != null) {
+                    searchActionOwnerInModel(reqmdep, actionName, mod.qid!!, parent.sourceFileName)
+                } else {
+                    "action ${actionName} was not found."
+                }
+                srcRef = parent?.sourceRef
+            }
+            if (result != null && result != "OK") {
+                errors.add(result)
+            }
+        }
+    }
+
+    private fun searchActionOwnerInModel(
+        reqmsrc: ReqMSource,
+        actionName: String?,
+        qid: QualifiedId,
+        sourceFileName: String?
+    ): String? {
+        return reqmsrc.getAction(actionName!!, sourceFileName)?.let {
             if (it.owner == null) {
                 it.owner = qid.toString()
                 Log.debug("action ${it.qid} owner is application $qid")
