@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,21 +73,23 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
     }
 
     private fun createNode(node: IGMView.IGMNode): String {
-        return if (node.children.isNotEmpty()) {
-            createHTML().div {
-                id = node.name
-                node.children.forEach {
-                    unsafe { raw(createNode(it)) }
-                }
-            }
-        } else {
-            when (node.name) {
-                "header" -> createHeader(node)
-                "footer" -> createFooter(node)
-                "panel" -> createPanel(node)
+        return when (node.name) {
+            "header" -> createHeader(node)
+            "footer" -> createFooter(node)
+            "panel" -> createPanel(node)
 //                "image" -> createHTML(true).img(src = node.text)
 //                "text" -> createHTML(true).p { text(node.text) }
-                else -> createHTML(true).p { text("Unknown node: ${node.name}") }
+            else -> {
+                if (node.children.isNotEmpty()) {
+                    createHTML().div {
+                        id = node.name
+                        node.children.forEach {
+                            unsafe { raw(createNode(it)) }
+                        }
+                    }
+                } else {
+                    createHTML(true).p { text("Unknown node: ${node.name}") }
+                }
             }
         }
     }

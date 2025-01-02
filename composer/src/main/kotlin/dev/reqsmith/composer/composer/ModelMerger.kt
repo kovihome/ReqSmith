@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -173,7 +173,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 val depView = dependencies.views.find { dep -> dep.qid.toString() == it.key }
                 if (depView != null) {
                     it.type = StandardTypes.propertyList.name
-                    it.simpleAttributes.addAll(depView.definition.properties.filter { p -> p.type != StandardTypes.propertyList.name })
+                    it.simpleAttributes.addAll(depView.definition.properties)
                     Log.warning("View layout element ${it.key} is undefined, but found in dependencies; attributes merged")
                 } else {
                     // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni

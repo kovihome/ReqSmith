@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ class BootstrapFrameworkBuilder: WebFrameworkBuilder() {
         val view = igm.getView(viewModel.qid.toString())
         view.imports.addAll(listOf(
             "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
+            "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css",
             "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
         ))
     }

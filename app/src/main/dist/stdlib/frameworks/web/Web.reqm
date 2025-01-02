@@ -22,6 +22,20 @@ view header from panel {
 }
 
 view footer from panel {
+    Quick_Links {
+        About
+        Privacy_Policy
+        Contact
+    }
+    copyright: "Copyright \&copy; 2024 ReqSmith Ltd. All rights reserved."
+    copyright: "Powered by Bootstrap."
+    social {
+        facebook
+        twitter
+        linkedin
+        youtube
+        github: 'https://github.com/kovihome/ReqSmith'
+    }
 }
 
 view panel {
