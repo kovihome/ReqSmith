@@ -20,6 +20,7 @@ package dev.reqsmith.composer.repository.api
 
 import org.apache.commons.io.FileUtils
 import dev.reqsmith.composer.common.Log
+import dev.reqsmith.composer.common.exceptions.ReqMParsingException
 import dev.reqsmith.composer.parser.ReferenceExtractor
 import dev.reqsmith.composer.parser.ReqMParser
 import dev.reqsmith.model.reqm.Ref
@@ -176,17 +177,12 @@ class RepositoryFinder {
 
         val reqmsrc = ReqMSource()
         val ok = parser.parseFolder(path.absolutePathString(), reqmsrc)
+        if (!ok) throw ReqMParsingException("Parsing errors found during merge; see previous errors")
 
-        if (ok) {
-
-            // search repository for reqm source elements
-            val refs = extractor.extract(reqmsrc)
-
-            addToIndex(index, refs)
-
-            saveIndex(path, index)
-
-        }
+        // search repository for reqm source elements
+        val refs = extractor.extract(reqmsrc)
+        addToIndex(index, refs)
+        saveIndex(path, index)
 
         return index
     }

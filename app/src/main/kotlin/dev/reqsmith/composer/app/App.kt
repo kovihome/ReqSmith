@@ -127,7 +127,12 @@ class App(private val args: Array<String>) {
         Log.info("Output directory: ${project.outputFolder}")
 
         // compose full requirement model
-        val mergedReqMSource = Composer(project, path).compose()
+        val mergedReqMSource = try {
+            Composer(project, path).compose()
+        } catch (e: Exception) {
+            Log.error("Composing requirements was failed: ${e.localizedMessage}")
+            return false
+        }
         if (mergedReqMSource == null) {
             Log.error("Something goes wrong with the requirement composer, see previous errors; source code will not be generated. ")
             return false

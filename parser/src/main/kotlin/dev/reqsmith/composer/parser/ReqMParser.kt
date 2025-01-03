@@ -31,34 +31,47 @@ import java.io.IOException
 
 class ReqMParser {
 
+    /**
+     * Parse all ReqM source files in a folder
+     * @param folder The folder containing the ReqM source files
+     * @param reqmSource The ReqM model holding the file content
+     * @return true - when tha parsing was succeeded; false - errors occurred during parsing
+     */
     fun parseFolder(folder: String, reqmSource: ReqMSource) : Boolean {
         val files = File(folder).listFiles()?.filter { it.extension == "reqm" }
         if (files.isNullOrEmpty()) return false
 
         var hasErrors = false
         files.forEach { file ->
-            try {
-                Log.info("Parsing file ${file.absolutePath}")
-                parseReqMTree(file.absolutePath, reqmSource)
-            } catch (e: IOException) {
-                Log.error("Parsing $file was failed - ${e.localizedMessage}")
-                // TODO: handle IO exception
-                hasErrors = true
-            } catch (e: RecognitionException) {
-                Log.error("Parsing $file was failed - ${e.localizedMessage}")
-                // TODO: handle parse errors
-                hasErrors = true
-            } catch (e: ReqMParsingException) {
-                Log.error(e.message!!)
-                e.parserErrors.forEach { Log.error("$file - $it") }
-                hasErrors = true
-            }
+            Log.info("Parsing file ${file.absolutePath}")
+            hasErrors = hasErrors || !parseReqMTree(file.absolutePath, reqmSource)
         }
         return !hasErrors
     }
 
-    fun parseReqMTree(filePath: String, reqmSource: ReqMSource) {
-        val tree = loadReqMTree(filePath)
+    /**
+     * Parse a ReqM source file
+     * @param filePath The path of the ReqM file
+     * @param reqmSource The ReqM model holding the file content
+     * @return true - when tha parsing was succeeded; false - errors occurred during parsing
+     */
+    fun parseReqMTree(filePath: String, reqmSource: ReqMSource): Boolean {
+
+        val tree = try {
+            loadReqMTree(filePath)
+        } catch (e: IOException) {
+            Log.error("Parsing $filePath was failed - ${e.localizedMessage}")
+            // TODO: handle IO exception
+            return false
+        } catch (e: RecognitionException) {
+            Log.error("Parsing $filePath was failed - ${e.localizedMessage}")
+            // TODO: handle parse errors
+            return false
+        } catch (e: ReqMParsingException) {
+            Log.error(e.message!!)
+            e.parserErrors.forEach { Log.error("$filePath - $it") }
+            return false
+        }
 
         for (stat in tree.topStat()) {
             parseApplication(stat.application(), reqmSource)
@@ -71,6 +84,7 @@ class ReqMParser {
             parseFeature(stat.feature(), reqmSource)
             // TODO: parseStyle(stat.style(), reqmSource)
         }
+        return true
     }
 
     private fun parseFeature(feature: ReqMParserParser.FeatureContext?, reqmSource: ReqMSource) {
