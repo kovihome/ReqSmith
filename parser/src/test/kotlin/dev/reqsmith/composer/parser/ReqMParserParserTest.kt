@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,9 @@ import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.junit.jupiter.api.Test
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
-import dev.reqsmith.composer.parser.entities.Definition
-import dev.reqsmith.composer.parser.entities.ReqMSource
+import dev.reqsmith.model.reqm.Definition
+import dev.reqsmith.model.reqm.ReqMSource
 import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 
 class ReqMParserParserTest {
 

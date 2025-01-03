@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024. Kovi <kovihome86@gmail.com> 
+ * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,9 @@ package dev.reqsmith.composer.generator.plugin.framework
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
-import dev.reqsmith.composer.generator.entities.IGMClass
-import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
-import dev.reqsmith.composer.parser.entities.*
+import dev.reqsmith.model.igm.IGMClass
+import dev.reqsmith.model.igm.InternalGeneratorModel
+import dev.reqsmith.model.reqm.*
 
 open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
 

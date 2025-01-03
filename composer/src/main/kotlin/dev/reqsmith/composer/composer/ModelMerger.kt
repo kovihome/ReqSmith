@@ -20,12 +20,12 @@ package dev.reqsmith.composer.composer
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.parser.ReqMParser
-import dev.reqsmith.composer.parser.entities.*
 import dev.reqsmith.composer.parser.enumeration.Optionality
-import dev.reqsmith.composer.parser.enumeration.StandardTypes
+import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
+import dev.reqsmith.model.reqm.*
 
 class ModelMerger(private val finder: RepositoryFinder) {
     private val parser = ReqMParser()

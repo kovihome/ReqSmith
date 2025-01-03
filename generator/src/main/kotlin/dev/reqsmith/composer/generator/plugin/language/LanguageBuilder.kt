@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024. Kovi <kovihome86@gmail.com> 
+ * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,9 @@
 
 package dev.reqsmith.composer.generator.plugin.language
 
-import dev.reqsmith.composer.generator.entities.IGMClass
-import dev.reqsmith.composer.generator.entities.IGMEnumeration
-import dev.reqsmith.composer.generator.entities.IGMView
+import dev.reqsmith.model.igm.IGMClass
+import dev.reqsmith.model.igm.IGMEnumeration
+import dev.reqsmith.model.igm.IGMView
 
 interface LanguageBuilder {
     val extension: String

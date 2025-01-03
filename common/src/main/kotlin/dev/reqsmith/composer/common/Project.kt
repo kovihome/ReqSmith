@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,13 +43,14 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
     private val reqmFolderName = "reqm"
     private val errors: MutableList<String> = ArrayList()
 
-    /**
-     * Check whether the folder exists, or create it
-     *
-     * @param folder the folder must be existing
-     * @return *true* - if the folder exists, *false* - if some errors has occured in creating the folder
-     */
     companion object {
+        /**
+         * Check whether the folder exists, or create it
+         *
+         * @param folder the folder must be existing
+         * @param errors Folder creation errors
+         * @return *true* - if the folder exists, *false* - if some errors has occured in creating the folder
+         */
         fun ensureFolderExists(folder: String, errors: MutableList<String>?): Boolean {
             val folderPath = Path(folder)
             if (folderPath.notExists()) {
@@ -140,15 +141,15 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
         appVersion: String,
         buildScriptUpdates: Map<String, List<String>>
     ) {
-        val plugins = buildScriptUpdates["plugins"]!!
+        val plugins = buildScriptUpdates["plugins"] ?: listOf()
         val pluginsBlock = plugins.joinToString("\n") {
             if (it.startsWith("id:"))
                 "    id(\"${it.substring(3).substringBefore(":")}\") version \"${it.substringAfterLast(":")}\""
             else
                 "    ${it.substringBefore(":")} version \"${it.substringAfterLast(":")}\""
         }
-        val dependecies = buildScriptUpdates["dependencies"]!!
-        val dependenciesBlock = dependecies.joinToString("\n") { "    implementation(\"$it\")" }
+        val dependencies = buildScriptUpdates["dependencies"] ?: listOf()
+        val dependenciesBlock = dependencies.joinToString("\n") { "    implementation(\"$it\")" }
 
         val params = mutableMapOf (
             "composerCommand" to "${appHome.replace('\\', '/')}/bin/forge".replace("//", "/"),

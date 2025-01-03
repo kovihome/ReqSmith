@@ -20,8 +20,8 @@ package dev.reqsmith.composer.generator.plugin.framework
 
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
-import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
-import dev.reqsmith.composer.parser.entities.View
+import dev.reqsmith.model.igm.InternalGeneratorModel
+import dev.reqsmith.model.reqm.View
 
 class BootstrapFrameworkBuilder: WebFrameworkBuilder() {
     override fun definition(): PluginDef {

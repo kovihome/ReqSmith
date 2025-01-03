@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024. Kovi <kovihome86@gmail.com> 
+ * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,12 +23,12 @@ import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
-import dev.reqsmith.composer.generator.entities.IGMAction
-import dev.reqsmith.composer.generator.entities.IGMClass
-import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
+import dev.reqsmith.model.igm.IGMAction
+import dev.reqsmith.model.igm.IGMClass
+import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilder
-import dev.reqsmith.composer.parser.entities.*
-import dev.reqsmith.composer.parser.enumeration.StandardTypes
+import dev.reqsmith.model.enumeration.StandardTypes
+import dev.reqsmith.model.reqm.*
 import kotlin.reflect.full.isSubclassOf
 
 class GeneratorModelBuilder(private val reqMSource: ReqMSource, private val resourcesFolderName: String, private val project: Project) {

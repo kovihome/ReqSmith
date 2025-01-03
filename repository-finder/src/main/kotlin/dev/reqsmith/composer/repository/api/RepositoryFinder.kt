@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@ import org.apache.commons.io.FileUtils
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.parser.ReferenceExtractor
 import dev.reqsmith.composer.parser.ReqMParser
-import dev.reqsmith.composer.parser.entities.Ref
-import dev.reqsmith.composer.parser.entities.References
-import dev.reqsmith.composer.parser.entities.ReqMSource
+import dev.reqsmith.model.reqm.Ref
+import dev.reqsmith.model.reqm.References
+import dev.reqsmith.model.reqm.ReqMSource
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
 import dev.reqsmith.composer.repository.api.entities.ReqMRepository

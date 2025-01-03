@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import dev.reqsmith.composer.generator.CodeGenerator
 import dev.reqsmith.composer.generator.GeneratorModelBuilder
 import dev.reqsmith.composer.generator.ViewGenerator
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
-import dev.reqsmith.composer.parser.entities.ReqMSource
+import dev.reqsmith.model.reqm.ReqMSource
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
 

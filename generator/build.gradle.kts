@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":common"))
-    api(project(":parser"))
+    implementation(project(":common"))
+    implementation(project(":model"))
+    implementation(project(":parser"))
 
     implementation(libs.kotlin.reflect)
     implementation(libs.bundles.kotlin.html)

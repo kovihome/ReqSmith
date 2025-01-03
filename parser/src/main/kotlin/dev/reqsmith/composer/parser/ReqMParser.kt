@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com> 
+ * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@ import org.antlr.v4.runtime.RecognitionException
 import org.antlr.v4.runtime.Token
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
-import dev.reqsmith.composer.parser.entities.*
-import dev.reqsmith.composer.parser.enumeration.StandardTypes
+import dev.reqsmith.model.enumeration.StandardTypes
+import dev.reqsmith.model.reqm.*
 import java.io.File
 import java.io.IOException
 

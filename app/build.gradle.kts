@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,13 @@ plugins {
 // TODO: axion-release plugin for version management
 
 dependencies {
+    implementation(project(":model"))
     implementation(project(":common"))
     implementation(project(":parser"))
     implementation(project(":validator"))
     implementation(project(":composer"))
     implementation(project(":generator"))
+    implementation(project(":repository-finder"))
 
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.cli)
@@ -40,3 +42,7 @@ application {
     // Define the main class for the application.
     mainClass.set("dev.reqsmith.composer.app.AppKt")
 }
+
+//tasks.installDist {
+//    into("D:/temp/qqq/composer-0.1.0")
+//}

@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,9 @@ import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.composer.ModelMerger
 import dev.reqsmith.composer.parser.ReqMParser
-import dev.reqsmith.composer.parser.entities.*
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.validator.ModelValidator
+import dev.reqsmith.model.reqm.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

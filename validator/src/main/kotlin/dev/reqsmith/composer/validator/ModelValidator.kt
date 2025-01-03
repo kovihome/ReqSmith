@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2024. Kovi <kovihome86@gmail.com> 
+ * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ package dev.reqsmith.composer.validator
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.configuration.ConfigManager
-import dev.reqsmith.composer.parser.entities.*
+import dev.reqsmith.model.reqm.*
 
 class ModelValidator {
 

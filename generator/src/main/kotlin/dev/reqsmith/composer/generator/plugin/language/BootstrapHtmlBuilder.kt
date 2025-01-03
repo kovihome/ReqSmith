@@ -20,7 +20,7 @@ package dev.reqsmith.composer.generator.plugin.language
 
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
-import dev.reqsmith.composer.generator.entities.IGMView
+import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
 

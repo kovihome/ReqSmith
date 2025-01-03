@@ -21,12 +21,11 @@ package dev.reqsmith.composer.generator.plugin.language
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
-import dev.reqsmith.composer.generator.entities.IGMClass
-import dev.reqsmith.composer.generator.entities.IGMEnumeration
-import dev.reqsmith.composer.generator.entities.IGMView
+import dev.reqsmith.model.igm.IGMClass
+import dev.reqsmith.model.igm.IGMEnumeration
+import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
-import java.nio.file.Path
 
 open class HtmlBuilder : LanguageBuilder, Plugin {
     override val extension: String = "html"

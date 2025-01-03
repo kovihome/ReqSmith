@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,11 @@ import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
-import dev.reqsmith.composer.generator.entities.IGMAction
-import dev.reqsmith.composer.generator.entities.InternalGeneratorModel
-import dev.reqsmith.composer.parser.entities.Application
-import dev.reqsmith.composer.parser.entities.ReqMSource
+import dev.reqsmith.model.igm.IGMAction
+import dev.reqsmith.model.igm.InternalGeneratorModel
+import dev.reqsmith.model.reqm.Application
+import dev.reqsmith.model.reqm.ReqMSource
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.io.FileWriter
 import java.util.Properties
 

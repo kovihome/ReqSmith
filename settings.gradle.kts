@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,4 +22,4 @@ plugins {
 }
 
 rootProject.name = "reqsmith"
-include("app", "parser", "validator", "composer", "repository-finder", "generator", "common")
+include("app", "parser", "validator", "composer", "repository-finder", "generator", "common", "model")
