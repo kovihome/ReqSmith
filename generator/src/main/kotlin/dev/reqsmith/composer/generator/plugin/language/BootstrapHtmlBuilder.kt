@@ -40,14 +40,14 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         classes = setOf("me-3")
                         src = "$artPathPrefix/${attr["logo"]}"
                         alt = "logo"
-//                        style = "width: 50px; height: 50px;"
+                        style = "width: 128px; height: 128px;"
                         viewArts.add(attr["logo"] ?: "")
                     }
                 }
                 if (attr.contains("title")) {
                     h1 {
+                        classes = setOf("m-0", "fs-4")
                         text(attr["title"] ?: "(Title comes here)")
-//                        classes = setOf("m-0", "fs-4")
                     }
                 }
             }
@@ -81,8 +81,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     }
 
     override fun createFooter(node: IGMView.IGMNode): String {
-//        val attr = node.attributes.toMap()
-        val footerSpecAttributes = listOf("copyright", "social", "contact")
+        val attr = node.attributes.toMap()
+        val layout = node.children.find { it.name == "layout" }
         return createHTML(true).footer {
             classes = setOf("bg-dark", "text-white", "py-4", "mt-5", "fixed-bottom")
             div {
@@ -90,14 +90,15 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 div {
                     classes = setOf("row")
                     // footer link groups
-                    node.children.filter { !footerSpecAttributes.contains(it.name) }.forEach { linkGroup ->
-                        val groupTitle = linkGroup.name.replace("_", " ")
+
+                    layout?.children?.filter { it.name == "linkList" }?.forEach { linkGroup ->
+                        val groupTitle = linkGroup.attributes.find { it.first == "title" }?.second ?: "Links"
                         div {
                             classes = setOf("col-md-6", "mb-3", "mb-md-0")
                             h5 { text(groupTitle) }
                             ul {
                                 classes = setOf("list-unstyled")
-                                linkGroup.attributes.forEach { link ->
+                                linkGroup.attributes.filter { it.first != "title" }.forEach { link ->
                                     val linkText = link.first.replace("_", " ")
                                     var linkValue = link.second
                                     if (linkValue.isNullOrBlank()) {
@@ -117,46 +118,46 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                 }
                             }
                         }
-
-
                     }
-                    // footer info (copyright)
-                    val copyrightList = node.attributes.filter { it.first == "copyright" }
-                    if (copyrightList.isNotEmpty()) {
-                        div {
-                            classes = setOf("col-md-6", "text-md-end")
-                            copyrightList.forEach {
-                                p {
-                                    classes = setOf("mb-0")
-                                    text(it.second)
-                                }
-                            }
 
-                            // social media icons
-                            val socialMediaLinkGroup = node.children.filter { it.name == "social" }
-                            if (socialMediaLinkGroup.isNotEmpty()) {
-                                div {
-                                    classes = setOf("mt-3")
-                                    socialMediaLinkGroup[0].attributes.forEach { link ->
-                                        val media = link.first
-                                        val linkValue = if (link.second.isNullOrBlank()) "#" else link.second
-                                        val mediaClass = "bi-${media}"
-                                        a {
-                                            href = linkValue
-                                            classes = setOf("pe-3")
-                                            i {
-                                                classes = setOf("bi", mediaClass)
-                                                style = "font-size:1.5rem;color:white;"
-                                            }
+                    //
+                    div {
+                        classes = setOf("col-md-6", "text-md-end")
+
+                        // footer info (copyright)
+                        val copyrightList = layout?.attributes?.filter { it.first == "copyright" }
+                        copyrightList?.forEach {
+                            p {
+                                classes = setOf("mb-0")
+                                var copyText = if (attr.containsKey(it.second)) attr.getOrDefault(it.second, it.second) else it.second
+                                text(copyText)
+                            }
+                        }
+
+                        // social media icons
+                        val socialMediaLinkGroup = layout?.children?.find { it.name == "social" }
+                        socialMediaLinkGroup?.let {
+                            div {
+                                classes = setOf("mt-3")
+                                it.attributes.forEach { link ->
+                                    val media = link.first
+                                    val linkValue = if (link.second.isNullOrBlank()) "#" else {
+                                        if (attr.containsKey(link.second)) attr.getOrDefault(link.second, link.second) else link.second
+                                    }
+                                    val mediaClass = "bi-${media}"
+                                    a {
+                                        href = linkValue
+                                        classes = setOf("pe-3")
+                                        i {
+                                            classes = setOf("bi", mediaClass)
+                                            style = "font-size:1.5rem;color:white;"
                                         }
                                     }
                                 }
                             }
-
                         }
+
                     }
-
-
                 }
             }
         }

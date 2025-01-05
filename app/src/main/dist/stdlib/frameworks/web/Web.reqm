@@ -6,15 +6,13 @@ module frameworks.Web {
     generator: framework.web
 }
 
-//action print
-
 view image
 
 view text
 
 view header from panel {
-    logo: String
-    title: String
+    logo: ""
+    title: "Web Application"
     layout {
         image: logo
         text: title
@@ -22,19 +20,24 @@ view header from panel {
 }
 
 view footer from panel {
-    Quick_Links {
-        About
-        Privacy_Policy
-        Contact
-    }
-    copyright: "Copyright \&copy; 2024 ReqSmith Ltd. All rights reserved."
-    copyright: "Powered by Bootstrap."
-    social {
-        facebook
-        twitter
-        linkedin
-        youtube
-        github: 'https://github.com/kovihome/ReqSmith'
+    copyrightText: "Copyright \&copy; 2024 ReqSmith Ltd. All rights reserved."
+    githubLink: 'https://github.com/kovihome/ReqSmith'
+    layout {
+        linkList {
+            title: "Quick Links"
+            About
+            Privacy_Policy
+            Contact
+        }
+        copyright: copyrightText
+        copyright: "Powered by Bootstrap."
+        social {
+            facebook
+            twitter
+            linkedin
+            youtube
+            github: githubLink
+        }
     }
 }
 
