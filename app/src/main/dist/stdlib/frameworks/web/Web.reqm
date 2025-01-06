@@ -22,13 +22,14 @@ view header from panel {
 view footer from panel {
     copyrightText: "Copyright \&copy; 2024 ReqSmith Ltd. All rights reserved."
     githubLink: 'https://github.com/kovihome/ReqSmith'
+    linkGroup {
+        title: "Quick Links"
+        About
+        Privacy_Policy
+        Contact
+    }
     layout {
-        linkList {
-            title: "Quick Links"
-            About
-            Privacy_Policy
-            Contact
-        }
+        linkList: linkGroup
         copyright: copyrightText
         copyright: "Powered by Bootstrap."
         social {

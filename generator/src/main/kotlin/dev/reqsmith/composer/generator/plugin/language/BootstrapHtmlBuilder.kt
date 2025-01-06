@@ -23,6 +23,7 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
+import kotlin.math.max
 
 class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun definition(): PluginDef {
@@ -89,12 +90,20 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 classes = setOf("container")
                 div {
                     classes = setOf("row")
-                    // footer link groups
 
-                    layout?.children?.filter { it.name == "linkList" }?.forEach { linkGroup ->
+                    // footer link groups
+                    val linkGroups = if (layout?.attributes?.any { it.first == "linkList" } == true) {
+                        val childrenName = layout.attributes.find { it.first == "linkList" }?.second
+                        node.children.filter { it.name == childrenName }
+                    } else {
+                        layout?.children?.filter { it.name == "linkList" }
+                    }
+                    val ngroups = linkGroups?.size ?: 1
+                    val colSize = max(6 / ngroups, 1)
+                    linkGroups?.forEach { linkGroup ->
                         val groupTitle = linkGroup.attributes.find { it.first == "title" }?.second ?: "Links"
                         div {
-                            classes = setOf("col-md-6", "mb-3", "mb-md-0")
+                            classes = setOf("col-md-${colSize}", "mb-3", "mb-md-0")
                             h5 { text(groupTitle) }
                             ul {
                                 classes = setOf("list-unstyled")
@@ -122,7 +131,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
                     //
                     div {
-                        classes = setOf("col-md-6", "text-md-end")
+                        classes = setOf("col-md-${12-colSize*ngroups}", "text-md-end")
 
                         // footer info (copyright)
                         val copyrightList = layout?.attributes?.filter { it.first == "copyright" }

@@ -33,6 +33,6 @@ application {
 }
 
 tasks.withType\<ProcessResources>() {
-    exclude("src/main/resources")
+    exclude("src/main/resources/**")
     duplicatesStrategy = DuplicatesStrategy.WARN
 }

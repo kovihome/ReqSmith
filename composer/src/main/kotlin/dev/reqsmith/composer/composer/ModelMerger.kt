@@ -52,7 +52,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                     // TODO: sort the list by score
                     mergeApplicationRef(app, apps)
                 } else {
-                    errors.add("Source reference ${app.sourceRef} is not found for application ${app.qid} (${app.coords()}).")
+                    errors.add("Source reference ${app.sourceRef} is not found for application ${app.qid} (${app.coords()}). (${app.coords()})")
                 }
             }
 
@@ -73,7 +73,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                     // TODO: sort the list by score
                     mergeActorRef(act, acts)
                 } else {
-                    errors.add("Source reference ${act.sourceRef} is not found for actor ${act.qid} (${act.coords()}).")
+                    errors.add("Source reference ${act.sourceRef} is not found for actor ${act.qid} (${act.coords()}). (${act.coords()})")
                 }
             }
         }
@@ -86,7 +86,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                     // TODO: sort the list by score
                     mergeClassRef(cls, clss)
                 } else {
-                    errors.add("Source reference ${cls.sourceRef} is not found for class ${cls.qid} (${cls.coords()}).")
+                    errors.add("Source reference ${cls.sourceRef} is not found for class ${cls.qid} (${cls.coords()}). (${cls.coords()})")
                 }
             }
         }
@@ -99,7 +99,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 // TODO: sort the list by score
                 mergeEntityRef(ent, ents)
                 } else {
-                    errors.add("Source reference ${ent.sourceRef} is not found for entity ${ent.qid} (${ent.coords()}).")
+                    errors.add("Source reference ${ent.sourceRef} is not found for entity ${ent.qid} (${ent.coords()}). (${ent.coords()})")
                 }
             }
         }
@@ -200,22 +200,26 @@ class ModelMerger(private val finder: RepositoryFinder) {
     }
 
     private fun collectViewLayoutDeps(properties: MutableList<Property>, dependencies: ReqMSource) {
-        properties.forEach {
-            collectViewSources(QualifiedId(it.key), dependencies)
-            if (!StandardLayoutElements.contains(it.key!!)) {
-                if (it.type == StandardTypes.propertyList.name) {
-                    collectViewLayoutDeps(it.simpleAttributes, dependencies)
-                } else if (it.value == null) {
-                    val depView = dependencies.views.find { dep -> dep.qid.toString() == it.key }
-                    if (depView != null) {
-                        it.type = StandardTypes.propertyList.name
-                        it.simpleAttributes.addAll(depView.definition.properties)
-                        Log.warning("View layout element ${it.key} is undefined, but found in dependencies; attributes merged")
-                    } else {
-                        // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni
-                        Log.warning("View layout element ${it.key} is undefined")
+        properties.forEach { prop ->
+            collectViewSources(QualifiedId(prop.key), dependencies)
+            if (prop.type == StandardTypes.propertyList.name && !StandardLayoutElements.contains(prop.key!!)) {
+                collectViewLayoutDeps(prop.simpleAttributes, dependencies)
+            }
+            val depView = dependencies.views.find { dep -> dep.qid.toString() == prop.key }
+            if (depView != null) {
+                if (prop.type != StandardTypes.propertyList.name) {
+                    prop.type = StandardTypes.propertyList.name
+                    prop.simpleAttributes.addAll(depView.definition.properties)
+                } else {
+                    depView.definition.properties.forEach { depprop ->
+                        if (prop.simpleAttributes.none { it.key == depprop.key }) {
+                            prop.simpleAttributes.add(depprop)
+                        }
                     }
                 }
+            } else {
+                // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni
+                Log.warning("View layout element ${prop.key} is undefined (${prop.coords()})")
             }
         }
     }
@@ -258,7 +262,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 } else {
                     // no actions found for this event, create an empty one, and send warning
                     dependentActions.add(Action().apply { qid = QualifiedId(actionName) })
-                    Log.warning("Action $actionName is not found for event ${attr.key}; create an empty action")
+                    Log.warning("Action $actionName is not found for event ${attr.key}; create an empty action (${attr.coords()})")
                 }
             }
         }
@@ -302,7 +306,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         if (sourceRef != null && sourceRef != QualifiedId.Undefined) {
             if (ic.items.any { it.name == sourceRef.toString() && it.itemType == itemType }) return
             val ic2 = finder.find(itemType, sourceRef.id!!, sourceRef.domain)
-            if (ic.items.isEmpty()) errors.add("Source reference $sourceRef is not found.")
+            if (ic.items.isEmpty()) errors.add("Source reference $sourceRef is not found. (${sourceRef.coords()})")
             if (ic2.items.isNotEmpty()) {
                 ic2.items[0].recType = RepositoryIndex.RecordType.content
                 ic.items.add(ic2.items[0])
@@ -408,7 +412,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         val ref = QualifiedId(key)
         val moduls : MutableList<Modul> = ArrayList()
         val ic = finder.find(Ref.Type.mod, ref.id!!, ref.domain)
-        if (ic.items.isEmpty()) errors.add("Source reference $ref is not found.")
+        if (ic.items.isEmpty()) errors.add("Source reference $ref is not found. (${ref.coords()})")
         var ix = 0
         while (ix < ic.items.size) {
             val item = ic.items[ix]
