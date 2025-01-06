@@ -29,13 +29,19 @@ class IGMView(val id: String) {
         val children : MutableList<IGMNode> = ArrayList()
 
         override fun toString(): String {
-            return "$name { ${children.joinToString(", ") { it.name }} }"
+            val sb = StringBuilder()
+            sb.append("IGMNode $name\n")
+            attributes.forEach { sb.append("    ${it.first}: ${it.second}\n") }
+            children.forEach {
+                sb.append(it.toString().split("\n").joinToString("\n") { "    $it" })
+            }
+            return sb.toString()
         }
     }
 
     override fun toString(): String {
         val sb = StringBuilder("IGMView $id\n")
-        sb.append("    $layout")
+        sb.append(layout.toString().split("\n").joinToString("\n") { "    $it" })
         return sb.toString()
     }
 

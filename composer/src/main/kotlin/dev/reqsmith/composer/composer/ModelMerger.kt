@@ -19,6 +19,7 @@
 package dev.reqsmith.composer.composer
 
 import dev.reqsmith.composer.common.Log
+import dev.reqsmith.composer.common.exceptions.ReqMMergeException
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
 import dev.reqsmith.composer.parser.ReqMParser
 import dev.reqsmith.composer.parser.enumeration.Optionality
@@ -26,16 +27,19 @@ import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
+import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.reqm.*
 
 class ModelMerger(private val finder: RepositoryFinder) {
     private val parser = ReqMParser()
+    private val errors: MutableList<String> = ArrayList()
 
     /**
      * Merge referenced repository items to project items
      *
      * @param reqmsrc Project source in ReqM format
      * @return Dependencies in ReqM structure
+     * @throws ReqMMergeException - holds all merge errors
      */
     fun merge(reqmsrc: ReqMSource): ReqMSource {
         val dependencies = ReqMSource()
@@ -43,9 +47,13 @@ class ModelMerger(private val finder: RepositoryFinder) {
             // collect reference applications
             if (app.sourceRef != null && app.sourceRef != QualifiedId.Undefined) {
                 val apps = collectApplicationSources(app.sourceRef!!)
-                dependencies.applications.addAll(apps)
-                // TODO: sort the list by score
-                mergeApplicationRef(app, apps)
+                if (apps.isNotEmpty()) {
+                    dependencies.applications.addAll(apps)
+                    // TODO: sort the list by score
+                    mergeApplicationRef(app, apps)
+                } else {
+                    errors.add("Source reference ${app.sourceRef} is not found for application ${app.qid} (${app.coords()}).")
+                }
             }
 
             // resolve dependencies
@@ -60,27 +68,39 @@ class ModelMerger(private val finder: RepositoryFinder) {
             // collect reference actors
             if (act.sourceRef != null && act.sourceRef != QualifiedId.Undefined) {
                 val acts = collectActorSources(act.sourceRef!!)
-                dependencies.actors.addAll(acts)
-                // TODO: sort the list by score
-                mergeActorRef(act, acts)
+                if (acts.isNotEmpty()) {
+                    dependencies.actors.addAll(acts)
+                    // TODO: sort the list by score
+                    mergeActorRef(act, acts)
+                } else {
+                    errors.add("Source reference ${act.sourceRef} is not found for actor ${act.qid} (${act.coords()}).")
+                }
             }
         }
         reqmsrc.classes.forEach { cls ->
             // collect reference classes
             if (cls.sourceRef != null && cls.sourceRef != QualifiedId.Undefined) {
                 val clss = collectClassSources(cls.sourceRef!!)
-                dependencies.classes.addAll(clss)
-                // TODO: sort the list by score
-                mergeClassRef(cls, clss)
+                if (clss.isNotEmpty()) {
+                    dependencies.classes.addAll(clss)
+                    // TODO: sort the list by score
+                    mergeClassRef(cls, clss)
+                } else {
+                    errors.add("Source reference ${cls.sourceRef} is not found for class ${cls.qid} (${cls.coords()}).")
+                }
             }
         }
         reqmsrc.entities.forEach { ent ->
             // collect reference entities
             if (ent.sourceRef != null && ent.sourceRef != QualifiedId.Undefined) {
                 val ents = collectEntitySources(ent.sourceRef!!)
+                if (ents.isNotEmpty()) {
                 dependencies.entities.addAll(ents)
                 // TODO: sort the list by score
                 mergeEntityRef(ent, ents)
+                } else {
+                    errors.add("Source reference ${ent.sourceRef} is not found for entity ${ent.qid} (${ent.coords()}).")
+                }
             }
         }
         // add dependendent actions to the dependecies
@@ -98,6 +118,11 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
 
         // TODO: merge features and styles
+
+        // throw errors
+        if (errors.isNotEmpty()) {
+            throw ReqMMergeException("Merge failed.", errors)
+        }
 
         return dependencies
     }
@@ -117,6 +142,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
     private fun collectFeatures(featureRefs: List<FeatureRef>, dependencies: ReqMSource) {
         featureRefs.forEach { featureRef ->
             val ic = finder.find(Ref.Type.ftr, featureRef.qid.id!!, featureRef.qid.domain)
+            if (ic.items.isEmpty()) errors.add("Feature reference $featureRef is not found.")
             var ix = 0
             while (ix < ic.items.size) {
                 val item = ic.items[ix]
@@ -148,16 +174,19 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
     private fun collectViewSources(sourceRef: QualifiedId, dependencies: ReqMSource) {
         val ic = finder.find(Ref.Type.vie, sourceRef.id!!, sourceRef.domain)
+        if (ic.items.isEmpty()) errors.add("Source reference $sourceRef is not found.")
         ic.items.forEach {
             if (dependencies.views.none { d -> it.name == d.qid.toString() }) {
                 val reqmSource = parseFile(it.filename!!)
                 val depView = reqmSource.views.find { v -> v.qid!!.id == it.name }
                 if (depView != null) {
                     dependencies.views.add(depView)
-                    if (depView.sourceRef != null && depView.sourceRef != QualifiedId.Undefined) {
-                        collectViewSources(depView.sourceRef!!, dependencies)
+                    if (!StandardLayoutElements.contains(depView.qid.toString())) {
+                        if (depView.sourceRef != null && depView.sourceRef != QualifiedId.Undefined) {
+                            collectViewSources(depView.sourceRef!!, dependencies)
+                        }
+                        collectViewDependencies(depView, dependencies)
                     }
-                    collectViewDependencies(depView, dependencies)
                 }
             }
         }
@@ -173,17 +202,19 @@ class ModelMerger(private val finder: RepositoryFinder) {
     private fun collectViewLayoutDeps(properties: MutableList<Property>, dependencies: ReqMSource) {
         properties.forEach {
             collectViewSources(QualifiedId(it.key), dependencies)
-            if (it.type == StandardTypes.propertyList.name) {
-                collectViewLayoutDeps(it.simpleAttributes, dependencies)
-            } else if (it.value == null) {
-                val depView = dependencies.views.find { dep -> dep.qid.toString() == it.key }
-                if (depView != null) {
-                    it.type = StandardTypes.propertyList.name
-                    it.simpleAttributes.addAll(depView.definition.properties)
-                    Log.warning("View layout element ${it.key} is undefined, but found in dependencies; attributes merged")
-                } else {
-                    // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni
-                    Log.warning("View layout element ${it.key} is undefined")
+            if (!StandardLayoutElements.contains(it.key!!)) {
+                if (it.type == StandardTypes.propertyList.name) {
+                    collectViewLayoutDeps(it.simpleAttributes, dependencies)
+                } else if (it.value == null) {
+                    val depView = dependencies.views.find { dep -> dep.qid.toString() == it.key }
+                    if (depView != null) {
+                        it.type = StandardTypes.propertyList.name
+                        it.simpleAttributes.addAll(depView.definition.properties)
+                        Log.warning("View layout element ${it.key} is undefined, but found in dependencies; attributes merged")
+                    } else {
+                        // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni
+                        Log.warning("View layout element ${it.key} is undefined")
+                    }
                 }
             }
         }
@@ -199,6 +230,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             if (srcAction == null) {
                 // not exists, search dependencies for it
                 val ic = finder.find(Ref.Type.acn, actionName!!, null)
+                if (ic.items.isEmpty()) errors.add("Action $actionName is not found.")
                 if (ic.items.isNotEmpty()) {
                     var ix = 0
                     while (ix < ic.items.size) {
@@ -236,6 +268,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
     private fun collectActionSources(actionName: String): Collection<Action> {
         val actions : MutableList<Action> = ArrayList()
         val ic = finder.find(Ref.Type.acn, actionName, null)
+        if (ic.items.isEmpty()) errors.add("Action $actionName is not found.")
         ic.items.forEach { item ->
             Log.debug("${item.itemType} ${item.name} in ${item.filename}")
             val reqmSource = parseFile(item.filename!!)
@@ -269,6 +302,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         if (sourceRef != null && sourceRef != QualifiedId.Undefined) {
             if (ic.items.any { it.name == sourceRef.toString() && it.itemType == itemType }) return
             val ic2 = finder.find(itemType, sourceRef.id!!, sourceRef.domain)
+            if (ic.items.isEmpty()) errors.add("Source reference $sourceRef is not found.")
             if (ic2.items.isNotEmpty()) {
                 ic2.items[0].recType = RepositoryIndex.RecordType.content
                 ic.items.add(ic2.items[0])
@@ -374,6 +408,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         val ref = QualifiedId(key)
         val moduls : MutableList<Modul> = ArrayList()
         val ic = finder.find(Ref.Type.mod, ref.id!!, ref.domain)
+        if (ic.items.isEmpty()) errors.add("Source reference $ref is not found.")
         var ix = 0
         while (ix < ic.items.size) {
             val item = ic.items[ix]

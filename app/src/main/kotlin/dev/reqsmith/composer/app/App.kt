@@ -22,6 +22,7 @@ package dev.reqsmith.composer.app
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.configuration.ConfigManager
+import dev.reqsmith.composer.common.exceptions.ReqMMergeException
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.plugin.buildsys.BuildSystem
@@ -129,6 +130,9 @@ class App(private val args: Array<String>) {
         // compose full requirement model
         val mergedReqMSource = try {
             Composer(project, path).compose()
+        } catch (me: ReqMMergeException) {
+            me.errors.forEach { Log.error(it) }
+            return false
         } catch (e: Exception) {
             Log.error("Composing requirements was failed: ${e.localizedMessage}")
             return false

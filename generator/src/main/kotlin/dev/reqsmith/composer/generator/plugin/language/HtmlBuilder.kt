@@ -76,8 +76,6 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
             "header" -> createHeader(node)
             "footer" -> createFooter(node)
             "panel" -> createPanel(node)
-//                "image" -> createHTML(true).img(src = node.text)
-//                "text" -> createHTML(true).p { text(node.text) }
             else -> {
                 if (node.children.isNotEmpty()) {
                     createHTML().div {
