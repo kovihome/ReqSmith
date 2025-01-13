@@ -25,5 +25,5 @@ class ProjectModel {
     val source = ReqMSource()
     val dependencies = ReqMSource()
     val igm = InternalGeneratorModel()
-    val resources: List<Pair<String, String>> = mutableListOf()
+    val resources: MutableList<Pair<String, String>> = mutableListOf()
 }

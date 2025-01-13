@@ -28,8 +28,12 @@ import dev.reqsmith.composer.generator.GeneratorModelBuilder
 import dev.reqsmith.composer.generator.ViewGenerator
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
 import dev.reqsmith.model.ProjectModel
+import java.io.File
+import java.io.FileWriter
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
+
+private const val RESOURCE_SAVING_PREFIX = "<save>"
 
 class Generator(
     private val project: Project,
@@ -42,11 +46,9 @@ class Generator(
     private val srcPath = project.srcPath(lang)
 
     fun generate(): Boolean {
-        Log.title("Generate source code")
-        Log.info("Generated source path: $srcPath")
-
         // create internal generator model
-        Log.debug("Build InternalGeneratorModel...")
+        Log.title("Build Internal Generator Model")
+        Log.info("Generated source path: $srcPath")
         val resourcesFolderName = "${project.buildFolder}/${project.buildSystem.resourceFolder}"
         Project.ensureFolderExists(resourcesFolderName, null)
         val gmb = GeneratorModelBuilder(projectModel, resourcesFolderName, project)
@@ -55,7 +57,7 @@ class Generator(
         Log.info("======================================================\n")
 
         // generate the source code
-        Log.debug("Generate SourceCode...")
+        Log.title("Generate source code")
         val success = CodeGenerator(langBuilder, project).generate(projectModel.igm, getFileHeader())
 
         // generate views
@@ -63,11 +65,15 @@ class Generator(
         if (projectModel.igm.views.isNotEmpty()) {
             val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, gmb.viewGeneratorName)
             val viewResourceFolderName = "$resourcesFolderName/${gmb.suggestedWebFolderName}"
-            val viewGenerator = ViewGenerator(viewLangBuilder, project, viewResourceFolderName)
-            val welcomePage = projectModel.source.applications[0].definition.properties.find { it.key == "startView" }?.value ?: "WelcomePage"
-            successView = viewGenerator.generate(projectModel.igm, welcomePage)
+            val viewGenerator = ViewGenerator(viewLangBuilder, project, projectModel, viewResourceFolderName)
+            successView = viewGenerator.generate()
 
-            val successCopy = viewGenerator.copyArts()
+            viewGenerator.copyArts()
+        }
+
+        // copy resources
+        projectModel.resources.forEach {
+            copyResource(it.first, it.second)
         }
 
         // update build script
@@ -84,6 +90,36 @@ class Generator(
         generateBuildScripts(buildScriptUpdates)
 
         return success.and(successView)
+    }
+
+    private fun copyResource(fileNameFrom: String, fileNameTo: String) {
+        val to = File(fileNameTo)
+        if (!Project.ensureFolderExists(to.parent, null)) {
+            Log.error("Copy resource file $fileNameTo was failed; folder ${to.parent} is not exists and cannot be created.")
+            return
+        }
+        if (fileNameFrom.startsWith(RESOURCE_SAVING_PREFIX)) {
+            val fileContent = fileNameFrom.substring(RESOURCE_SAVING_PREFIX.length)
+            try {
+                Log.info("Generating resource $fileNameTo")
+                FileWriter(to, false).use { it.write(fileContent) }
+            } catch (e: Exception) {
+                Log.error("Generating resource file $fileNameTo was failed; ${e.localizedMessage}")
+            }
+        } else {
+            val from = File(fileNameFrom)
+            if (!from.exists()) {
+                Log.error("Resource file $fileNameFrom is not exists.")
+                return
+            }
+            try {
+                Log.info("Copy resource $fileNameTo")
+                from.copyTo(to, overwrite = true)
+            } catch (e: Exception) {
+                Log.error("Copy resource file $fileNameTo was failed; ${e.localizedMessage}")
+            }
+        }
+
     }
 
     /**

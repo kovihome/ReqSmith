@@ -18,9 +18,9 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
+import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.Application
-import dev.reqsmith.model.reqm.ReqMSource
 import dev.reqsmith.model.reqm.View
 
 interface FrameworkBuilder {
@@ -61,7 +61,7 @@ interface FrameworkBuilder {
      * Process additional resources
      * @param reqmResourcesFolderName Source folder name for the project resources
      * @param buildResourcesFolderName Build folder name for the project resources
-     * @param reqm ReqM model of the application
+     * @param projectModel The Project Model
      */
-    fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, reqm: ReqMSource)
+    fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, projectModel: ProjectModel)
 }

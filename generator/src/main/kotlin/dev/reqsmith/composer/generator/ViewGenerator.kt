@@ -20,30 +20,27 @@ package dev.reqsmith.composer.generator
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
-import dev.reqsmith.model.igm.IGMView
-import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
+import dev.reqsmith.model.ProjectModel
+import dev.reqsmith.model.igm.IGMView
 import java.io.File
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
 
-class ViewGenerator(private val langBuilder: LanguageBuilder, private val project: Project, private val viewResourceFolderName: String) {
+class ViewGenerator(
+    private val langBuilder: LanguageBuilder,
+    private val project: Project,
+    private val projectModel: ProjectModel,
+    private val viewResourceFolderName: String
+) {
 
     private fun String.toPath():String = this.replace('.', '/')
 
-    fun generate(igm: InternalGeneratorModel, welcomePage: String): Boolean {
+    fun generate(): Boolean {
         langBuilder.artPathPrefix = "art"
 
         // generate view files
-        igm.views.forEach { buildView(it.value) }
-
-        // generate index.html page
-//        if (!igm.views.containsKey("index")) {
-//            val context = mapOf( "WelcomePage" to welcomePage)
-//            val indexContent = Template().translateFile(context, "templates/index.html.st")
-//            FileWriter("$viewResourceFolderName/index.html", false).use { it.write(indexContent) }
-//            Log.info("Generating view $viewResourceFolderName/index.html")
-//        }
+        projectModel.igm.views.forEach { buildView(it.value) }
 
         return true
     }
@@ -75,15 +72,7 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val projec
 
         langBuilder.viewArts.forEach {
             val resourceFileName = it.removeSurrounding("'").removeSurrounding("\"")
-            val src = "$copyFrom/$resourceFileName"
-            val dest = "$copyTo/$resourceFileName"
-            val infile = File(src)
-            if (!infile.exists()) {
-                Log.warning("Art file $resourceFileName is not exist in the art folder $copyFrom")
-            } else {
-                infile.copyTo(File(dest), true)
-                Log.info("Copy art file $copyTo/$resourceFileName")
-            }
+            projectModel.resources.add(Pair("$copyFrom/$resourceFileName", "$copyTo/$resourceFileName"))
         }
         return true
     }

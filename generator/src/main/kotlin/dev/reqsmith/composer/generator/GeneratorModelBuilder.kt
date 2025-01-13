@@ -118,9 +118,9 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
         // manage additional resources
         val reqmResourceFolder = "${project.projectFolder}/${project.buildSystem.resourceFolder}"
         if (!viewBuilder!!::class.isSubclassOf(codeBuilder!!::class)) {
-            codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel.source)
+            codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel)
         }
-        viewBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel.source)
+        viewBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel)
 
     }
 
@@ -242,10 +242,6 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
                         } else {
                             p.value!!
                         }
-//                    if (newparam.startsWith('\'') || newparam.startsWith('\"')) {
-//                        val rc = newparam.subSequence(0,1)
-//                        newparam = newparam.removeSurrounding(rc, rc)
-//                    }
                     stmt.withParam(newparam, p.type!!)
                 }
                 action.statements.add(stmt)

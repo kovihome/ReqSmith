@@ -18,18 +18,17 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
-import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.generator.TemplateContextCollector
+import dev.reqsmith.model.ProjectModel
+import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.InternalGeneratorModel
-import dev.reqsmith.model.reqm.ReqMSource
 import dev.reqsmith.model.reqm.View
-import dev.reqsmith.model.enumeration.StandardTypes
 import java.io.File
 import java.util.*
 
@@ -42,10 +41,10 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
 
     override fun getViewFolder(): String = "templates"
 
-    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
+    override fun buildView(viewModel: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
         // create a controller class for this view
-        val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else /* TODO: application domain */ ConfigManager.defaults["domainName"]
-        val className = view.qid!!.id!!
+        val domainName = if (!viewModel.qid?.domain.isNullOrBlank()) viewModel.qid?.domain else /* TODO: application domain */ ConfigManager.defaults["domainName"]
+        val className = viewModel.qid!!.id!!
         igm.getClass("$domainName.controller.${className}Controller").apply {
             annotations.add(IGMAction.IGMAnnotation("Controller"))
             imports.add("org.springframework.stereotype.Controller")
@@ -57,7 +56,7 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
                 parameters.add(IGMAction.IGMActionParam("model", "Model"))
                 imports.add("org.springframework.ui.Model")
                 returnType = "String"
-                val viewTemplateContext = TemplateContextCollector().getItemTemplateContext(view.qid, view.definition.properties, "view").apply {
+                val viewTemplateContext = TemplateContextCollector().getItemTemplateContext(viewModel.qid, viewModel.definition.properties, "view").apply {
                     putAll(templateContext)
                 }
                 viewTemplateContext.forEach {
@@ -81,21 +80,16 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
         props.setProperty("spring.thymeleaf.suffix", ".${getViewLanguage()}")
     }
 
-    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, reqm: ReqMSource) {
-        super.processResources(reqmResourcesFolderName, buildResourcesFolderName, reqm)
+    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, projectModel: ProjectModel) {
+        super.processResources(reqmResourcesFolderName, buildResourcesFolderName, projectModel)
 
         // copy templates
-        reqm.views.forEach { view ->
+        projectModel.source.views.forEach { view ->
             view.definition.featureRefs.find { it.qid.toString() == "Template" }?.let { fr ->
                 fr.properties.find { it.key == "file" }?.value?.let { fileName ->
                     val fn = fileName.removeSurrounding("'").removeSurrounding("\"")
                     val destFileName = "$buildResourcesFolderName/$fn"
-                    try {
-                        File("$reqmResourcesFolderName/$fn").copyTo(File(destFileName), overwrite = true)
-                        Log.info("Copy resource file $destFileName")
-                    } catch (e: NoSuchFileException) {
-                        Log.error("No resource file $fileName found in folder $reqmResourcesFolderName")
-                    }
+                    projectModel.resources.add(Pair("$reqmResourcesFolderName/$fn", destFileName))
                 }
             }
         }
@@ -106,12 +100,7 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
         Project.ensureFolderExists(copyTo, null)
 
         File(copyFrom).listFiles()?.filter { it.isFile }?.forEach { file ->
-            try {
-                file.copyTo(File("$copyTo/${file.name}"), overwrite = true)
-                Log.info("Copy art file $copyTo/${file.name}")
-            } catch (e: NoSuchFileException) {
-                Log.error("Copy art file $file failed: ${e.localizedMessage}")
-            }
+            projectModel.resources.add(Pair("$copyFrom/${file.name}", "$copyTo/${file.name}"))
         }
     }
 

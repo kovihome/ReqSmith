@@ -21,6 +21,7 @@ package dev.reqsmith.composer.generator.plugin.framework
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.*
@@ -39,7 +40,7 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
         // nothing to do
     }
 
-    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, reqm: ReqMSource) {
+    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, projectModel: ProjectModel) {
         // nothing to do
     }
 

@@ -18,19 +18,16 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
-import dev.reqsmith.composer.common.Log
-import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
+import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.Application
-import dev.reqsmith.model.reqm.ReqMSource
 import java.io.File
-import java.io.FileWriter
-import java.util.Properties
+import java.util.*
 
 open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     private var applicationName : String? = null
@@ -75,8 +72,12 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         props.setProperty("spring.application.name", "$applicationName.")
     }
 
-    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, reqm: ReqMSource) {
-        super.processResources(reqmResourcesFolderName, buildResourcesFolderName, reqm)
+    override fun processResources(
+        reqmResourcesFolderName: String,
+        buildResourcesFolderName: String,
+        projectModel: ProjectModel
+    ) {
+        super.processResources(reqmResourcesFolderName, buildResourcesFolderName, projectModel)
 
         // create or update application.properties
         val props = Properties()
@@ -87,7 +88,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                 props.load(it)
             }
         }
-        if (applicationName.isNullOrBlank()) applicationName = reqm.applications[0].qid!!.id
+        if (applicationName.isNullOrBlank()) applicationName = projectModel.source.applications[0].qid!!.id
         addSpringApplicationProperties(props)
         propFile.bufferedWriter().use { writer ->
             writer.write("# Spring application properties for $applicationName\n\n")
@@ -95,14 +96,12 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         }
 
         // generate index.html page
-        if (reqm.views.none { it.qid.toString() == "index" }) {
-            val startView = reqm.applications[0].definition.properties.find { it.key == "startView" }
+        if (projectModel.source.views.none { it.qid.toString() == "index" }) {
+            val startView = projectModel.source.applications[0].definition.properties.find { it.key == "startView" }
             val viewName = if (startView != null) startView.value!! else "#"
             val context = mapOf( "WelcomePage" to viewName)
             val indexContent = Template().translateFile(context, "templates/index.html.st")
-            Project.ensureFolderExists("$buildResourcesFolderName/${getViewFolder()}", null)
-            FileWriter("$buildResourcesFolderName/${getViewFolder()}/index.html", false).use { it.write(indexContent) }
-            Log.info("Generating view $buildResourcesFolderName/index.html")
+            projectModel.resources.add(Pair("<save>$indexContent", "$buildResourcesFolderName/${getViewFolder()}/index.html"))
         }
 
     }
