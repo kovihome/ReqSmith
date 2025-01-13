@@ -26,6 +26,7 @@ import dev.reqsmith.composer.common.exceptions.ReqMMergeException
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.plugin.buildsys.BuildSystem
+import dev.reqsmith.model.ProjectModel
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
@@ -88,7 +89,7 @@ class App(private val args: Array<String>) {
         }
 
         // create default minimal app
-        Composer(project, path).createApp(projectName!!)
+        Composer(project, ProjectModel(), path).createApp(projectName!!)
 
         return true
 
@@ -127,9 +128,12 @@ class App(private val args: Array<String>) {
         // check output directory, create if it does not exist
         Log.info("Output directory: ${project.outputFolder}")
 
+        // create project data
+        val projectModel = ProjectModel()
+
         // compose full requirement model
-        val mergedReqMSource = try {
-            Composer(project, path).compose()
+        val composeOk = try {
+            Composer(project, projectModel, path).compose()
         } catch (me: ReqMMergeException) {
             me.errors.forEach { Log.error(it) }
             return false
@@ -137,13 +141,13 @@ class App(private val args: Array<String>) {
             Log.error("Composing requirements was failed: ${e.localizedMessage}")
             return false
         }
-        if (mergedReqMSource == null) {
+        if (!composeOk) {
             Log.error("Something goes wrong with the requirement composer, see previous errors; source code will not be generated. ")
             return false
         }
 
         // generate source code
-        val generator = Generator(project, mergedReqMSource, path, language)
+        val generator = Generator(project, projectModel, path, language)
         val success = try {
             generator.generate()
         } catch (e: Exception) {

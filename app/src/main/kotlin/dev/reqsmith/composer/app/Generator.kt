@@ -27,13 +27,13 @@ import dev.reqsmith.composer.generator.CodeGenerator
 import dev.reqsmith.composer.generator.GeneratorModelBuilder
 import dev.reqsmith.composer.generator.ViewGenerator
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
-import dev.reqsmith.model.reqm.ReqMSource
+import dev.reqsmith.model.ProjectModel
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
 
 class Generator(
     private val project: Project,
-    private val reqMSource: ReqMSource,
+    private val projectModel: ProjectModel,
     private val appHome: String,
     private val lang: String
 ) {
@@ -49,23 +49,23 @@ class Generator(
         Log.debug("Build InternalGeneratorModel...")
         val resourcesFolderName = "${project.buildFolder}/${project.buildSystem.resourceFolder}"
         Project.ensureFolderExists(resourcesFolderName, null)
-        val gmb = GeneratorModelBuilder(reqMSource, resourcesFolderName, project)
-        val igm = gmb.build()
-        Log.info("=============== InternalGeneratorModel ===============\n$igm")
+        val gmb = GeneratorModelBuilder(projectModel, resourcesFolderName, project)
+        gmb.build()
+        Log.info("=============== InternalGeneratorModel ===============\n${projectModel.igm}")
         Log.info("======================================================\n")
 
         // generate the source code
         Log.debug("Generate SourceCode...")
-        val success = CodeGenerator(langBuilder, project).generate(igm, getFileHeader())
+        val success = CodeGenerator(langBuilder, project).generate(projectModel.igm, getFileHeader())
 
         // generate views
         var successView = true
-        if (igm.views.isNotEmpty()) {
+        if (projectModel.igm.views.isNotEmpty()) {
             val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, gmb.viewGeneratorName)
             val viewResourceFolderName = "$resourcesFolderName/${gmb.suggestedWebFolderName}"
             val viewGenerator = ViewGenerator(viewLangBuilder, project, viewResourceFolderName)
-            val welcomePage = reqMSource.applications[0].definition.properties.find { it.key == "startView" }?.value ?: "WelcomePage"
-            successView = viewGenerator.generate(igm, welcomePage)
+            val welcomePage = projectModel.source.applications[0].definition.properties.find { it.key == "startView" }?.value ?: "WelcomePage"
+            successView = viewGenerator.generate(projectModel.igm, welcomePage)
 
             val successCopy = viewGenerator.copyArts()
         }
@@ -90,13 +90,13 @@ class Generator(
      * Generate/update build script
      */
     private fun generateBuildScripts(buildScriptUpdates: Map<String, List<String>>) {
-        val version = reqMSource.applications[0].definition.properties.find { it.key == "version" }?.value ?: "0.1.0"
-        project.updateBuildScript(appHome, lang, reqMSource.applications[0].qid.toString(), version, buildScriptUpdates)
+        val version = projectModel.source.applications[0].definition.properties.find { it.key == "version" }?.value ?: "0.1.0"
+        project.updateBuildScript(appHome, lang, projectModel.source.applications[0].qid.toString(), version, buildScriptUpdates)
     }
 
     private fun getFileHeader(): String {
         // TODO: use different licence model templates
-        val thisApplication = reqMSource.applications[0]
+        val thisApplication = projectModel.source.applications[0]
         val appName = thisApplication.qid?.id ?: "NamelessApplication"
         val description =
             thisApplication.definition.properties.find { it.key == "description" }?.value ?: "No description"

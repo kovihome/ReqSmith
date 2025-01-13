@@ -18,8 +18,9 @@
 
 package dev.reqsmith.model.igm
 
-class InternalGeneratorModel(private val rootPackage: String) {
+class InternalGeneratorModel {
     // model containers
+    var rootPackage: String = ""
     val classes: MutableMap<String, IGMClass> = HashMap()
     val enumerations: MutableMap<String, IGMEnumeration> = HashMap()
     val views: MutableMap<String, IGMView> = HashMap()

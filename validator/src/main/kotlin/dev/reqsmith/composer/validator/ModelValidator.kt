@@ -20,6 +20,7 @@ package dev.reqsmith.composer.validator
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.configuration.ConfigManager
+import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.reqm.*
 
 class ModelValidator {
@@ -89,24 +90,23 @@ class ModelValidator {
      * Scan event sources for event actions
      * The remainder actions try to associate to its module
      *
-     * @param reqmsrc The ReqM model of the application
-     * @param dependenciesReqMModel The ReqM model of the dependencies
+     * @param projectModel The Project Model of the application
      * @return Error list (empty list = no errors found)
      */
-    fun resolveActionOwnership(reqmsrc: ReqMSource, dependenciesReqMModel: ReqMSource): List<String> {
+    fun resolveActionOwnership(projectModel: ProjectModel): List<String> {
         val errors: MutableList<String> = ArrayList()
 
         // search event actions in event sources
-        reqmsrc.applications.forEach { app ->
-            resolveActionOwnershipFromAppEvents(app, reqmsrc, dependenciesReqMModel, errors)
+        projectModel.source.applications.forEach { app ->
+            resolveActionOwnershipFromAppEvents(app, projectModel, errors)
         }
-        dependenciesReqMModel.modules.forEach { mod ->
-            resolveActionOwnershipFromModEvents(mod, reqmsrc, dependenciesReqMModel, errors)
+        projectModel.dependencies.modules.forEach { mod ->
+            resolveActionOwnershipFromModEvents(mod, projectModel, errors)
         }
 
         // search modules/applications for orfan actions
-        searchModuleForOrfanActions(reqmsrc, errors)
-        searchModuleForOrfanActions(dependenciesReqMModel, errors)
+        searchModuleForOrfanActions(projectModel.source, errors)
+        searchModuleForOrfanActions(projectModel.dependencies, errors)
 
         return errors
     }
@@ -125,18 +125,18 @@ class ModelValidator {
         }
     }
 
-    private fun resolveActionOwnershipFromAppEvents(app: Application, reqmsrc: ReqMSource, reqmdep: ReqMSource, errors: MutableList<String>) {
+    private fun resolveActionOwnershipFromAppEvents(app: Application, projectModel: ProjectModel, errors: MutableList<String>) {
         val events = app.definition.properties.find { it.key == "events" }
         events?.simpleAttributes?.forEach { ev ->
             val actionName = ev.value
-            var result = searchActionOwnerInModel(reqmsrc, actionName, app.qid!!, null)
+            var result = searchActionOwnerInModel(projectModel.source, actionName, app.qid!!, null)
             var srcRef: QualifiedId? = app.sourceRef
             while (result == null && srcRef != null) {
-                val parent = reqmdep.applications.find { it.qid == srcRef }
+                val parent = projectModel.dependencies.applications.find { it.qid == srcRef }
                 result = if (parent != null) {
-                    searchActionOwnerInModel(reqmdep, actionName, app.qid!!, parent.sourceFileName)
+                    searchActionOwnerInModel(projectModel.dependencies, actionName, app.qid!!, parent.sourceFileName)
                 } else {
-                    "action ${actionName} was not found."
+                    "action $actionName was not found."
                 }
                 srcRef = parent?.sourceRef
             }
@@ -146,18 +146,18 @@ class ModelValidator {
         }
     }
 
-    private fun resolveActionOwnershipFromModEvents(mod: Modul, reqmsrc: ReqMSource, reqmdep: ReqMSource, errors: MutableList<String>) {
+    private fun resolveActionOwnershipFromModEvents(mod: Modul, projectModel: ProjectModel, errors: MutableList<String>) {
         val events = mod.definition.properties.find { it.key == "events" }
         events?.simpleAttributes?.forEach { ev ->
             val actionName = ev.value
-            var result = searchActionOwnerInModel(reqmsrc, actionName, mod.qid!!, null)
+            var result = searchActionOwnerInModel(projectModel.source, actionName, mod.qid!!, null)
             var srcRef: QualifiedId? = mod.sourceRef
             while (result == null && srcRef != null) {
-                val parent = reqmdep.modules.find { it.qid == srcRef }
+                val parent = projectModel.dependencies.modules.find { it.qid == srcRef }
                 result = if (parent != null) {
-                    searchActionOwnerInModel(reqmdep, actionName, mod.qid!!, parent.sourceFileName)
+                    searchActionOwnerInModel(projectModel.dependencies, actionName, mod.qid!!, parent.sourceFileName)
                 } else {
-                    "action ${actionName} was not found."
+                    "action $actionName was not found."
                 }
                 srcRef = parent?.sourceRef
             }

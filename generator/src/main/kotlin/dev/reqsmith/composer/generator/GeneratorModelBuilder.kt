@@ -27,12 +27,13 @@ import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilder
+import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 import kotlin.reflect.full.isSubclassOf
 
-class GeneratorModelBuilder(private val reqMSource: ReqMSource, private val resourcesFolderName: String, private val project: Project) {
-    private val appRootPackage = reqMSource.applications[0].qid?.domain ?: "com.sample.app"
+class GeneratorModelBuilder(private val projectModel: ProjectModel, private val resourcesFolderName: String, private val project: Project) {
+    private val appRootPackage = projectModel.source.applications[0].qid?.domain ?: "com.sample.app"
     var viewGeneratorName = ""
     var suggestedWebFolderName = ""
     var codeBuilder: FrameworkBuilder? = null
@@ -40,13 +41,13 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource, private val reso
 
     private fun determineBuilders() {
         // determine code generator
-        val app = reqMSource.applications[0]
+        val app = projectModel.source.applications[0]
         val generatorName = app.definition.properties.find { it.key == "generator" }?.value ?: "framework.base"
         codeBuilder = determineFrameworkBuilder(generatorName)
 
         // determine view builder
         val viewLang = codeBuilder!!.getViewLanguage()
-        val templGen = searchViewFeatureGenerator(reqMSource)
+        val templGen = searchViewFeatureGenerator(projectModel.source)
         var generatorId = ConfigManager.defaults[templGen]
         var plugin: String? = null
         if (generatorId == null) {
@@ -85,43 +86,42 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource, private val reso
         return if (generators.isNotEmpty()) generators[0] else null
     }
 
-    fun build(): InternalGeneratorModel {
-        // create internal generator model
-        val igm = InternalGeneratorModel(appRootPackage)
+    fun build() {
+        // set root package for internal generator model
+        projectModel.igm.rootPackage = appRootPackage
 
         // determine code and view generator
         determineBuilders()
 
         // create application
-        val app = reqMSource.applications[0]
-        createApplication(app, igm, codeBuilder!!)
+        val app = projectModel.source.applications[0]
+        createApplication(app, projectModel.igm, codeBuilder!!)
 
         // create classes for classes
-        reqMSource.classes.forEach {
+        projectModel.source.classes.forEach {
             when {
-                it.enumeration -> createEnumeration(it, igm)
-                else -> createClass(it, igm)
+                it.enumeration -> createEnumeration(it, projectModel.igm)
+                else -> createClass(it, projectModel.igm)
             }
         }
 
         // create classes for entities
-        reqMSource.entities.forEach { createEntity(it, igm) }
+        projectModel.source.entities.forEach { createEntity(it, projectModel.igm) }
 
         // create class methods for actions
-        val templateContext = TemplateContextCollector().getItemTemplateContext(reqMSource.applications[0].qid, reqMSource.applications[0].definition.properties, "app")
-        reqMSource.actions.forEach { createAction(it, igm, templateContext) }
+        val templateContext = TemplateContextCollector().getItemTemplateContext(projectModel.source.applications[0].qid, projectModel.source.applications[0].definition.properties, "app")
+        projectModel.source.actions.forEach { createAction(it, projectModel.igm, templateContext) }
 
         // create view descriptors
-        reqMSource.views.forEach { createView(it, igm, templateContext, viewBuilder!!) }
+        projectModel.source.views.forEach { createView(it, projectModel.igm, templateContext, viewBuilder!!) }
 
         // manage additional resources
         val reqmResourceFolder = "${project.projectFolder}/${project.buildSystem.resourceFolder}"
         if (!viewBuilder!!::class.isSubclassOf(codeBuilder!!::class)) {
-            codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName, reqMSource)
+            codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel.source)
         }
-        viewBuilder?.processResources(reqmResourceFolder, resourcesFolderName, reqMSource)
+        viewBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel.source)
 
-        return igm
     }
 
     private fun createView(viewModel: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>, builder: FrameworkBuilder) {
@@ -232,7 +232,7 @@ class GeneratorModelBuilder(private val reqMSource: ReqMSource, private val reso
 
         val action = cls.getAction(actionName)
 
-        val actionSrc = reqMSource.actions.find { it.qid.toString() == actionName }
+        val actionSrc = projectModel.source.actions.find { it.qid.toString() == actionName }
         actionSrc?.let {
             it.definition.actionCalls.forEach {call ->
                 val stmt = IGMAction.IGMActionStmt(call.actionName)

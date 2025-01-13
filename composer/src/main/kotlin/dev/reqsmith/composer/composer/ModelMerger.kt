@@ -27,28 +27,31 @@ import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
+import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.reqm.*
 
-class ModelMerger(private val finder: RepositoryFinder) {
+/**
+ * Merge missing requirement elements and collect dependencies from repository into project model
+ * @param projectModel the Project Model
+ * @param finder Repository finder
+ */
+class ModelMerger(private val projectModel: ProjectModel, private val finder: RepositoryFinder) {
     private val parser = ReqMParser()
     private val errors: MutableList<String> = ArrayList()
 
     /**
      * Merge referenced repository items to project items
      *
-     * @param reqmsrc Project source in ReqM format
-     * @return Dependencies in ReqM structure
      * @throws ReqMMergeException - holds all merge errors
      */
-    fun merge(reqmsrc: ReqMSource): ReqMSource {
-        val dependencies = ReqMSource()
-        reqmsrc.applications.forEach { app ->
+    fun merge() {
+        projectModel.source.applications.forEach { app ->
             // collect reference applications
             if (app.sourceRef != null && app.sourceRef != QualifiedId.Undefined) {
                 val apps = collectApplicationSources(app.sourceRef!!)
                 if (apps.isNotEmpty()) {
-                    dependencies.applications.addAll(apps)
+                    projectModel.dependencies.applications.addAll(apps)
                     // TODO: sort the list by score
                     mergeApplicationRef(app, apps)
                 } else {
@@ -58,18 +61,18 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
             // resolve dependencies
             val modules = resolveDependencies(app)
-            dependencies.modules.addAll(modules)
+            projectModel.dependencies.modules.addAll(modules)
 
             // resolve event sources
-            val eventActions = resolveEventActions(app, reqmsrc)
-            dependencies.actions.addAll(eventActions)
+            val eventActions = resolveEventActions(app, projectModel.source)
+            projectModel.dependencies.actions.addAll(eventActions)
         }
-        reqmsrc.actors.forEach { act ->
+        projectModel.source.actors.forEach { act ->
             // collect reference actors
             if (act.sourceRef != null && act.sourceRef != QualifiedId.Undefined) {
                 val acts = collectActorSources(act.sourceRef!!)
                 if (acts.isNotEmpty()) {
-                    dependencies.actors.addAll(acts)
+                    projectModel.dependencies.actors.addAll(acts)
                     // TODO: sort the list by score
                     mergeActorRef(act, acts)
                 } else {
@@ -77,12 +80,12 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 }
             }
         }
-        reqmsrc.classes.forEach { cls ->
+        projectModel.source.classes.forEach { cls ->
             // collect reference classes
             if (cls.sourceRef != null && cls.sourceRef != QualifiedId.Undefined) {
                 val clss = collectClassSources(cls.sourceRef!!)
                 if (clss.isNotEmpty()) {
-                    dependencies.classes.addAll(clss)
+                    projectModel.dependencies.classes.addAll(clss)
                     // TODO: sort the list by score
                     mergeClassRef(cls, clss)
                 } else {
@@ -90,31 +93,31 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 }
             }
         }
-        reqmsrc.entities.forEach { ent ->
+        projectModel.source.entities.forEach { ent ->
             // collect reference entities
             if (ent.sourceRef != null && ent.sourceRef != QualifiedId.Undefined) {
                 val ents = collectEntitySources(ent.sourceRef!!)
                 if (ents.isNotEmpty()) {
-                dependencies.entities.addAll(ents)
-                // TODO: sort the list by score
-                mergeEntityRef(ent, ents)
+                    projectModel.dependencies.entities.addAll(ents)
+                    // TODO: sort the list by score
+                    mergeEntityRef(ent, ents)
                 } else {
                     errors.add("Source reference ${ent.sourceRef} is not found for entity ${ent.qid} (${ent.coords()}). (${ent.coords()})")
                 }
             }
         }
-        // add dependendent actions to the dependecies
-        reqmsrc.actions.forEach { act ->
+        // add dependent actions to the dependencies
+        projectModel.source.actions.forEach { act ->
             act.definition.actionCalls.forEach {
                 val actdep = collectActionSources(it.actionName)
-                dependencies.actions.addAll(actdep)
+                projectModel.dependencies.actions.addAll(actdep)
             }
             
         }
 
         // add dependent views
-        reqmsrc.views.forEach { view ->
-            collectViewDependencies(view, dependencies)
+        projectModel.source.views.forEach { view ->
+            collectViewDependencies(view)
         }
 
         // TODO: merge features and styles
@@ -123,19 +126,17 @@ class ModelMerger(private val finder: RepositoryFinder) {
         if (errors.isNotEmpty()) {
             throw ReqMMergeException("Merge failed.", errors)
         }
-
-        return dependencies
     }
 
-    private fun collectViewDependencies(view: View, dependencies: ReqMSource) {
+    private fun collectViewDependencies(view: View) {
         if (view.sourceRef != null && view.sourceRef != QualifiedId.Undefined) {
-            collectViewSources(view.sourceRef!!, dependencies)
-            mergeViewRef(view, dependencies)
+            collectViewSources(view.sourceRef!!, projectModel.dependencies)
+            mergeViewRef(view, projectModel.dependencies)
         }
         val layout = view.definition.properties.find { it.key == "layout" }
-        layout?.simpleAttributes?.let { collectViewLayoutDeps(it, dependencies) }
+        layout?.simpleAttributes?.let { collectViewLayoutDeps(it, projectModel.dependencies) }
 
-        collectFeatures(view.definition.featureRefs, dependencies)
+        collectFeatures(view.definition.featureRefs, projectModel.dependencies)
 
     }
 
@@ -152,7 +153,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 if (feature != null) {
                     feature.increaseRefCount()
                     dependencies.features.add(feature)
-                    addDependecyToList(feature.sourceRef, Ref.Type.ftr, ic)
+                    addDependencyToList(feature.sourceRef, Ref.Type.ftr, ic)
                 }
                 ix++
             }
@@ -185,7 +186,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                         if (depView.sourceRef != null && depView.sourceRef != QualifiedId.Undefined) {
                             collectViewSources(depView.sourceRef!!, dependencies)
                         }
-                        collectViewDependencies(depView, dependencies)
+                        collectViewDependencies(depView)
                     }
                 }
             }
@@ -250,7 +251,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                                         // TODO
                                     }
                                     else -> {
-                                        addDependecyToList(QualifiedId(call.actionName), Ref.Type.acn, ic)
+                                        addDependencyToList(QualifiedId(call.actionName), Ref.Type.acn, ic)
                                     }
                                 }
                             }
@@ -302,7 +303,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
     }
 
-    private fun addDependecyToList(sourceRef: QualifiedId?, itemType: Ref.Type, ic: ItemCollection) {
+    private fun addDependencyToList(sourceRef: QualifiedId?, itemType: Ref.Type, ic: ItemCollection) {
         if (sourceRef != null && sourceRef != QualifiedId.Undefined) {
             if (ic.items.any { it.name == sourceRef.toString() && it.itemType == itemType }) return
             val ic2 = finder.find(itemType, sourceRef.id!!, sourceRef.domain)
@@ -326,7 +327,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             if (ent != null) {
                 ent.increaseRefCount()
                 entities.add(ent)
-                addDependecyToList(ent.sourceRef, Ref.Type.ent, ic)
+                addDependencyToList(ent.sourceRef, Ref.Type.ent, ic)
             }
             ix++
         }
@@ -351,7 +352,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             if (cls != null) {
                 cls.increaseRefCount()
                 classes.add(cls)
-                addDependecyToList(cls.sourceRef, Ref.Type.cls, ic)
+                addDependencyToList(cls.sourceRef, Ref.Type.cls, ic)
             }
             ix++
         }
@@ -376,7 +377,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             if (act != null) {
                 act.increaseRefCount()
                 actors.add(act)
-                addDependecyToList(act.sourceRef, Ref.Type.act, ic)
+                addDependencyToList(act.sourceRef, Ref.Type.act, ic)
             }
             ix++
         }
@@ -401,7 +402,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             if (app != null) {
                 app.increaseRefCount()
                 applications.add(app)
-                addDependecyToList(app.sourceRef, Ref.Type.app, ic)
+                addDependencyToList(app.sourceRef, Ref.Type.app, ic)
             }
             ix++
         }
@@ -422,7 +423,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             if (mod != null) {
                 mod.increaseRefCount()
                 moduls.add(mod)
-                addDependecyToList(mod.sourceRef, Ref.Type.mod, ic)
+                addDependencyToList(mod.sourceRef, Ref.Type.mod, ic)
             }
             ix++
         }
@@ -469,10 +470,5 @@ class ModelMerger(private val finder: RepositoryFinder) {
             }
         }
     }
-
-    // TODO: find a programmatical way to collect resource items
-    private val layoutResources = mapOf(
-        "header" to listOf("logo")
-    )
 
 }
