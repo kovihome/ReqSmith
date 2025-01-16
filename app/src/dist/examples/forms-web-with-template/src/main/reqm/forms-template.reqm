@@ -1,0 +1,14 @@
+/*
+ * Static web application with templates
+ */
+
+// Application descriptor
+application StaticTemplateWebApp from WebApplication {
+    description: 'Static web application with templates'
+}
+
+view WelcomePage {
+    @Template {
+        file: 'templates/WelcomePage.html'
+    }
+}

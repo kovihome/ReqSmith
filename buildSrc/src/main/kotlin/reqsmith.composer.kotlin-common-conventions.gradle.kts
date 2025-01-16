@@ -26,7 +26,7 @@ plugins {
 
 allprojects {
     group = "dev.reqsmith.composer"
-    version = "0.2.0"
+    version = "0.3.0"
     description = "ReqSmith::composer - build application source code from requirement model"
 //    project.ext {
 //        "vendor" to "ReqSmith Dev"

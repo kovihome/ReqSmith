@@ -147,7 +147,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
         val context = mapOf(
             "appName" to appName,
             "composerName" to "ReqSmith::forge",
-            "version" to "0.2.0-Web",
+            "version" to "0.3.0-Forms",
             "now" to LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
         )
         return Template().translateFile(context, headerFileName)

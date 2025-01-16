@@ -37,7 +37,7 @@ import kotlin.system.measureTimeMillis
 
 class App(private val args: Array<String>) {
     val systemName = "ReqSmith"
-    val composerVersion = "0.2.0-Web"
+    val composerVersion = "0.3.0-Forms"
     val composerDesc = "Requirement composer and code generator"
 
     val path = System.getenv("APP_HOME") ?: "."
