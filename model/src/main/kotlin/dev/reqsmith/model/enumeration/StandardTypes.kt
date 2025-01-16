@@ -19,7 +19,12 @@
 package dev.reqsmith.model.enumeration
 
 enum class StandardTypes {
-    integer, string, stringLiteral, enum, versionNumber, valueList, propertyList, variable
+
+     // atomic types
+    integer, string, enum, versionNumber, date,
+
+    // internal types
+    stringLiteral, valueList, propertyList, variable
     ;
 
     companion object {

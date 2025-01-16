@@ -152,9 +152,14 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
         ent.definition.properties.forEach {
             val member = c.getMember(it.key!!)
             member.type = it.type!!
+            projectModel.source.classes.find { it.enumeration && it.qid?.id == member.type }?.let { cl ->
+                member.enumerationType = true
+                val def = cl.definition.properties.getOrNull(0)
+                member.value = def?.key
+            }
             member.listOf = it.listOf
             member.optionality = it.optionality ?: ""
-            member.value = it.value
+            if (!member.enumerationType) member.value = it.value
         }
 
         // TODO v0.3: add actions as class methods

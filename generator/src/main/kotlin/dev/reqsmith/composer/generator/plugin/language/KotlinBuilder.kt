@@ -27,8 +27,6 @@ import dev.reqsmith.model.igm.*
 
 class KotlinBuilder : LanguageBuilder, Plugin {
 
-    class Variable(val name: String, val type: String)
-
     class LocalVariables {
         private val variables : MutableMap<String, String> = HashMap()
         val imports : MutableList<String> = ArrayList()
@@ -77,12 +75,13 @@ class KotlinBuilder : LanguageBuilder, Plugin {
 
     private fun prefix(size : Int) : String = if (size > 0) " ".repeat(size) else ""
 
-    private fun typeMapper(type : String?) : String = when (type) {
+    override fun typeMapper(type : String?) : String = when (type?.lowercase()) {
         null -> "String"
         StandardTypes.string.name -> "String"
         StandardTypes.stringLiteral.name -> "String"
         StandardTypes.versionNumber.name -> "String"
         StandardTypes.integer.name -> "Int"
+        StandardTypes.date.name -> "java.time.LocalDate"
         else -> type
     }
 
@@ -112,7 +111,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
             when (st.actionName) {
                 "call" -> {
                     val calledFunction = st.parameters[0].value
-                    val params = st.parameters.subList(1, st.parameters.size)
+                    val params = st.parameters.subList(1, st.parameters.size).toList()
                     val classs = calledFunction.substringBeforeLast('.', "")
                     val func = calledFunction.substringAfterLast('.')
                     if (classs.isNotEmpty()) {
@@ -244,14 +243,24 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         if (property.type == StandardTypes.stringLiteral.name) {
             sb.append(" = \"${property.value}\"\n")
         } else {
-            val type = typeMapper(property.type)
+            var type = typeMapper(property.type)
+            if (type.contains('.')) type = type.substringAfterLast('.')
             sb.append(": ")
             if (property.listOf) {
                 sb.append("MutableList<$type> = ArrayList()\n")
             } else {
                 sb.append(type)
                 if (property.optionality == Optionality.Optional.name) {
-                    sb.append("?")
+                    sb.append("? = null")
+                } else {
+                    // default value
+                    val defaultValue = when (type) {
+                        "String" -> if (property.value.isNullOrBlank()) "\"\"" else "\"${property.value}\""
+                        "Int" -> if (property.value.isNullOrBlank()) "0" else "${property.value}"
+                        "LocalDate" -> "LocalDate.now()"
+                        else -> if (property.enumerationType) "$type.${property.value}" else "$type()"
+                    }
+                    sb.append(" = $defaultValue")
                 }
                 sb.append("\n")
             }

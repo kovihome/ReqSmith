@@ -55,6 +55,10 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         }
     }
 
+    override fun typeMapper(type: String?): String {
+        TODO("Not yet implemented")
+    }
+
     override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
         TODO("Not yet implemented")
     }
@@ -112,7 +116,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                     var linkValue = link.second
                                     if (linkValue.isNullOrBlank()) {
                                         // is link name an another view?
-                                        // TODO: check view name for link.first
+                                        // TODO v0.3: check view name for link.first
                                         // else it is unknown
                                         linkValue = "#"
                                     }

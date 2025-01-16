@@ -67,6 +67,10 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
         }
     }
 
+    override fun typeMapper(type: String?): String {
+        TODO("Not yet implemented")
+    }
+
     override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
         TODO("Not yet implemented")
     }

@@ -55,10 +55,17 @@ class Generator(
         gmb.build()
         Log.info("=============== InternalGeneratorModel ===============\n${projectModel.igm}")
         Log.info("======================================================\n")
+        if (Log.level == Log.LogLevel.DEBUG) {
+            val igmFolder = "${project.buildFolder}/igm"
+            Project.ensureFolderExists(igmFolder, null)
+            val igmPath = "$igmFolder/${projectModel.source.applications[0].qid?.id}.igm"
+            Log.debug("Write IGM to $igmPath")
+            FileWriter(igmPath).use { it.write("${projectModel.igm}") }
+        }
 
         // generate the source code
         Log.title("Generate source code")
-        val success = CodeGenerator(langBuilder, project).generate(projectModel.igm, getFileHeader())
+        val success = CodeGenerator(langBuilder, project, projectModel.igm).generate(getFileHeader())
 
         // generate views
         var successView = true

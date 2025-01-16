@@ -39,8 +39,8 @@ class IGMClass(val id: String) {
         if (parent.isNotBlank()) sb.append("is $parent")
         if (mainClass) sb.append(" (main)")
         sb.append("\n")
-        members.forEach { sb.append("${it.value}") }
-        actions.forEach { sb.append("${it.value}") }
+        members.forEach { sb.append("${it.value}\n") }
+        actions.forEach { sb.append("${it.value}\n") }
         return sb.toString()
     }
 

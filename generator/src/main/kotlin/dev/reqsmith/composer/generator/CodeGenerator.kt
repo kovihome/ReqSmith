@@ -29,13 +29,13 @@ import java.io.File
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
 
-class CodeGenerator(private val langBuilder: LanguageBuilder, private val project: Project) {
+class CodeGenerator(private val langBuilder: LanguageBuilder, private val project: Project, private val igm: InternalGeneratorModel) {
 
     private val srcPath = project.srcPath(langBuilder.language)
 
     private fun String.toPath():String = this.replace('.', '/')
 
-    fun generate(igm: InternalGeneratorModel, fileHeader: String): Boolean {
+    fun generate(fileHeader: String): Boolean {
 
         igm.classes.forEach {  buildClass(it.value, fileHeader) }
 
@@ -117,8 +117,18 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
             imports.add(cls.parent)
         }
         cls.members.forEach {
-            if (!StandardTypes.has(it.value.type)) {
-                imports.add(it.value.type)
+            val type = it.value.type
+            if (!StandardTypes.has(type.lowercase())) {
+                var classOfType = igm.classes.keys.find { it.endsWith(type) }
+                if (classOfType == null) {
+                    classOfType = igm.enumerations.keys.find { it.endsWith(type) }
+                }
+                imports.add(if (classOfType != null) classOfType else type)
+            } else {
+                val langType = langBuilder.typeMapper(type)
+                if (langType.contains('.')) {
+                    imports.add(langType)
+                }
             }
         }
         cls.imports.forEach { imports.add(it) }

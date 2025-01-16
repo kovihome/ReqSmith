@@ -23,6 +23,6 @@ class IGMEnumeration(val enumId: String) {
     lateinit var values: List<String>
 
     override fun toString(): String {
-        return "IGMEnumeration $enumId " + values.joinToString(",")
+        return "IGMEnumeration $enumId\n    ${values.joinToString(",")}\n"
     }
 }

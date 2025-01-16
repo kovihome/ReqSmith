@@ -21,6 +21,7 @@ package dev.reqsmith.model.igm
 class IGMClassMember(val memberId: String) {
 
     lateinit var type: String
+    var enumerationType: Boolean = false
     var listOf: Boolean = false
     lateinit var optionality: String
     var value: String? = null
