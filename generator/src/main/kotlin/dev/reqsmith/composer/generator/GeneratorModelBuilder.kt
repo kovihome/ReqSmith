@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.generator
 
+import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.PluginManager
@@ -167,6 +168,26 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
 //            cls.actions.forEach {
 //                addClassMethod(it.qid?.id, emptyList(), emptyList())
 //            }
+
+        // apply features on entities
+        ent.definition.featureRefs.forEach { featureRef ->
+
+            val feature = projectModel.source.features.find { it.qid.toString() ==  featureRef.qid.toString()}
+            if (feature != null) {
+                var generatorId = feature.definition.properties.find { it.key == "generator" }?.value?.removeSurrounding("'")?.removeSurrounding("\"")
+                if (generatorId != null) {
+                    generatorId = ConfigManager.defaults[generatorId] ?: generatorId
+                    val featurePlugin = PluginManager.get<FrameworkBuilder>(PluginType.Framework, generatorId)
+                    featurePlugin.applyFeatureOnEntity(ent, igm, feature)
+                } else {
+                    Log.error("Generator property not found in feature ${feature.qid} (${feature.coords()})")
+                }
+
+            } else {
+                Log.error("Feature ${featureRef.qid} is not found; referenced by entity ${ent.qid} (${featureRef.coords()})")
+            }
+
+        }
 
     }
 

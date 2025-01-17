@@ -30,7 +30,6 @@ import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.View
 import java.io.File
-import java.util.*
 
 open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
     override fun definition(): PluginDef {
@@ -74,10 +73,10 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
         ))
     }
 
-    override fun addSpringApplicationProperties(props: Properties) {
-        super.addSpringApplicationProperties(props)
-        props.setProperty("spring.thymeleaf.prefix", "classpath:/${getViewFolder()}/")
-        props.setProperty("spring.thymeleaf.suffix", ".${getViewLanguage()}")
+    override fun addSpringApplicationProperties() {
+        super.addSpringApplicationProperties()
+        applicationProperties.setProperty("spring.thymeleaf.prefix", "classpath:/${getViewFolder()}/")
+        applicationProperties.setProperty("spring.thymeleaf.suffix", ".${getViewLanguage()}")
     }
 
     override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, projectModel: ProjectModel) {

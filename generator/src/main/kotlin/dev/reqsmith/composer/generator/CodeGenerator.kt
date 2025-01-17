@@ -20,11 +20,11 @@ package dev.reqsmith.composer.generator
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
+import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
 import dev.reqsmith.model.igm.InternalGeneratorModel
-import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
-import dev.reqsmith.model.enumeration.StandardTypes
 import java.io.File
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
@@ -113,17 +113,20 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
 
     private fun getImports(cls: IGMClass): String {
         val imports: MutableSet<String> = HashSet()
-        if (cls.parent.isNotBlank()) {
-            imports.add(cls.parent)
-        }
+//        if (cls.parent.isNotBlank()) {
+//            imports.add(cls.parent)
+//        }
         cls.members.forEach {
             val type = it.value.type
-            if (!StandardTypes.has(type.lowercase())) {
+            if (!StandardTypes.has(type.replaceFirstChar { it.lowercase() })) {
                 var classOfType = igm.classes.keys.find { it.endsWith(type) }
                 if (classOfType == null) {
                     classOfType = igm.enumerations.keys.find { it.endsWith(type) }
                 }
-                imports.add(if (classOfType != null) classOfType else type)
+                if (classOfType == null) classOfType = type
+                if (classOfType.contains('.')) {
+                    imports.add(classOfType)
+                }
             } else {
                 val langType = langBuilder.typeMapper(type)
                 if (langType.contains('.')) {
@@ -133,10 +136,9 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
         }
         cls.imports.forEach { imports.add(it) }
 
-        // TODO: sort imports
-
+        // write out imports
         val sb = StringBuilder()
-        imports.forEach { sb.append(langBuilder.addImport(it)).append("\n") }
+        imports.sorted().forEach { sb.append(langBuilder.addImport(it)).append("\n") }
         sb.append("\n")
         return sb.toString()
     }

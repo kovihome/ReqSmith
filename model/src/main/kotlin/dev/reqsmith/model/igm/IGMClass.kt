@@ -19,12 +19,14 @@
 package dev.reqsmith.model.igm
 
 class IGMClass(val id: String) {
+    var interfaceType = false
     var parent: String = ""
+    val parentClasses: MutableList<String> = mutableListOf()
     var mainClass: Boolean = false
     val actions : MutableMap<String, IGMAction> = HashMap()
     val members: MutableMap<String, IGMClassMember> = HashMap()
-    val annotations: MutableList<IGMAction.IGMAnnotation> = ArrayList()
-    val imports: MutableList<String> = ArrayList()
+    val annotations: MutableList<IGMAction.IGMAnnotation> = mutableListOf()
+    val imports: MutableList<String> = mutableListOf()
 
     fun getAction(actionId: String): IGMAction {
         return actions.getOrPut(actionId) { IGMAction(actionId) }
@@ -44,10 +46,11 @@ class IGMClass(val id: String) {
         return sb.toString()
     }
 
-    fun addImport(import: String) {
+    fun addImport(import: String): String {
         if (!imports.contains(import)) {
             imports.add(import)
         }
+        return import.substringAfterLast('.')
     }
 
 }

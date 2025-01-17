@@ -21,6 +21,8 @@ package dev.reqsmith.composer.generator.plugin.framework
 import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.Application
+import dev.reqsmith.model.reqm.Entity
+import dev.reqsmith.model.reqm.Feature
 import dev.reqsmith.model.reqm.View
 
 interface FrameworkBuilder {
@@ -64,4 +66,12 @@ interface FrameworkBuilder {
      * @param projectModel The Project Model
      */
     fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, projectModel: ProjectModel)
+
+    /**
+     * Apply a feature on an entity
+     * @param ent The entity on which the feature have to be applied
+     * @param igm The full IGM structure
+     * @param feature The feature which have to be applied on the entity
+     */
+    fun applyFeatureOnEntity(ent: Entity, igm: InternalGeneratorModel, feature: Feature)
 }

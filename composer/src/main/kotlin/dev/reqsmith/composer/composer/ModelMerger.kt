@@ -105,6 +105,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                     errors.add("Source reference ${ent.sourceRef} is not found for entity ${ent.qid} (${ent.coords()}). (${ent.coords()})")
                 }
             }
+            collectFeatures(ent.definition.featureRefs, projectModel.dependencies)
         }
         // add dependent actions to the dependencies
         projectModel.source.actions.forEach { act ->
@@ -120,7 +121,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
             collectViewDependencies(view)
         }
 
-        // TODO: merge features and styles
+        // TODO: merge styles
 
         // throw errors
         if (errors.isNotEmpty()) {

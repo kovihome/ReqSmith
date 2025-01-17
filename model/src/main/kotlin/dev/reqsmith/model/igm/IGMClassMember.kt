@@ -18,6 +18,8 @@
 
 package dev.reqsmith.model.igm
 
+import dev.reqsmith.model.igm.IGMAction.IGMAnnotation
+
 class IGMClassMember(val memberId: String) {
 
     lateinit var type: String
@@ -25,6 +27,8 @@ class IGMClassMember(val memberId: String) {
     var listOf: Boolean = false
     lateinit var optionality: String
     var value: String? = null
+
+    val annotations: MutableList<IGMAnnotation> = ArrayList()
 
     override fun toString(): String {
         val sb = StringBuilder("    IGMClassMember $memberId:")

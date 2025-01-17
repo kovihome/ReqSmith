@@ -7,6 +7,8 @@ propertyType: String
 
 framework.base:
 framework.web: spring
+feature.template: framework.web.spring.thymeleaf
+feature.persistence: framework.web.spring
 language: kotlin
 html: bootstrap
 buildsys: gradle

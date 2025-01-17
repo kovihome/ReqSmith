@@ -132,7 +132,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
                     sb.append("${st.actionName} (${st.parameters.joinToString(",") { p -> p.format() }})")
                 }
             }
-            localVars.imports.forEach { addImport(it) }
+            localVars.imports.forEach { addImport(it) } // TODO: this adds import to nothing
             sb.append("\n")
         }
         sb.append(pre).append("}\n\n")
@@ -141,8 +141,8 @@ class KotlinBuilder : LanguageBuilder, Plugin {
     private fun parameterValues(parameters: List<IGMAction.IGMActionParam>): String {
         return parameters.joinToString(", ") {
             when (it.type) {
-                StandardTypes.stringLiteral.name -> "\"${it.name}\""
-                else -> it.name
+                StandardTypes.stringLiteral.name -> "${it.name} = \"${it.type}\""
+                else -> "${it.name} = ${it.type}"
             }
         }
     }
@@ -164,25 +164,31 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         addAnnotations(sb, cls.annotations, indent)
         // class signature
         val clsname = cls.id.substringAfterLast('.')
-        sb.append("${pre}class $clsname")
+        sb.append("${pre}${if (cls.interfaceType) "interface" else "class"} $clsname")
         if (cls.parent.isNotBlank()) {
             sb.append(" : ${cls.parent}")
-        }
-        sb.append(" {\n\n")
-
-        // class members
-        cls.members.forEach {
-            addClassMember(sb, it.value, indent+tabsize)
-        }
-
-        cls.actions.forEach { (_, action) ->
-            if (!action.isMain) {
-                addClassMethod(sb, action, indent + tabsize)
+            if (cls.parentClasses.isNotEmpty()) {
+                sb.append("<${cls.parentClasses.joinToString { it }}>")
             }
         }
+        if (cls.members.isNotEmpty() || cls.actions.isNotEmpty()) {
+            sb.append(" {\n\n")
 
-        // closure
-        sb.append("\n${pre}}\n")
+            // class members
+            cls.members.forEach {
+                addClassMember(sb, it.value, indent + tabsize)
+            }
+
+            cls.actions.forEach { (_, action) ->
+                if (!action.isMain) {
+                    addClassMethod(sb, action, indent + tabsize)
+                }
+            }
+
+            // closure
+            sb.append("\n${pre}}")
+        }
+        sb.append("\n")
 
         // main class
         if (cls.mainClass) {
@@ -233,7 +239,11 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         // var key: Type?  --> property.optionality
         // val key: MultableList<Type> = ArrayList() --> property.listOf
         // val key = value --> property.type == stringLiteral
-        sb.append("${prefix(indent)} ")
+
+        // start with annotations
+        addAnnotations(sb, property.annotations, indent)
+
+        sb.append(prefix(indent))
         if (property.type == StandardTypes.stringLiteral.name || property.listOf) {
             sb.append("val ")
         } else {
@@ -258,13 +268,14 @@ class KotlinBuilder : LanguageBuilder, Plugin {
                         "String" -> if (property.value.isNullOrBlank()) "\"\"" else "\"${property.value}\""
                         "Int" -> if (property.value.isNullOrBlank()) "0" else "${property.value}"
                         "LocalDate" -> "LocalDate.now()"
-                        else -> if (property.enumerationType) "$type.${property.value}" else "$type()"
+                        else -> if (property.enumerationType) "$type.${property.value}" else if (property.value.isNullOrBlank()) "$type()" else "${property.value}"
                     }
                     sb.append(" = $defaultValue")
                 }
                 sb.append("\n")
             }
         }
+        sb.append("\n")
     }
 
 }

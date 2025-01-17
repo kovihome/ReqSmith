@@ -5,6 +5,7 @@
 // Application descriptor
 application FormsWebApp from WebApplication {
     description: 'Forms Web application'
+    version: 0.3.0
 }
 
 entity Cat {
