@@ -67,19 +67,15 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
         }
     }
 
-    override fun typeMapper(type: String?): String {
-        TODO("Not yet implemented")
-    }
-
-    override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
-        TODO("Not yet implemented")
-    }
-
-    private fun createNode(node: IGMView.IGMNode): String {
+    fun createNode(node: IGMView.IGMNode): String {
         return when (node.name) {
             "header" -> createHeader(node)
             "footer" -> createFooter(node)
             "panel" -> createPanel(node)
+            "text" -> createText(node)
+            "linkGroup" -> createLinkGroup(node)
+            "linkButton" -> createLinkButton(node)
+            "spacer" -> createSpacer(node)
             else -> {
                 if (node.children.isNotEmpty()) {
                     createHTML().div {
@@ -113,6 +109,30 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
         }
     }
 
+    open fun createText(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
+        }
+    }
+
+    open fun createLinkGroup(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
+        }
+    }
+
+    open fun createLinkButton(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
+        }
+    }
+
+    open fun createSpacer(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
+        }
+    }
+
     override fun addClass(cls: IGMClass, indent: Int): String {
         throw NotImplementedError()
     }
@@ -126,6 +146,14 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
     }
 
     override fun addImport(imported: String, indent: Int): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun typeMapper(type: String?): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
         TODO("Not yet implemented")
     }
 

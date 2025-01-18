@@ -13,10 +13,10 @@ view text
 view header from panel {
     logo: ""
     title: "Web Application"
-    layout {
-        image: logo
-        text: title
-    }
+//    layout {
+//        image: logo
+//        text: title
+//    }
 }
 
 view footer from panel {
@@ -24,22 +24,22 @@ view footer from panel {
     githubLink: 'https://github.com/kovihome/ReqSmith'
     linkGroup {
         title: "Quick Links"
-        About
-        Privacy_Policy
-        Contact
+        to: About
+        to: Privacy_Policy
+        to: Contact
     }
-    layout {
-        linkList: linkGroup
-        copyright: copyrightText
-        copyright: "Powered by Bootstrap."
-        social {
-            facebook
-            twitter
-            linkedin
-            youtube
-            github: githubLink
-        }
-    }
+//    layout {
+//        linkList: linkGroup
+//        copyright: copyrightText
+//        copyright: "Powered by Bootstrap."
+//        social {
+//            facebook
+//            twitter
+//            linkedin
+//            youtube
+//            github: githubLink
+//        }
+//    }
 }
 
 view panel {

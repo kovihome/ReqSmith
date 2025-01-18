@@ -30,10 +30,11 @@ class IGMClassMember(val memberId: String) {
 
     val annotations: MutableList<IGMAnnotation> = ArrayList()
 
-    override fun toString(): String {
-        val sb = StringBuilder("    IGMClassMember $memberId:")
+    fun print(tabsize: Int): String {
+        val tab = " ".repeat(tabsize)
+        val sb = StringBuilder("${tab}IGMClassMember $memberId:")
         sb.append(if (listOf) "listOf $type" else type)
         value?.let { sb.append(" = $value") }
-        return sb.toString()
+        return sb.append("\n").toString()
     }
 }

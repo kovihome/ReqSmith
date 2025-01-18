@@ -41,7 +41,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         classes = setOf("me-3")
                         src = "$artPathPrefix/${attr["logo"]}"
                         alt = "logo"
-                        style = "width: 128px; height: 128px;"
+//                        style = "width: 128px; height: 128px;"
+                        style = "height: 128px;"
                         viewArts.add(attr["logo"] ?: "")
                     }
                 }
@@ -63,31 +64,82 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         TODO("Not yet implemented")
     }
 
-    override fun createPanel(node: IGMView.IGMNode): String {
+    override fun createText(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
-        return createHTML(true).div {
-            classes = setOf("container", "mt-4")
-            if (attr.contains("text")) {
-                p {
-                    // write multiline text
-                    val texts = (attr["text"]?:"").split("\\n")
-                    text(texts[0])
-                    if (texts.size > 1) {
-                        texts.subList(1, texts.size).forEach {
-                            br()
-                            text(it)
-                        }
-                    }
-                    // --------------------
+        return createHTML(true).p {
+            // write multiline text
+            val texts = (attr["default"]?:"").split("\\n")
+            text(texts[0])
+            if (texts.size > 1) {
+                texts.subList(1, texts.size).forEach {
+                    br()
+                    text(it)
                 }
             }
+        }
+    }
 
+    override fun createLinkGroup(node: IGMView.IGMNode): String {
+        val groupTitle = node.attributes.find { it.first == "title" }?.second ?: "Links"
+        val colSize = node.attributes.find { it.first == "colSize" }?.second ?: "6"
+        return createHTML(true).div {
+            classes = setOf("col-md-$colSize", "mb-3", "mb-md-0")
+            h5 { text(groupTitle) }
+            ul {
+                classes = setOf("list-unstyled")
+                node.attributes.filter { it.first == "to" }.forEach { link ->
+                    val linkText = link.second.replace("_", " ")
+                    var linkValue = link.second
+                    if (linkValue.isBlank()) {
+                        // is link name an another view?
+                        // TODO v0.3: check view name for link.first
+                        // else it is unknown
+                        linkValue = "#"
+                    }
+                    li {
+                        a {
+                            href = linkValue
+                            classes = setOf("text-white", "text-decoration-none")
+                            text(linkText)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun createLinkButton(node: IGMView.IGMNode): String {
+        return createHTML(true).a {
+            classes = setOf("btn", "btn-primary")
+            role = "button"
+            val link = node.attributes.find { it.first == "to" }?.second
+            href = if (link != null) "$link.html" else "#" // TODO: a .html-t nem itt kell hozzáadni
+            text(node.attributes.find { it.first == "title" }?.second ?: "LinkButton")
+        }
+    }
+
+    override fun createSpacer(node: IGMView.IGMNode): String {
+        val default = node.attributes.find { it.first == "default" }?.second ?: "line"
+        return when (default) {
+            "line" -> createHTML(true).hr {
+            }
+            else -> createHTML(true).div {
+                classes = setOf("pb-3")
+            }
+        }
+    }
+
+    override fun createPanel(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+            classes = setOf("container", "mt-4")
+            node.children.forEach {
+                unsafe { raw(createNode(it)) }
+            }
         }
     }
 
     override fun createFooter(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
-        val layout = node.children.find { it.name == "layout" }
         return createHTML(true).footer {
             classes = setOf("bg-dark", "text-white", "py-4", "mt-5", "fixed-bottom")
             div {
@@ -96,41 +148,12 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     classes = setOf("row")
 
                     // footer link groups
-                    val linkGroups = if (layout?.attributes?.any { it.first == "linkList" } == true) {
-                        val childrenName = layout.attributes.find { it.first == "linkList" }?.second
-                        node.children.filter { it.name == childrenName }
-                    } else {
-                        layout?.children?.filter { it.name == "linkList" }
-                    }
-                    val ngroups = linkGroups?.size ?: 1
+                    val linkGroups = node.children.filter { it.name == "linkGroup" }
+                    val ngroups = linkGroups.size
                     val colSize = max(6 / ngroups, 1)
-                    linkGroups?.forEach { linkGroup ->
-                        val groupTitle = linkGroup.attributes.find { it.first == "title" }?.second ?: "Links"
-                        div {
-                            classes = setOf("col-md-${colSize}", "mb-3", "mb-md-0")
-                            h5 { text(groupTitle) }
-                            ul {
-                                classes = setOf("list-unstyled")
-                                linkGroup.attributes.filter { it.first != "title" }.forEach { link ->
-                                    val linkText = link.first.replace("_", " ")
-                                    var linkValue = link.second
-                                    if (linkValue.isNullOrBlank()) {
-                                        // is link name an another view?
-                                        // TODO v0.3: check view name for link.first
-                                        // else it is unknown
-                                        linkValue = "#"
-                                    }
-                                    li {
-                                        a {
-                                            href = linkValue
-                                            classes = setOf("text-white", "text-decoration-none")
-                                            text(linkText)
-                                        }
-                                    }
-
-                                }
-                            }
-                        }
+                    linkGroups.forEach { linkGroup ->
+                        linkGroup.attributes.add(Pair("colSize", colSize.toString()))
+                        unsafe { raw(createLinkGroup(linkGroup)) }
                     }
 
                     //
@@ -138,29 +161,26 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         classes = setOf("col-md-${12-colSize*ngroups}", "text-md-end")
 
                         // footer info (copyright)
-                        val copyrightList = layout?.attributes?.filter { it.first == "copyright" }
-                        copyrightList?.forEach {
+                        val copyrightList = node.attributes.filter { it.first == "copyrightText" }
+                        copyrightList.forEach {
                             p {
                                 classes = setOf("mb-0")
-                                var copyText = if (attr.containsKey(it.second)) attr.getOrDefault(it.second, it.second) else it.second
+                                val copyText = if (attr.containsKey(it.second)) attr.getOrDefault(it.second, it.second) else it.second
                                 text(copyText)
                             }
                         }
 
                         // social media icons
-                        val socialMediaLinkGroup = layout?.children?.find { it.name == "social" }
-                        socialMediaLinkGroup?.let {
+                        val socialMediaLinks = node.attributes.filter { it.first.endsWith("Link") }
+                        socialMediaLinks.let { links ->
                             div {
                                 classes = setOf("mt-3")
-                                it.attributes.forEach { link ->
-                                    val media = link.first
-                                    val linkValue = if (link.second.isNullOrBlank()) "#" else {
-                                        if (attr.containsKey(link.second)) attr.getOrDefault(link.second, link.second) else link.second
-                                    }
+                                listOf("facebook", "twitter", "linkedin", "youtube", "github").forEach { media ->
+                                    val linkValue = links.find { it.first == "${media}Link" }?.second ?: "#"
                                     val mediaClass = "bi-${media}"
                                     a {
                                         href = linkValue
-                                        classes = setOf("pe-3")
+                                        classes = setOf("me-3")
                                         i {
                                             classes = setOf("bi", mediaClass)
                                             style = "font-size:1.5rem;color:white;"
@@ -169,7 +189,6 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                 }
                             }
                         }
-
                     }
                 }
             }

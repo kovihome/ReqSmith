@@ -53,14 +53,14 @@ class Generator(
         Project.ensureFolderExists(resourcesFolderName, null)
         val gmb = GeneratorModelBuilder(projectModel, resourcesFolderName, project)
         gmb.build()
-        Log.info("=============== InternalGeneratorModel ===============\n${projectModel.igm}")
+        Log.info("=============== InternalGeneratorModel ===============\n${projectModel.igm.print()}")
         Log.info("======================================================\n")
         if (Log.level == Log.LogLevel.DEBUG) {
             val igmFolder = "${project.buildFolder}/igm"
             Project.ensureFolderExists(igmFolder, null)
             val igmPath = "$igmFolder/${projectModel.source.applications[0].qid?.id}.igm"
             Log.debug("Write IGM to $igmPath")
-            FileWriter(igmPath).use { it.write("${projectModel.igm}") }
+            FileWriter(igmPath).use { it.write(projectModel.igm.print()) }
         }
 
         // generate the source code

@@ -36,13 +36,14 @@ class IGMClass(val id: String) {
         return members.getOrPut(memberId) { IGMClassMember(memberId) }
     }
 
-    override fun toString(): String {
-        val sb = StringBuilder("IGMClass $id")
-        if (parent.isNotBlank()) sb.append("is $parent")
+    fun print(tabsize: Int = 0): String {
+        val tab = " ".repeat(tabsize)
+        val sb = StringBuilder("${tab}IGMClass $id")
+        if (parent.isNotBlank()) sb.append(" is $parent")
         if (mainClass) sb.append(" (main)")
         sb.append("\n")
-        members.forEach { sb.append("${it.value}\n") }
-        actions.forEach { sb.append("${it.value}\n") }
+        members.forEach { sb.append(it.value.print(tabsize+4)) }
+        actions.forEach { sb.append(it.value.print(tabsize+4)) }
         return sb.toString()
     }
 

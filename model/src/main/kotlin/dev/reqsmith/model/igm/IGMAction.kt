@@ -38,8 +38,9 @@ open class IGMAction(val actionId: String) {
             return this
         }
 
-        override fun toString(): String {
-            return "$actionName ${parameters.joinToString(", "){ it.format() }}"
+        fun print(tabsize: Int): String {
+            val tab = " ".repeat(tabsize)
+            return "${tab}$actionName ${parameters.joinToString(", "){ it.format() }}\n"
         }
     }
 
@@ -83,11 +84,12 @@ open class IGMAction(val actionId: String) {
     var returnType: String = ""
     var isMain: Boolean = false
 
-    override fun toString(): String {
+    fun print(tabsize: Int): String {
+        val tab = " ".repeat(tabsize)
         val mainfun = if (isMain) "(main)" else ""
         val rType = if (returnType.isNotBlank()) "-> $returnType " else ""
-        val sb = StringBuilder("    IGMAction $actionId (${parameters.joinToString(",")}) $rType$mainfun\n")
-        statements.forEach { sb.append("        $it\n") }
+        val sb = StringBuilder("${tab}IGMAction $actionId (${parameters.joinToString(",")}) $rType$mainfun\n")
+        statements.forEach { sb.append(it.print(tabsize+4)) }
         return sb.toString()
     }
 

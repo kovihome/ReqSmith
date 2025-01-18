@@ -22,7 +22,7 @@ class IGMEnumeration(val enumId: String) {
     var parent = ""
     lateinit var values: List<String>
 
-    override fun toString(): String {
-        return "IGMEnumeration $enumId\n    ${values.joinToString(",")}\n"
+    fun print(tabsize: Int = 0): String {
+        return "${" ".repeat(tabsize)}IGMEnumeration $enumId\n${" ".repeat(tabsize+4)}${values.joinToString(",")}\n"
     }
 }

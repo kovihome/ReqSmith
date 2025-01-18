@@ -24,26 +24,28 @@ class IGMView(val id: String) {
 
     class IGMNode {
         var name: String = ""
-        var text : String = ""
+        var text: String = ""
         val attributes: MutableList<Pair<String, String>> = ArrayList()
-        val children : MutableList<IGMNode> = ArrayList()
+        val children: MutableList<IGMNode> = ArrayList()
 
-        override fun toString(): String {
+        override fun toString() = "IGMNode $name"
+
+        fun print(tabsize: Int): String {
             val sb = StringBuilder()
-            sb.append("IGMNode $name\n")
-            attributes.forEach { sb.append("    ${it.first}: ${it.second}\n") }
+            var tab = " ".repeat(tabsize)
+            sb.append("${tab}IGMNode $name\n")
+            tab = " ".repeat(tabsize+4)
+            attributes.forEach { sb.append("${tab}${it.first}: ${it.second}\n") }
             children.forEach {
-                sb.append(it.toString().split("\n").joinToString("\n") { "    $it" })
+                sb.append(it.print(tabsize+4))
             }
             return sb.toString()
         }
     }
 
-    override fun toString(): String {
-        val sb = StringBuilder("IGMView $id\n")
-        sb.append(layout.toString().split("\n").joinToString("\n") { "    $it" })
-        return sb.toString()
-    }
+    fun print(tabsize: Int = 0) = StringBuilder("IGMView $id\n").append(layout.print(tabsize + 4)).toString()
+
+    override fun toString() = "IGMView $id"
 
 }
 

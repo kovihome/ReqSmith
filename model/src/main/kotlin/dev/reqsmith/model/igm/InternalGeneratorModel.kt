@@ -38,11 +38,11 @@ class InternalGeneratorModel {
         return views.getOrPut(viewId) { IGMView(viewId) }
     }
 
-    override fun toString(): String {
+    fun print(): String {
         val sb = StringBuilder("package $rootPackage\n")
-        classes.forEach { sb.append("${it.value}\n") }
-        enumerations.forEach { sb.append("${it.value}\n") }
-        views.forEach { sb.append("${it.value}\n") }
+        classes.forEach { sb.append(it.value.print()).append("\n") }
+        enumerations.forEach { sb.append(it.value.print()).append("\n") }
+        views.forEach { sb.append(it.value.print()).append("\n") }
         return sb.toString()
     }
 

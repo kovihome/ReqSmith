@@ -37,10 +37,10 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
     override fun getViewFolder(): String  = "html"
 
-    override fun buildView(viewModel: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
-        val view = igm.getView(viewModel.qid.toString())
-        val layout = viewModel.definition.properties.find { it.key == "layout" }
-        view.layout = layout?.let { propertyToNode(it, templateContext) }!!
+    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
+        val igmView = igm.getView(view.qid.toString())
+        val layout = view.definition.properties.find { it.key == "layout" }
+        igmView.layout = layout?.let { propertyToNode(it, templateContext) }!!
     }
 
     private fun propertyToNode(prop: Property, templateContext: Map<String, String>): IGMView.IGMNode {
@@ -49,20 +49,58 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
         }
         val template = Template()
         if (prop.type == StandardTypes.propertyList.name) {
-            node.attributes.addAll(prop.simpleAttributes.filter { it.type != StandardTypes.propertyList.name }.map {
-                var value = it.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
-                if (it.key in listOf("text", "title")) {
-                    value = template.translate(templateContext, value)
+            // collect attributes of this node
+            val attributeList = layoutElementAttributes[prop.key] ?: listOf()
+            prop.simpleAttributes.forEach { a ->
+                if (a.type != StandardTypes.propertyList.name && attributeList.contains(a.key)) {
+                    // real attribute
+                    var value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                    if (a.key in listOf("text", "title")) {
+                        value = template.translate(templateContext, value)
+                    }
+                    node.attributes.add(Pair(a.key!!, value))
+                } else {
+                    // child node
+                    if (a.type != StandardTypes.propertyList.name) {
+                        // simple child
+                        node.children.add(IGMView.IGMNode().apply {
+                            name = a.key!!
+                            if (a.value?.isNotBlank() == true) {
+                                var value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                                if (a.key in listOf("text")) {
+                                    value = template.translate(templateContext, value)
+                                }
+                                val defaultAttributeName = layoutElementAttributes[a.key!!]?.getOrElse(0) { "default" } ?: "default"
+                                attributes.add(Pair(defaultAttributeName, value))
+                            }
+                        })
+                    } else {
+                        // compound child
+                        node.children.add(propertyToNode(a, templateContext))
+                    }
                 }
-                it.key!! to value
-            })
-            prop.simpleAttributes.filter{ it.type == StandardTypes.propertyList.name }
-                .forEach { node.children.add(propertyToNode(it, templateContext)) }
+            }
         } else if (prop.value?.isNotBlank() == true) {
             node.text = template.translate(templateContext, prop.value!!)
         }
         return node
     }
+
+    private val layoutElementAttributes = mapOf(
+        "footer" to listOf("linkGroup", "copyrightText", "facebookLink", "twitterLink", "linkedinLink", "youtubeLink", "githubLink"),
+        "header" to listOf("title", "logo"),
+        "linkButton" to listOf("title", "to"),
+        "linkGroup" to listOf("title", "to"),
+        "panel" to listOf(),
+        "spacer" to listOf(),
+        "text" to listOf()
+//        "form" to listOf("action", "method", "enctype", "target"),
+//        "datatable" to listOf("title", "entity"),
+//        "image" to listOf("src", "alt", "width", "height"),
+//        "input" to listOf("name", "type", "placeholder", "value", "required", "readonly", "disabled", "autocomplete", "autofocus", "list", "maxlength", "minlength", "pattern", "size", "step", "min", "max"),
+//        "label" to listOf("for"),
+//        "link" to listOf("to", "text", "title", "target"),
+    )
 
 
 }
