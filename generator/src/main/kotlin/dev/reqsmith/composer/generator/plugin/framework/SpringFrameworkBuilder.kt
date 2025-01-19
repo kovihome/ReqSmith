@@ -24,6 +24,7 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.parser.enumeration.Optionality
 import dev.reqsmith.model.ProjectModel
+import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.Application
@@ -136,7 +137,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                 springDependencies.addAll(h2.dependencies)
                 h2.properties.forEach { applicationProperties.setProperty(it.first, it.second) }
             }
-            applySpringDataPeristenceOnEntity(ent, igm, feature)
+            applySpringDataPersistenceOnEntity(ent, igm, feature)
         } else {
             TODO("Not implemented yet!")
         }
@@ -155,7 +156,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         )
     }
 
-    private fun applySpringDataPeristenceOnEntity(ent: Entity, igm: InternalGeneratorModel, feature: Feature) {
+    private fun applySpringDataPersistenceOnEntity(ent: Entity, igm: InternalGeneratorModel, feature: Feature) {
         // get IGM class
         val igmClass = igm.getClass(ent.qid.toString())
 
@@ -179,7 +180,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             optionality = Optionality.Mandatory.name
             annotations.add(IGMAction.IGMAnnotation(igmClass.addImport("jakarta.persistence.Id")))
             annotations.add(IGMAction.IGMAnnotation(igmClass.addImport("jakarta.persistence.GeneratedValue")).apply {
-                parameters.add(IGMAction.IGMActionParam("strategy", "${igmClass.addImport("jakarta.persistence.GenerationType")}.IDENTITY"))
+                parameters.add(IGMAction.IGMAnnotationParam("strategy", "${igmClass.addImport("jakarta.persistence.GenerationType")}.IDENTITY", StandardTypes.string.name))
             })
         }
 
@@ -199,6 +200,60 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             interfaceType = true
             parent = addImport("org.springframework.data.jpa.repository.JpaRepository")
             parentClasses.addAll(listOf(addImport(igmClass.id), ID_TYPE))
+        }
+
+        // create service class for this entity
+        // controller name: <base-package>/controller/<entity>Controller
+        val serviceClassName = "${igmClass.id.replace("entities", "service")}Service"
+        val repo = repoClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }
+        igm.getClass(serviceClassName).apply {
+            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Service")))
+            ctorParams.add(IGMAction.IGMActionParam(repo, addImport(repoClassName)))
+
+            // create action for create entity
+            getAction("create").apply {
+                parameters.add(IGMAction.IGMActionParam("data", addImport(igmClass.id)))
+
+                addImport(repoClassName)
+                statements.add(IGMAction.IGMActionStmt("call").apply {
+                    this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.string.name, "${repoClassName}.save"))
+                    this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.string.name, "data"))
+                })
+
+            }
+        }
+
+        // create controller class for this entity
+        // controller name: <base-package>/controller/<entity>Controller
+        val controllerClassName = "${igmClass.id.replace("entities", "controller")}Controller"
+        val service = serviceClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }
+        igm.getClass(controllerClassName).apply {
+            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Controller")))
+            ctorParams.add(IGMAction.IGMActionParam(service, addImport(serviceClassName)))
+
+            // create action for create entity
+            val actionUrl = "/data/${igmClass.id.substringAfterLast('.').lowercase()}/create"
+            getAction("create").apply {
+                annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.PostMapping")).apply {
+                    parameters.add(IGMAction.IGMAnnotationParam("", actionUrl))
+                })
+
+                parameters.add(IGMAction.IGMActionParam("formData", addImport(igmClass.id)).apply {
+                    this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.ModelAttribute")))
+                })
+                parameters.add(IGMAction.IGMActionParam("model", addImport("org.springframework.ui.Model")))
+
+                returnType = StandardTypes.string.name
+
+                statements.add(IGMAction.IGMActionStmt("print").apply {
+                    this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.stringLiteral.name, "controller $actionUrl invoked"))
+                })
+                addStmt("call", "$serviceClassName.create", "formData")
+                statements.add(IGMAction.IGMActionStmt("return").apply {
+                    this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.stringLiteral.name, "redirect:/"))
+                })
+
+            }
         }
 
     }

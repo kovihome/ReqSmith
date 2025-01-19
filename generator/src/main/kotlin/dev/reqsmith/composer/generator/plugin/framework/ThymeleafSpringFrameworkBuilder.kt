@@ -40,22 +40,22 @@ open class ThymeleafSpringFrameworkBuilder : SpringFrameworkBuilder(), Plugin {
 
     override fun getViewFolder(): String = "templates"
 
-    override fun buildView(viewModel: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
+    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
         // create a controller class for this view
-        val domainName = if (!viewModel.qid?.domain.isNullOrBlank()) viewModel.qid?.domain else /* TODO: application domain */ ConfigManager.defaults["domainName"]
-        val className = viewModel.qid!!.id!!
+        val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else /* TODO: application domain */ ConfigManager.defaults["domainName"]
+        val className = view.qid!!.id!!
         igm.getClass("$domainName.controller.${className}Controller").apply {
             annotations.add(IGMAction.IGMAnnotation("Controller"))
             imports.add("org.springframework.stereotype.Controller")
             getAction(className.lowercase()).apply {
                 this.annotations.add(IGMAction.IGMAnnotation("GetMapping").apply {
-                    parameters.add(IGMAction.IGMActionParam("/${className}.${getViewLanguage()}", StandardTypes.stringLiteral.name))
+                    parameters.add(IGMAction.IGMAnnotationParam("", "/${className}.${getViewLanguage()}"))
                 })
-                imports.add("org.springframework.web.bind.annotation.GetMapping")
+                addImport("org.springframework.web.bind.annotation.GetMapping")
                 parameters.add(IGMAction.IGMActionParam("model", "Model"))
                 imports.add("org.springframework.ui.Model")
                 returnType = "String"
-                val viewTemplateContext = TemplateContextCollector().getItemTemplateContext(viewModel.qid, viewModel.definition.properties, "view").apply {
+                val viewTemplateContext = TemplateContextCollector().getItemTemplateContext(view.qid, view.definition.properties, "view").apply {
                     putAll(templateContext)
                 }
                 viewTemplateContext.forEach {

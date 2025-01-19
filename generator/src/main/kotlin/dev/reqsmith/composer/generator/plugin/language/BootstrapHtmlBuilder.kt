@@ -192,7 +192,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
             h5 { classes = setOf("mb-3"); text(title) }
             form {
 //              classes = setOf("row", "g-3")
-                action = "/service/$entityName/persist"
+                action = "/data/${entityName.lowercase()}/create"
                 method = FormMethod.post
 
                 entity.members.filter { it.key != "id" }.forEach { member ->

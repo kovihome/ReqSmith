@@ -24,10 +24,16 @@ import dev.reqsmith.model.enumeration.StandardTypes
 open class IGMAction(val actionId: String) {
 
     class IGMAnnotation(val annotationName: String) {
-        var parameters : MutableList<IGMActionParam> = ArrayList()
+        var parameters : MutableList<IGMAnnotationParam> = ArrayList()
 
         override fun toString(): String {
             return "$annotationName ${parameters.joinToString(", ")}"
+        }
+    }
+
+    class IGMAnnotationParam(val name: String, val value: String, val type: String = StandardTypes.stringLiteral.name) {
+        override fun toString(): String {
+            return "$name = $value"
         }
     }
 
@@ -45,6 +51,7 @@ open class IGMAction(val actionId: String) {
     }
 
     class IGMActionParam(val name: String, val type: String, val listof: Boolean = false) {
+        val annotations: MutableList<IGMAnnotation> = mutableListOf()
         override fun toString(): String {
             return "$name: ${if (listof) "listOf" else ""} $type"
         }
@@ -91,6 +98,14 @@ open class IGMAction(val actionId: String) {
         val sb = StringBuilder("${tab}IGMAction $actionId (${parameters.joinToString(",")}) $rType$mainfun\n")
         statements.forEach { sb.append(it.print(tabsize+4)) }
         return sb.toString()
+    }
+
+    fun addStmt(actionName: String, vararg param: String) {
+        statements.add(IGMActionStmt(actionName).apply {
+            param.forEach {
+                parameters.add(IGMStmtParam(StandardTypes.string.name, it))
+            }
+        })
     }
 
 }

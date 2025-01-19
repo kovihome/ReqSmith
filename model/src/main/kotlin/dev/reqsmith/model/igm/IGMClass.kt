@@ -27,6 +27,7 @@ class IGMClass(val id: String) {
     val members: MutableMap<String, IGMClassMember> = HashMap()
     val annotations: MutableList<IGMAction.IGMAnnotation> = mutableListOf()
     val imports: MutableList<String> = mutableListOf()
+    val ctorParams: MutableList<IGMAction.IGMActionParam> = mutableListOf()
 
     fun getAction(actionId: String): IGMAction {
         return actions.getOrPut(actionId) { IGMAction(actionId) }
