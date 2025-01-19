@@ -24,6 +24,7 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
 import dev.reqsmith.model.igm.IGMView
+import dev.reqsmith.model.igm.InternalGeneratorModel
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
 
@@ -32,6 +33,8 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
     override val language: String = "html"
     override var artPathPrefix: String = ""
     override val viewArts: MutableList<String> = ArrayList()
+
+    override lateinit var igm: InternalGeneratorModel
 
     override fun definition(): PluginDef {
         return PluginDef(language, PluginType.Language)
@@ -76,6 +79,7 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
             "linkGroup" -> createLinkGroup(node)
             "linkButton" -> createLinkButton(node)
             "spacer" -> createSpacer(node)
+            "form" -> createForm(node)
             else -> {
                 if (node.children.isNotEmpty()) {
                     createHTML().div {
@@ -88,6 +92,12 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
                     createHTML(true).p { text("Unknown node: ${node.name}") }
                 }
             }
+        }
+    }
+
+    open fun createForm(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
         }
     }
 

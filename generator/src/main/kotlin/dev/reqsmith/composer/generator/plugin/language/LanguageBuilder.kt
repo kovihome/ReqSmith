@@ -21,6 +21,7 @@ package dev.reqsmith.composer.generator.plugin.language
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
 import dev.reqsmith.model.igm.IGMView
+import dev.reqsmith.model.igm.InternalGeneratorModel
 
 interface LanguageBuilder {
     val extension: String
@@ -28,6 +29,7 @@ interface LanguageBuilder {
 
     var artPathPrefix: String
     val viewArts : MutableList<String>
+    var igm: InternalGeneratorModel
 
     fun addClass(cls: IGMClass, indent: Int = 0): String
     fun addEnumeration(enum: IGMEnumeration, indent: Int = 0): String

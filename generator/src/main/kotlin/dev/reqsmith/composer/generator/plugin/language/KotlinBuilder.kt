@@ -60,6 +60,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
     override var artPathPrefix: String = ""
     override val viewArts: MutableList<String>
         get() = TODO("Not yet implemented")
+    override lateinit var igm: InternalGeneratorModel
 
     private val tabsize = 4
 

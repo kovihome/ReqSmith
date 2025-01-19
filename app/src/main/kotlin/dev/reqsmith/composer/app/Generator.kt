@@ -70,7 +70,9 @@ class Generator(
         // generate views
         var successView = true
         if (projectModel.igm.views.isNotEmpty()) {
-            val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, gmb.viewGeneratorName)
+            val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, gmb.viewGeneratorName).apply {
+                igm = projectModel.igm
+            }
             val viewResourceFolderName = "$resourcesFolderName/${gmb.suggestedWebFolderName}"
             val viewGenerator = ViewGenerator(viewLangBuilder, project, projectModel, viewResourceFolderName)
             successView = viewGenerator.generate()

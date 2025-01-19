@@ -93,8 +93,8 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
         "linkGroup" to listOf("title", "to"),
         "panel" to listOf(),
         "spacer" to listOf(),
-        "text" to listOf()
-//        "form" to listOf("action", "method", "enctype", "target"),
+        "text" to listOf(),
+        "form" to listOf("title", "data"),
 //        "datatable" to listOf("title", "entity"),
 //        "image" to listOf("src", "alt", "width", "height"),
 //        "input" to listOf("name", "type", "placeholder", "value", "required", "readonly", "disabled", "autocomplete", "autofocus", "list", "maxlength", "minlength", "pattern", "size", "step", "min", "max"),

@@ -28,14 +28,18 @@ class BootstrapFrameworkBuilder: WebFrameworkBuilder() {
         return PluginDef("framework.web.bootstrap", PluginType.Framework)
     }
 
-    override fun buildView(viewModel: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
-        super.buildView(viewModel, igm, templateContext)
+    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
+        super.buildView(view, igm, templateContext)
 
-        val view = igm.getView(viewModel.qid.toString())
-        view.imports.addAll(listOf(
+        val igmView = igm.getView(view.qid.toString())
+        igmView.imports.addAll(listOf(
             "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
             "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css",
-            "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js",
+            // for date control
+//            "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css",
+//            "https://code.jquery.com/jquery-3.6.0.min.js",
+//            "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"
         ))
     }
 
