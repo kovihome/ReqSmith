@@ -19,6 +19,7 @@
 package dev.reqsmith.composer.common.plugin
 
 import dev.reqsmith.composer.common.Log
+import dev.reqsmith.composer.common.configuration.ConfigManager
 import java.util.*
 
 object PluginManager {
@@ -28,6 +29,16 @@ object PluginManager {
         PluginType.Framework to HashMap(),
     )
 
+    /**
+     * Loads all available plugins using the `ServiceLoader` mechanism and registers them.
+     *
+     * This function iterates through all discovered implementations of the `Plugin` interface,
+     * and registers the plugin.
+     *
+     * It uses the following steps:
+     * 1. Loads all implementations of `Plugin` using `ServiceLoader`.
+     * 2. For each plugin, retrieves its definition and registers it using its type and name.
+     */
     fun loadAll() {
         val plugins = ServiceLoader.load(Plugin::class.java)
         Log.debug("Plugins loaded:")
@@ -41,12 +52,67 @@ object PluginManager {
         plugins[definition.type]?.set(definition.name, it!!)
     }
 
+    /**
+     * Retrieves a plugin of the specified type and name, casting it to the expected type.
+     *
+     * @param T The expected type of the plugin to be retrieved.
+     * @param type The type of the plugin, as defined in the PluginType enum.
+     * @param name The name of the plugin to retrieve.
+     * @return The plugin of the specified type and name, cast to the expected type.
+     * @throws Exception If no plugin is found for the given type and name, or if the plugin cannot be cast to the expected type.
+     */
     inline fun <reified T> get(type: PluginType, name: String): T {
         val plugin = plugins[type]?.get(name)
         if (plugin != null && plugin is T) {
             return plugin
         } else {
             throw Exception("No appropriate plugin has found for type ${type.name} and $name")
+        }
+    }
+
+    /**
+     * Retrieves the most appropriate plugin instance based on the provided criteria.
+     *
+     * The method first checks for a user-declared plugin. If no such plugin is provided or found,
+     * it falls back to searching for a default language-specific plugin, a default plugin, and
+     * finally a base plugin matching the given type and name.
+     *
+     * @param language The target language used to search for a language-specific plugin.
+     * @param type The type of the plugin, determined by the PluginType enumeration.
+     * @param name The base name of the plugin to search for.
+     * @param userPluginName Optional user-specified plugin name to prioritize during the search.
+     * @return The best matching plugin instance of type T.
+     * @throws Exception If no appropriate plugin is found for the specified type and name.
+     */
+    inline fun <reified T> getBest(language: String, type: PluginType, name: String, userPluginName: String = ""): T {
+        var plugin: T? = null
+        if (userPluginName.isNotEmpty()) {
+            // search for user declared plugin
+            plugin = plugins[type]?.get(userPluginName) as? T
+        }
+        if (plugin == null) {
+            // search for default language specific plugin
+            val pluginName = "${language}.${name}"
+            val defaultPluginName = ConfigManager.defaults.getOrDefault(pluginName, "")
+            if (defaultPluginName.isNotEmpty()) {
+                plugin = plugins[type]?.get("$name.$defaultPluginName") as? T
+            }
+        }
+        if (plugin == null) {
+            // search for default plugin
+            val defaultPluginName = ConfigManager.defaults.getOrDefault(name, "")
+            if (defaultPluginName.isNotEmpty()) {
+                plugin = plugins[type]?.get("$name.$defaultPluginName") as? T
+            }
+        }
+        if (plugin == null) {
+            // search for base plugin
+            plugin = plugins[type]?.get(name) as? T
+        }
+        if (plugin == null) {
+            throw Exception("No appropriate plugin has found for type ${type.name} and $name")
+        } else {
+            return plugin
         }
     }
 }

@@ -24,21 +24,18 @@ import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
-import dev.reqsmith.model.igm.IGMAction
-import dev.reqsmith.model.igm.IGMClass
-import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilder
 import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.enumeration.StandardTypes
+import dev.reqsmith.model.igm.IGMAction
+import dev.reqsmith.model.igm.IGMClass
+import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.*
-import kotlin.reflect.full.isSubclassOf
 
 class GeneratorModelBuilder(private val projectModel: ProjectModel, private val resourcesFolderName: String, private val project: Project) {
     private val appRootPackage = projectModel.source.applications[0].qid?.domain ?: "com.sample.app"
     var viewGeneratorName = ""
-    var suggestedWebFolderName = ""
     var codeBuilder: FrameworkBuilder? = null
-    var viewBuilder: FrameworkBuilder? = null
 
     private fun determineBuilders() {
         // determine code generator
@@ -48,43 +45,9 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
 
         // determine view builder
         val viewLang = codeBuilder!!.getViewLanguage()
-        val templGen = searchViewFeatureGenerator(projectModel.source)
-        var generatorId = ConfigManager.defaults[templGen]
-        var plugin: String? = null
-        if (generatorId == null) {
-            plugin = ConfigManager.defaults[viewLang]
-            generatorId = if (plugin != null) "$generatorName.$plugin" else null
-        }
-        viewBuilder = if (generatorId != null) {
-            PluginManager.get<FrameworkBuilder>(PluginType.Framework, generatorId)
-        } else {
-            codeBuilder
-        }
 
         //
-        if (plugin != null) {
-            viewGeneratorName = "$viewLang.$plugin"
-            suggestedWebFolderName = codeBuilder!!.getViewFolder()
-        } else if (generatorId != null) {
-            suggestedWebFolderName = viewBuilder!!.getViewFolder()
-        }
-    }
-
-    private fun searchViewFeatureGenerator(reqMSource: ReqMSource): String? {
-        val generators: MutableList<String> = ArrayList()
-        reqMSource.views.forEach { view ->
-            view.definition.featureRefs.filter { it.qid.toString() == "Template" }.forEach { fr ->
-                val feature = reqMSource.features.find { it.qid.toString() == fr.qid.toString() }
-                feature?.let {
-                    feature.definition.properties.forEach {
-                        if (it.key == "generator") {
-                            generators.add(it.value!!.removeSurrounding("'").removeSurrounding("\""))
-                        }
-                    }
-                }
-            }
-        }
-        return if (generators.isNotEmpty()) generators[0] else null
+        viewGeneratorName = "$viewLang.${ConfigManager.defaults[viewLang]}"
     }
 
     fun build() {
@@ -114,14 +77,11 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
         projectModel.source.actions.forEach { createAction(it, projectModel.igm, templateContext) }
 
         // create view descriptors
-        projectModel.source.views.forEach { createView(it, projectModel.igm, templateContext, viewBuilder!!) }
+        projectModel.source.views.forEach { createView(it, projectModel.igm, templateContext, codeBuilder!!) }
 
         // manage additional resources
         val reqmResourceFolder = "${project.projectFolder}/${project.buildSystem.resourceFolder}"
-        if (!viewBuilder!!::class.isSubclassOf(codeBuilder!!::class)) {
-            codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel)
-        }
-        viewBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel)
+        codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel)
 
     }
 
@@ -150,17 +110,17 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
         }
 
         // class members
-        ent.definition.properties.forEach {
-            val member = c.getMember(it.key!!)
-            member.type = it.type!!
+        ent.definition.properties.forEach { property ->
+            val member = c.getMember(property.key!!)
+            member.type = property.type!!
             projectModel.source.classes.find { it.enumeration && it.qid?.id == member.type }?.let { cl ->
                 member.enumerationType = true
                 val def = cl.definition.properties.getOrNull(0)
                 member.value = def?.key
             }
-            member.listOf = it.listOf
-            member.optionality = it.optionality ?: ""
-            if (!member.enumerationType) member.value = it.value
+            member.listOf = property.listOf
+            member.optionality = property.optionality ?: ""
+            if (!member.enumerationType) member.value = property.value
         }
 
         // TODO v0.3: add actions as class methods
@@ -177,6 +137,7 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
                 var generatorId = feature.definition.properties.find { it.key == "generator" }?.value?.removeSurrounding("'")?.removeSurrounding("\"")
                 if (generatorId != null) {
                     generatorId = ConfigManager.defaults[generatorId] ?: generatorId
+                    Log.debug("feature (framework) plugin $generatorId is using in generator.GeneratorModelBuilder.createEntity().")
                     val featurePlugin = PluginManager.get<FrameworkBuilder>(PluginType.Framework, generatorId)
                     featurePlugin.applyFeatureOnEntity(ent, igm, feature)
                 } else {
@@ -250,6 +211,7 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
     private fun determineFrameworkBuilder(generatorName: String): FrameworkBuilder {
         var impl = ConfigManager.defaults[generatorName]
         impl = if (!impl.isNullOrBlank()) "$generatorName.$impl" else generatorName
+        Log.debug("framework plugin $impl is using in generator.GeneratorModelBuilder.determineFrameworkBuilder().")
         return PluginManager.get<FrameworkBuilder>(PluginType.Framework, impl)
     }
 

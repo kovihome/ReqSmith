@@ -23,6 +23,10 @@ import dev.reqsmith.model.enumeration.StandardTypes
 
 open class IGMAction(val actionId: String) {
 
+    class IGMReturnType(val type: String, val listOf: Boolean) {
+        fun print(): String = "${if (listOf) "listOf" else ""}$type"
+    }
+
     class IGMAnnotation(val annotationName: String) {
         var parameters : MutableList<IGMAnnotationParam> = ArrayList()
 
@@ -88,13 +92,13 @@ open class IGMAction(val actionId: String) {
 
     val statements : MutableList<IGMActionStmt> = ArrayList()
     val parameters: MutableList<IGMActionParam> = ArrayList()
-    var returnType: String = ""
+    var returnType: IGMReturnType? = null
     var isMain: Boolean = false
 
     fun print(tabsize: Int): String {
         val tab = " ".repeat(tabsize)
         val mainfun = if (isMain) "(main)" else ""
-        val rType = if (returnType.isNotBlank()) "-> $returnType " else ""
+        val rType = if (returnType != null) "-> ${returnType!!.print()} " else ""
         val sb = StringBuilder("${tab}IGMAction $actionId (${parameters.joinToString(",")}) $rType$mainfun\n")
         statements.forEach { sb.append(it.print(tabsize+4)) }
         return sb.toString()
@@ -103,9 +107,17 @@ open class IGMAction(val actionId: String) {
     fun addStmt(actionName: String, vararg param: String) {
         statements.add(IGMActionStmt(actionName).apply {
             param.forEach {
-                parameters.add(IGMStmtParam(StandardTypes.string.name, it))
+                if (it.startsWith('\'') and it.endsWith('\'')) {
+                    parameters.add(IGMStmtParam(StandardTypes.stringLiteral.name, it.removeSurrounding("'")))
+                } else {
+                    parameters.add(IGMStmtParam(StandardTypes.string.name, it))
+                }
             }
         })
+    }
+
+    fun returns(type: String, listOf: Boolean = false) {
+        returnType = IGMReturnType(type, listOf)
     }
 
 }

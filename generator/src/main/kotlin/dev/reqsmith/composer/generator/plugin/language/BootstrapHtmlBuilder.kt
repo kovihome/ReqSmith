@@ -33,6 +33,20 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         return PluginDef("html.bootstrap", PluginType.Language)
     }
 
+    override fun createView(view: IGMView): String {
+        view.imports.addAll(listOf(
+            "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
+            "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css",
+            "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js",
+            // for date control
+//            "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css",
+//            "https://code.jquery.com/jquery-3.6.0.min.js",
+//            "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"
+        ))
+
+        return super.createView(view)
+    }
+
     override fun createHeader(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         return createHTML(true).header {
@@ -42,6 +56,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 if (attr.contains("logo")) {
                     img { src = "$artPathPrefix/${attr["logo"]}"; alt = "logo"; classes = setOf("me-3"); style = "height: 128px;"
                         viewArts.add(attr["logo"] ?: "")
+                        igm.addResource("static/$artPathPrefix", "$artPathPrefix/${attr["logo"]}") // TODO static
                     }
                 }
                 if (attr.contains("title")) {
@@ -111,7 +126,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     }
 
     override fun createSpacer(node: IGMView.IGMNode): String {
-        val default = node.attributes.find { it.first == "default" }?.second ?: "line"
+        val default = node.attributes.find { it.first == "default" }?.second ?: ""
         return when (default) {
             "line" -> createHTML(true).hr {
             }
@@ -261,6 +276,56 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 }
                 button { classes = setOf("btn", "btn-primary"); type = ButtonType.submit; text("Submit") }
                 button { classes = setOf("btn", "btn-outline-secondary", "ms-3"); type = ButtonType.reset; text("Reset") }
+            }
+        }
+    }
+
+    override fun createDatatable(node: IGMView.IGMNode): String {
+        // get node attributes
+        val attr = node.attributes.toMap()
+        val title = attr["title"] ?: "Data Table"
+        val entityName = attr["data"] ?: ""
+        val createForm = attr["createForm"] ?: "${entityName}Form.html"
+        // collect entity members
+        val entity = getEntity(entityName)
+        return createHTML(true).div {
+            classes = setOf("container-sm", "align-items-center")
+            div {
+                classes = setOf("row", "mb-2")
+                div { classes = setOf("col-md-6", "h4"); text(title) }
+                div { classes = setOf("col-md-6", "align-items-end", "d-flex", "flex-row-reverse")
+                    a { href = checkLink(createForm); classes = setOf("btn", "btn-primary"); text("Add $entityName") }
+                }
+            }
+            table {
+                classes = setOf("table", "table-hover")
+                thead {
+                    tr {
+                        entity.members.filter { it.key != "id" }.forEach { member ->
+                            th {
+                                scope = ThScope.col
+                                text("${member.key.replaceFirstChar { it.uppercase() }}:")
+                            }
+                        }
+                        th {
+                            scope = ThScope.col
+                            text("Actions")
+                        }
+                    }
+                }
+                tbody {
+                    tr {
+                        entity.members.filter { it.key != "id" }.forEach { member ->
+                            td {
+                                text("$entityName.${member.key}")
+                            }
+                        }
+                        td {
+                            a { href = "/data/${entityName.lowercase()}/modify?id=1"; classes = setOf("btn", "btn-primary"); text("Modify") }
+                            a { href = "/data/${entityName.lowercase()}/delete?id=1"; classes = setOf("btn", "btn-outline-danger", "ms-1"); text("Delete") }
+                        }
+                    }
+                }
             }
         }
     }

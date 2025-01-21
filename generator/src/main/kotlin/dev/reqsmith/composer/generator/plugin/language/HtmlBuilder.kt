@@ -80,6 +80,7 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
             "linkButton" -> createLinkButton(node)
             "spacer" -> createSpacer(node)
             "form" -> createForm(node)
+            "datatable" -> createDatatable(node)
             else -> {
                 if (node.children.isNotEmpty()) {
                     createHTML().div {
@@ -92,6 +93,12 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
                     createHTML(true).p { text("Unknown node: ${node.name}") }
                 }
             }
+        }
+    }
+
+    open fun createDatatable(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
         }
     }
 

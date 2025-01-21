@@ -18,19 +18,21 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
+import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
+import dev.reqsmith.composer.generator.TemplateContextCollector
 import dev.reqsmith.composer.parser.enumeration.Optionality
 import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMAction
+import dev.reqsmith.model.igm.IGMClass
+import dev.reqsmith.model.igm.IGMView
 import dev.reqsmith.model.igm.InternalGeneratorModel
-import dev.reqsmith.model.reqm.Application
-import dev.reqsmith.model.reqm.Entity
-import dev.reqsmith.model.reqm.Feature
-import dev.reqsmith.model.reqm.Property
+import dev.reqsmith.model.reqm.*
 import java.io.File
 import java.util.*
 
@@ -43,10 +45,11 @@ private const val ID_TYPE = "Long"
  *
  *   frameworks.web
  *   feature.persistence
+ *   feature.template
  */
 open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     private var applicationName : String? = null
-    val applicationProperties = Properties()
+    private val applicationProperties = Properties()
 
     private val springPlugins = mutableListOf(
         "kotlin(\"plugin.spring\"):2.0.20", // TODO ez függ a nyelvtől
@@ -56,16 +59,84 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         "org.springframework.boot:spring-boot-starter-web",
         "com.fasterxml.jackson.module:jackson-module-kotlin",
         "org.jetbrains.kotlin:kotlin-reflect")
-    private val springDataPlugins = mutableListOf(
+    private val springDataPlugins = listOf(
         "kotlin(\"plugin.jpa\"):2.0.20")
-    private val springDataDependencies = mutableListOf(
+    private val springDataDependencies = listOf(
         "org.springframework.boot:spring-boot-starter-data-jpa") // Spring Data JPA
+    private val thymeleafSpringDependencies = listOf(
+        "org.springframework.boot:spring-boot-starter-thymeleaf")
+
+    private var hasTemplateViews = false
 
     override fun definition(): PluginDef {
         return PluginDef("framework.web.spring", PluginType.Framework)
     }
 
-    override fun getViewFolder(): String  = "static"
+    override fun getViewFolder(): String  = if (hasTemplateViews) "template" else "static"
+
+    override fun getArtFolder(): String = "static"
+
+    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
+        super.buildView(view, igm, templateContext)
+
+        // check view is it is a template type (
+        val isTemplate = view.definition.featureRefs.any { it.qid.toString() == "Template" }
+        val igmView = igm.views.getOrDefault(view.qid.toString(), null)
+        val dataAttributes : MutableList<Pair<String, String>> = mutableListOf()
+        if (igmView != null) {
+            findDataAttributeInNode(igmView.layout, dataAttributes)
+        }
+
+        if (isTemplate || dataAttributes.isNotEmpty()) {
+            hasTemplateViews = true
+            // create a controller class for this view
+            val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else /* TODO: application domain */ ConfigManager.defaults["domainName"]
+            val className = view.qid!!.id!!
+            val serviceClasses = dataAttributes.map { "$domainName.service.${it.second}Service" }
+            getSpringController("$domainName.controller.${className}Controller", igm, serviceClasses).apply {
+//        igm.getClass("$domainName.controller.${className}Controller").apply {
+//            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Controller")))
+
+                getAction(className.lowercase()).apply {
+                    this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.GetMapping")).apply {
+                        parameters.add(IGMAction.IGMAnnotationParam("", "/${className}.${getViewLanguage()}"))
+                    })
+                    parameters.add(IGMAction.IGMActionParam("model", addImport("org.springframework.ui.Model")))
+                    returns(StandardTypes.string.name)
+
+                    // read data
+                    dataAttributes.forEach { (nodeType, dataClass) ->
+                        var dataVar = dataClass.lowercase()
+                        if (nodeType == "datatable") {
+                            dataVar = "${dataVar}s"
+                            addStmt("set", dataVar, "$domainName.service.${dataClass}Service.listAll")
+                        } else {
+                            addStmt("set", dataVar, "$domainName.service.${dataClass}Service.get", "1")  // TODO get id parameter
+                        }
+                        addStmt("call", "model.addAttribute", "'$dataVar'", dataVar)
+                    }
+
+                    val viewTemplateContext = TemplateContextCollector().getItemTemplateContext(view.qid, view.definition.properties, "view").apply {
+                        putAll(templateContext)
+                    }
+                    viewTemplateContext.forEach {
+                        addStmt("call", "model.addAttribute", "'${it.key}'", "'${it.value}'")
+                    }
+                    addStmt("return", "'$className'")
+                }
+            }
+
+        }
+
+    }
+
+    private fun findDataAttributeInNode(node: IGMView.IGMNode, dataAttributes: MutableList<Pair<String, String>>) {
+        val dataAttr = node.attributes.find { it.first == "data" }
+        if (dataAttr != null) {
+            dataAttributes.add(Pair(node.name, dataAttr.second))
+        }
+        node.children.forEach { findDataAttributeInNode(it, dataAttributes) }
+    }
 
     override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
         super.buildApplication(app, igm)
@@ -87,10 +158,17 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         super.collectBuildScriptElement(buildScriptUpdates)
         buildScriptUpdates["plugins"]?.addAll(springPlugins)
         buildScriptUpdates["dependencies"]?.addAll(springDependencies)
+        if (hasTemplateViews) {
+            buildScriptUpdates["dependencies"]?.addAll(thymeleafSpringDependencies)
+        }
     }
 
     open fun addSpringApplicationProperties() {
         applicationProperties.setProperty("spring.application.name", "$applicationName.")
+        if (hasTemplateViews) {
+            applicationProperties.setProperty("spring.thymeleaf.prefix", "classpath:/${getViewFolder()}/")
+            applicationProperties.setProperty("spring.thymeleaf.suffix", ".${getViewLanguage()}")
+        }
     }
 
     override fun processResources(
@@ -122,6 +200,32 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             val context = mapOf( "WelcomePage" to viewName)
             val indexContent = Template().translateFile(context, "templates/index.html.st")
             projectModel.resources.add(Pair("<save>$indexContent", "$buildResourcesFolderName/${getViewFolder()}/index.html"))
+        }
+
+        // file template files
+        var hasTemplateFiles = false
+        projectModel.source.views.forEach { view ->
+            view.definition.featureRefs.find { it.qid.toString() == "Template" }?.let { fr ->
+                hasTemplateFiles = true
+                fr.properties.find { it.key == "file" }?.value?.let { fileName ->
+                    val fp = fileName.removeSurrounding("'").removeSurrounding("\"")
+                    val fn = fp.substringAfterLast('/').substringAfterLast("\\")
+                    val destFileName = "$buildResourcesFolderName/${getViewFolder()}/$fn"
+                    projectModel.resources.add(Pair("$reqmResourcesFolderName/$fp", destFileName))
+                }
+            }
+        }
+
+        // copy arts
+        if (hasTemplateFiles) {
+            val copyFrom = "$reqmResourcesFolderName/art"
+            val copyTo =
+                "$buildResourcesFolderName/${getArtFolder()}/art"   // TODO: get art folder name from project
+            Project.ensureFolderExists(copyTo, null)
+
+            File(copyFrom).listFiles()?.filter { it.isFile }?.forEach { file ->
+                projectModel.resources.add(Pair("$copyFrom/${file.name}", "$copyTo/${file.name}"))
+            }
         }
 
     }
@@ -157,6 +261,8 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     }
 
     private fun applySpringDataPersistenceOnEntity(ent: Entity, igm: InternalGeneratorModel, feature: Feature) {
+        val entityClassName = ent.qid!!.id!!
+
         // get IGM class
         val igmClass = igm.getClass(ent.qid.toString())
 
@@ -210,26 +316,39 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Service")))
             ctorParams.add(IGMAction.IGMActionParam(repo, addImport(repoClassName)))
 
+            addImport(repoClassName)
+
             // create action for create entity
             getAction("create").apply {
                 parameters.add(IGMAction.IGMActionParam("data", addImport(igmClass.id)))
-
-                addImport(repoClassName)
-                statements.add(IGMAction.IGMActionStmt("call").apply {
-                    this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.string.name, "${repoClassName}.save"))
-                    this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.string.name, "data"))
-                })
-
+                addStmt("call", "${repoClassName}.save", "data")
             }
+
+            getAction("get").apply {
+                parameters.add(IGMAction.IGMActionParam("id", ID_TYPE))
+                returns(entityClassName)
+                val varname = entityClassName.replaceFirstChar { it.lowercase() }
+                addStmt("set", varname, "${repoClassName}.findById", "id")
+                addStmt("return", "$varname.orElse($entityClassName())")
+            }
+
+            getAction("listAll").apply {
+                returns(entityClassName, true)
+                val varname = "${entityClassName.replaceFirstChar { it.lowercase() }}s"
+                addStmt("set", varname, "${repoClassName}.findAll")
+                addStmt("return", varname)
+            }
+
         }
 
         // create controller class for this entity
         // controller name: <base-package>/controller/<entity>Controller
         val controllerClassName = "${igmClass.id.replace("entities", "controller")}Controller"
-        val service = serviceClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }
-        igm.getClass(controllerClassName).apply {
-            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Controller")))
-            ctorParams.add(IGMAction.IGMActionParam(service, addImport(serviceClassName)))
+        getSpringController(controllerClassName, igm, listOf(serviceClassName)).apply {
+//        val service = serviceClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }
+//        igm.getClass(controllerClassName).apply {
+//            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Controller")))
+//            ctorParams.add(IGMAction.IGMActionParam(service, addImport(serviceClassName)))
 
             // create action for create entity
             val actionUrl = "/data/${igmClass.id.substringAfterLast('.').lowercase()}/create"
@@ -243,7 +362,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                 })
                 parameters.add(IGMAction.IGMActionParam("model", addImport("org.springframework.ui.Model")))
 
-                returnType = StandardTypes.string.name
+                returns(StandardTypes.string.name)
 
                 statements.add(IGMAction.IGMActionStmt("print").apply {
                     this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.stringLiteral.name, "controller $actionUrl invoked"))
@@ -253,6 +372,17 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                     this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.stringLiteral.name, "redirect:/"))
                 })
 
+            }
+        }
+
+    }
+
+    private fun getSpringController(controllerClassName: String, igm: InternalGeneratorModel, serviceClassNames: List<String> = listOf()): IGMClass {
+        return igm.getClass(controllerClassName).apply {
+            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Controller")))
+            serviceClassNames.forEach { serviceClassName ->
+                val service = serviceClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }
+                ctorParams.add(IGMAction.IGMActionParam(service, addImport(serviceClassName)))
             }
         }
 

@@ -31,7 +31,8 @@ class ViewGenerator(
     private val langBuilder: LanguageBuilder,
     private val project: Project,
     private val projectModel: ProjectModel,
-    private val viewResourceFolderName: String
+    private val viewResourceFolderName: String,
+    private val artResourceFolderName: String
 ) {
 
     private fun String.toPath():String = this.replace('.', '/')
@@ -67,7 +68,7 @@ class ViewGenerator(
 
     fun copyArts(): Boolean {
         val copyFrom = "${project.projectFolder}/${project.artFolder}"
-        val copyTo = "$viewResourceFolderName/art"
+        val copyTo = "$artResourceFolderName/art"
         Project.ensureFolderExists(copyTo, null)
 
         langBuilder.viewArts.forEach {

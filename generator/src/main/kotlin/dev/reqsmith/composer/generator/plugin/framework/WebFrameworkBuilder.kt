@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
+import dev.reqsmith.composer.common.exceptions.IGMGenerationException
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
@@ -37,10 +38,21 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
     override fun getViewFolder(): String  = "html"
 
+    override fun getArtFolder() : String = "html"
+
     override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
-        val igmView = igm.getView(view.qid.toString())
+        val template = view.definition.featureRefs.find { it.qid.toString() == "Template"}
         val layout = view.definition.properties.find { it.key == "layout" }
-        igmView.layout = layout?.let { propertyToNode(it, templateContext) }!!
+        if (template != null && layout != null) {
+            throw IGMGenerationException("Both layout and @Template cannot be defined for a view.")
+        }
+
+        if (layout != null) {
+            val igmView = igm.getView(view.qid.toString())
+            igmView.layout = propertyToNode(layout, templateContext)
+        } else if (template != null) {
+            igm.addResource("template", template.properties.find { it.key == "file" }?.value!!) // TODO: get template folder name
+        }
     }
 
     private fun propertyToNode(prop: Property, templateContext: Map<String, String>): IGMView.IGMNode {
@@ -95,7 +107,7 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
         "spacer" to listOf(),
         "text" to listOf(),
         "form" to listOf("title", "data"),
-//        "datatable" to listOf("title", "entity"),
+        "datatable" to listOf("title", "data", "createForm"),
 //        "image" to listOf("src", "alt", "width", "height"),
 //        "input" to listOf("name", "type", "placeholder", "value", "required", "readonly", "disabled", "autocomplete", "autofocus", "list", "maxlength", "minlength", "pattern", "size", "step", "min", "max"),
 //        "label" to listOf("for"),

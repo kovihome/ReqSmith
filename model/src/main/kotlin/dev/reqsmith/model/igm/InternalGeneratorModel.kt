@@ -21,9 +21,10 @@ package dev.reqsmith.model.igm
 class InternalGeneratorModel {
     // model containers
     var rootPackage: String = ""
-    val classes: MutableMap<String, IGMClass> = HashMap()
-    val enumerations: MutableMap<String, IGMEnumeration> = HashMap()
-    val views: MutableMap<String, IGMView> = HashMap()
+    val classes: MutableMap<String, IGMClass> = mutableMapOf()
+    val enumerations: MutableMap<String, IGMEnumeration> = mutableMapOf()
+    val views: MutableMap<String, IGMView> = mutableMapOf()
+    private val resources: MutableList<IGMResource> = mutableListOf()
 
     // container functions
     fun getClass(id: String): IGMClass {
@@ -43,7 +44,12 @@ class InternalGeneratorModel {
         classes.forEach { sb.append(it.value.print()).append("\n") }
         enumerations.forEach { sb.append(it.value.print()).append("\n") }
         views.forEach { sb.append(it.value.print()).append("\n") }
+        resources.forEach { sb.append(it.print()).append("\n") }
         return sb.toString()
+    }
+
+    fun addResource(resourceDestinationFolder: String, resourceFileName: String) {
+        resources.add(IGMResource(resourceDestinationFolder, resourceFileName))
     }
 
 }

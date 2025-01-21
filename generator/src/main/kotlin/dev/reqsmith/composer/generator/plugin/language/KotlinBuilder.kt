@@ -31,6 +31,8 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         private val variables : MutableMap<String, String> = HashMap()
         val imports : MutableList<String> = ArrayList()
 
+        fun exist(variable: String) = variables.containsKey(variable)
+
         fun setParameters(parameters: List<IGMAction.IGMActionParam>) {
             parameters.forEach {
                 if (it.type[0].isUpperCase() && !variables.containsKey(it.name)) variables[it.name] = it.type
@@ -105,24 +107,26 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         // start with annotations
         addAnnotations(sb, action.annotations, indent)
         val pa = parameterList(action.parameters)
-        val returns = if (action.returnType.isNotBlank()) ": ${typeMapper(action.returnType)} " else ""
+        val returns = if (action.returnType != null) {
+            if (action.returnType!!.listOf) {
+                ": List<${typeMapper(action.returnType!!.type)}> "
+            } else {
+                ": ${typeMapper(action.returnType!!.type)} "
+            }
+        } else ""
         sb.append(pre).append("fun ${action.actionId}($pa) $returns{\n")
         val pre2 = prefix(indent+tabsize)
         action.statements.forEach { st ->
             sb.append(pre2)
             when (st.actionName) {
                 "call" -> {
-                    val calledFunction = st.parameters[0].value
-                    val params = st.parameters.subList(1, st.parameters.size).toList()
-                    val classs = calledFunction.substringBeforeLast('.', "")
-                    val func = calledFunction.substringAfterLast('.')
-                    if (classs.isNotEmpty()) {
-                        // check class, if exists in local vars
-                        val instantiateStmt = localVars.instantiateClass(classs)
-                        // create local var for this class
-                        sb.append(instantiateStmt.replace("\n", "\n$pre2"))
-                    }
-                    sb.append("$func(${params.joinToString(",") { p -> p.format() }})")
+                    writeCall(sb, st.parameters, localVars, pre2)
+                }
+                "set" -> {
+                    val varName = st.parameters[0].value
+                    if (!localVars.exist(varName)) sb.append("val ")
+                    sb.append("$varName = ")
+                    writeCall(sb, st.parameters.subList(1, st.parameters.size), localVars, pre2)
                 }
                 "print" -> {
                     sb.append("println (${st.parameters.joinToString(",") { p -> p.format() }})")
@@ -138,6 +142,25 @@ class KotlinBuilder : LanguageBuilder, Plugin {
             sb.append("\n")
         }
         sb.append(pre).append("}\n\n")
+    }
+
+    private fun writeCall(
+        sb: StringBuilder,
+        parameters: List<IGMAction.IGMStmtParam>,
+        localVars: LocalVariables,
+        pre2: String
+    ) {
+        val calledFunction = parameters[0].value
+        val params = parameters.subList(1, parameters.size).toList()
+        val classs = calledFunction.substringBeforeLast('.', "")
+        val func = calledFunction.substringAfterLast('.')
+        if (classs.isNotEmpty()) {
+            // check class, if exists in local vars
+            val instantiateStmt = localVars.instantiateClass(classs)
+            // create local var for this class
+            sb.append(instantiateStmt.replace("\n", "\n$pre2"))
+        }
+        sb.append("$func(${params.joinToString(",") { p -> p.format() }})")
     }
 
     private fun parameterList(parameters: List<IGMAction.IGMActionParam>, prefix: String? = null): String {

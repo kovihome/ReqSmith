@@ -31,7 +31,6 @@ import dev.reqsmith.model.ProjectModel
 import java.io.File
 import java.io.FileWriter
 import java.util.*
-import kotlin.reflect.full.isSubclassOf
 
 private const val RESOURCE_SAVING_PREFIX = "<save>"
 
@@ -47,6 +46,7 @@ class Generator(
 
     fun generate(): Boolean {
         // create internal generator model
+        Log.debug("language plugin $lang is using in app.Generator.constructor().")
         Log.title("Build Internal Generator Model")
         Log.info("Generated source path: $srcPath")
         val resourcesFolderName = "${project.buildFolder}/${project.buildSystem.resourceFolder}"
@@ -70,11 +70,13 @@ class Generator(
         // generate views
         var successView = true
         if (projectModel.igm.views.isNotEmpty()) {
+            Log.debug("view language plugin ${gmb.viewGeneratorName} is using in app.Generator.generate().")
             val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, gmb.viewGeneratorName).apply {
                 igm = projectModel.igm
             }
-            val viewResourceFolderName = "$resourcesFolderName/${gmb.suggestedWebFolderName}"
-            val viewGenerator = ViewGenerator(viewLangBuilder, project, projectModel, viewResourceFolderName)
+            val viewResourceFolderName = "$resourcesFolderName/${gmb.codeBuilder!!.getViewFolder()}"
+            val artResourceFolderName = "$resourcesFolderName/${gmb.codeBuilder!!.getArtFolder()}"
+            val viewGenerator = ViewGenerator(viewLangBuilder, project, projectModel, viewResourceFolderName, artResourceFolderName)
             successView = viewGenerator.generate()
 
             viewGenerator.copyArts()
@@ -91,10 +93,10 @@ class Generator(
             "dependencies" to mutableListOf()
         )
         langBuilder.collectBuildScriptElement(buildScriptUpdates)
-        if (!gmb.viewBuilder!!::class.isSubclassOf(gmb.codeBuilder!!::class)) {
+//        if (!gmb.viewBuilder!!::class.isSubclassOf(gmb.codeBuilder!!::class)) {
             gmb.codeBuilder?.collectBuildScriptElement(buildScriptUpdates)
-        }
-        gmb.viewBuilder?.collectBuildScriptElement(buildScriptUpdates)
+//        }
+//        gmb.viewBuilder?.collectBuildScriptElement(buildScriptUpdates)
 
         generateBuildScripts(buildScriptUpdates)
 

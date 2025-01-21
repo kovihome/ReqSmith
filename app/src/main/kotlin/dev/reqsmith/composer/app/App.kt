@@ -100,6 +100,7 @@ class App(private val args: Array<String>) {
 
         // select build system
         val buildSystem = try {
+            Log.debug("build system plugin $buildSystemName is using in app.App.compose().")
             PluginManager.get<BuildSystem>(PluginType.BuildSystem, buildSystemName)
         } catch (e: Exception) {
             Log.error("build system $buildSystemName is not supported.")

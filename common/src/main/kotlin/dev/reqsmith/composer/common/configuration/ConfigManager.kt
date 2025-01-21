@@ -34,7 +34,6 @@ import kotlin.io.path.Path
  * Configuration manager singleton
  */
 object ConfigManager {
-//    var defaults = Defaults
     var defaults = mapOf(
         "domainName" to "dev.reqsmith.sample",
         "applicationType" to "applications.CommandLineApplication",
@@ -42,7 +41,7 @@ object ConfigManager {
 
         "framework.base" to "",
         "framework.web" to "spring",
-        "feature.template" to "framework.web.spring.thymeleaf",
+        "feature.template" to "framework.web.spring",
         "feature.persistence" to "framework.web.spring",
         "language" to "kotlin",
         "html" to "bootstrap",

@@ -54,6 +54,12 @@ interface FrameworkBuilder {
     fun getViewFolder(): String
 
     /**
+     * Retrieves the folder name containing artistic or visual resources (e.g., images, styles, etc.)
+     * @return The folder name, relative to the resources directory.
+     */
+    fun getArtFolder(): String
+
+    /**
      * Returns build script elements (plugins, dependecies) belongs to this framework
      * @param buildScriptUpdates The elements of the build script
      */
