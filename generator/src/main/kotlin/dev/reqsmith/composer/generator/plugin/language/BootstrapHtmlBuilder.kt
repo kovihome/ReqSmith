@@ -196,6 +196,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun createForm(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         val entityName = attr["data"] ?: ""
+        val entityVar = entityName.replaceFirstChar { it.lowercase() }
         val title = attr["title"] ?: "Add new $entityName"
 
         // collect entity members
@@ -207,8 +208,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
             h5 { classes = setOf("mb-3"); text(title) }
             form {
 //              classes = setOf("row", "g-3")
-                action = "/data/${entityName.lowercase()}/create"
+                action = "/data/${entityName.lowercase()}/persist"  // TODO: a konvenció szövegeket külön file-ba kell tenni, most a springfw-ben vannak
                 method = FormMethod.post
+                attributes["th:object"] = "\${${entityVar}}"
 
                 entity.members.filter { it.key != "id" }.forEach { member ->
 
@@ -237,6 +239,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                 div {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     input { id = memberName; type = InputType.text; name = memberName; classes = setOf("form-control")
+                                        attributes["th:field"] = "*{${memberName}}"
 //                                        value = memberType
                                     }
                                 }
@@ -246,6 +249,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     select {
                                         id = memberName; name = memberName; classes = setOf("form-select")
+                                        attributes["th:field"] = "*{${memberName}}"
                                         option { value = ""; selected = true; text("Select...")  }
                                         enumList.forEach {
                                             option { value = it; text(it) }
@@ -258,13 +262,17 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     input {
                                         id = memberName; type = InputType.checkBox; name = memberName; classes = setOf("form-check-input")
+                                        attributes["th:field"] = "*{${memberName}}"
                                     }
                                 }
                             }
                             "date" -> {
                                 div {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
-                                    input { id = memberName; type = InputType.date; name = memberName; classes = setOf("form-control") }
+                                    input {
+                                        id = memberName; type = InputType.date; name = memberName; classes = setOf("form-control")
+                                        attributes["th:field"] = "*{${memberName}}"
+                                    }
                                 }
                             }
                             else -> {
@@ -274,6 +282,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     }
 
                 }
+                input { id = "id"; type = InputType.hidden; name = "id"; attributes["th:value"] = "*{id}" }
                 button { classes = setOf("btn", "btn-primary"); type = ButtonType.submit; text("Submit") }
                 button { classes = setOf("btn", "btn-outline-secondary", "ms-3"); type = ButtonType.reset; text("Reset") }
             }
@@ -294,7 +303,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 classes = setOf("row", "mb-2")
                 div { classes = setOf("col-md-6", "h4"); text(title) }
                 div { classes = setOf("col-md-6", "align-items-end", "d-flex", "flex-row-reverse")
-                    a { href = checkLink(createForm); classes = setOf("btn", "btn-primary"); text("Add $entityName") }
+                    a { href = "${checkLink(createForm)}?id=0"; classes = setOf("btn", "btn-primary", "btn-sm"); text("Add $entityName") }
                 }
             }
             table {
@@ -304,7 +313,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         entity.members.filter { it.key != "id" }.forEach { member ->
                             th {
                                 scope = ThScope.col
-                                text("${member.key.replaceFirstChar { it.uppercase() }}:")
+                                text(member.key.replaceFirstChar { it.uppercase() })
                             }
                         }
                         th {
@@ -314,16 +323,35 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     }
                 }
                 tbody {
+                    val entityVar = entityName.replaceFirstChar { it.lowercase() }
                     tr {
+                        attributes["th:each"] = "$entityVar:\${${entityVar}s}"
+                        attributes["th:if"] = "\${not #lists.isEmpty(${entityVar}s)}"
                         entity.members.filter { it.key != "id" }.forEach { member ->
                             td {
-                                text("$entityName.${member.key}")
+                                attributes["th:text"] = "\${$entityVar.${member.key}}"
                             }
                         }
                         td {
-                            a { href = "/data/${entityName.lowercase()}/modify?id=1"; classes = setOf("btn", "btn-primary"); text("Modify") }
-                            a { href = "/data/${entityName.lowercase()}/delete?id=1"; classes = setOf("btn", "btn-outline-danger", "ms-1"); text("Delete") }
+                            a { classes = setOf("btn", "btn-primary", "btn-sm")
+                                attributes["th:href"] = "@{/${entityName}Form.html(id=\${$entityVar.id})}"
+                                text("Modify")
+                            }
+                            a { classes = setOf("btn", "btn-outline-danger", "btn-sm", "ms-1")
+                                attributes["th:href"] = "@{/data/${entityName.lowercase()}/delete(id=\${$entityVar.id})}"
+                                text("Delete")
+                            }
                         }
+                    }
+                    // message line, if no items in the result
+                    tr { attributes["th:if"] = "\${#lists.isEmpty(${entityVar}s)}"
+                        td {
+                            colSpan = "${entity.members.size}"
+                            div { classes = setOf("alert", "alert-warning", "text-center"); role = "alert"
+                                text("No ${entityName}s stored in the database.")
+                            }
+                        }
+
                     }
                 }
             }

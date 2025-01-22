@@ -34,9 +34,18 @@ import dev.reqsmith.model.igm.IGMView
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.*
 import java.io.File
+import java.io.FileNotFoundException
 import java.util.*
 
 private const val ID_TYPE = "Long"
+
+private const val CRUD_ACTION_PERSIST = "persist"
+
+private const val CRUD_ACTION_DELETE = "delete"
+
+private const val CRUD_ACTION_GET = "get"
+
+private const val CRUD_ACTION_LISTALL = "listAll"
 
 /**
  * Spring Framework Builder
@@ -93,14 +102,19 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else /* TODO: application domain */ ConfigManager.defaults["domainName"]
             val className = view.qid!!.id!!
             val serviceClasses = dataAttributes.map { "$domainName.service.${it.second}Service" }
+            val formClass = dataAttributes.any { it.first == "form" }
+            
             getSpringController("$domainName.controller.${className}Controller", igm, serviceClasses).apply {
-//        igm.getClass("$domainName.controller.${className}Controller").apply {
-//            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Controller")))
 
                 getAction(className.lowercase()).apply {
                     this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.GetMapping")).apply {
                         parameters.add(IGMAction.IGMAnnotationParam("", "/${className}.${getViewLanguage()}"))
                     })
+                    if (formClass) {
+                        parameters.add(IGMAction.IGMActionParam("id", ID_TYPE).apply {
+                            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.RequestParam")))
+                        })
+                    }
                     parameters.add(IGMAction.IGMActionParam("model", addImport("org.springframework.ui.Model")))
                     returns(StandardTypes.string.name)
 
@@ -109,9 +123,9 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                         var dataVar = dataClass.lowercase()
                         if (nodeType == "datatable") {
                             dataVar = "${dataVar}s"
-                            addStmt("set", dataVar, "$domainName.service.${dataClass}Service.listAll")
+                            addStmt("set", dataVar, "$domainName.service.${dataClass}Service.$CRUD_ACTION_LISTALL")
                         } else {
-                            addStmt("set", dataVar, "$domainName.service.${dataClass}Service.get", "1")  // TODO get id parameter
+                            addStmt("set", dataVar, "$domainName.service.${dataClass}Service.$CRUD_ACTION_GET", "id")  // TODO get id parameter
                         }
                         addStmt("call", "model.addAttribute", "'$dataVar'", dataVar)
                     }
@@ -201,6 +215,10 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             val indexContent = Template().translateFile(context, "templates/index.html.st")
             projectModel.resources.add(Pair("<save>$indexContent", "$buildResourcesFolderName/${getViewFolder()}/index.html"))
         }
+
+        // copy error.html page
+        val uri = javaClass.getResource("/templates/error.html.st") ?: throw FileNotFoundException("/templates/error.html.st")
+        projectModel.resources.add(Pair("<save>${uri.readText()}", "$buildResourcesFolderName/${getViewFolder()}/error.html"))
 
         // file template files
         var hasTemplateFiles = false
@@ -319,20 +337,25 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             addImport(repoClassName)
 
             // create action for create entity
-            getAction("create").apply {
+            getAction(CRUD_ACTION_PERSIST).apply {
                 parameters.add(IGMAction.IGMActionParam("data", addImport(igmClass.id)))
                 addStmt("call", "${repoClassName}.save", "data")
             }
 
-            getAction("get").apply {
+            getAction(CRUD_ACTION_DELETE).apply {
+                parameters.add(IGMAction.IGMActionParam("id", ID_TYPE))
+                addStmt("call", "${repoClassName}.deleteById", "id")
+            }
+
+            getAction(CRUD_ACTION_GET).apply {
                 parameters.add(IGMAction.IGMActionParam("id", ID_TYPE))
                 returns(entityClassName)
                 val varname = entityClassName.replaceFirstChar { it.lowercase() }
                 addStmt("set", varname, "${repoClassName}.findById", "id")
-                addStmt("return", "$varname.orElse($entityClassName())")
+                addStmt("return", "$varname.orElse($entityClassName())") // TODO: is kotlin or spring data specific?
             }
 
-            getAction("listAll").apply {
+            getAction(CRUD_ACTION_LISTALL).apply {
                 returns(entityClassName, true)
                 val varname = "${entityClassName.replaceFirstChar { it.lowercase() }}s"
                 addStmt("set", varname, "${repoClassName}.findAll")
@@ -345,34 +368,44 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         // controller name: <base-package>/controller/<entity>Controller
         val controllerClassName = "${igmClass.id.replace("entities", "controller")}Controller"
         getSpringController(controllerClassName, igm, listOf(serviceClassName)).apply {
-//        val service = serviceClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }
-//        igm.getClass(controllerClassName).apply {
-//            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Controller")))
-//            ctorParams.add(IGMAction.IGMActionParam(service, addImport(serviceClassName)))
 
             // create action for create entity
-            val actionUrl = "/data/${igmClass.id.substringAfterLast('.').lowercase()}/create"
-            getAction("create").apply {
+            var actionUrl = "/data/${igmClass.id.substringAfterLast('.').lowercase()}/${CRUD_ACTION_PERSIST}"
+            getAction(CRUD_ACTION_PERSIST).apply {
                 annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.PostMapping")).apply {
                     parameters.add(IGMAction.IGMAnnotationParam("", actionUrl))
                 })
-
                 parameters.add(IGMAction.IGMActionParam("formData", addImport(igmClass.id)).apply {
                     this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.ModelAttribute")))
+                })
+                parameters.add(IGMAction.IGMActionParam("model", addImport("org.springframework.ui.Model")))
+                returns(StandardTypes.string.name)
+
+                addStmt("print", "'controller $actionUrl invoked'")
+                addStmt("call", "$serviceClassName.$CRUD_ACTION_PERSIST", "formData")
+                addStmt("return", "'redirect:/'")
+            }
+
+            // create action for create delete
+            actionUrl = "/data/${igmClass.id.substringAfterLast('.').lowercase()}/$CRUD_ACTION_DELETE"
+            getAction(CRUD_ACTION_DELETE).apply {
+                annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.GetMapping")).apply {
+                    parameters.add(IGMAction.IGMAnnotationParam("", actionUrl))
+                })
+                parameters.add(IGMAction.IGMActionParam("id", ID_TYPE).apply {
+                    this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.RequestParam")))
                 })
                 parameters.add(IGMAction.IGMActionParam("model", addImport("org.springframework.ui.Model")))
 
                 returns(StandardTypes.string.name)
 
-                statements.add(IGMAction.IGMActionStmt("print").apply {
-                    this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.stringLiteral.name, "controller $actionUrl invoked"))
-                })
-                addStmt("call", "$serviceClassName.create", "formData")
-                statements.add(IGMAction.IGMActionStmt("return").apply {
-                    this.parameters.add(IGMAction.IGMStmtParam(StandardTypes.stringLiteral.name, "redirect:/"))
-                })
-
+                addStmt("print", "'controller $actionUrl invoked'")
+                addStmt("call", "$serviceClassName.$CRUD_ACTION_DELETE", "id")
+                addStmt("return", "'redirect:/'")
             }
+
+
+
         }
 
     }
