@@ -24,10 +24,10 @@ import dev.reqsmith.model.reqm.*
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 
+private const val TAB_SIZE = 4
 
 class ReqMWriter {
 
-    private val TAB_SIZE = 4
     private val eol = System.lineSeparator()
 
     fun writeReqM(source : ReqMSource, outFileName : String, reqmHeader: String) {
@@ -57,6 +57,7 @@ class ReqMWriter {
     private fun writeView(view: View, outs: OutputStreamWriter) {
         outs.write("view ")
         writeQualifiedId(view.qid, outs)
+        writeParent(view.parent, outs)
         writeSourceRef(view.sourceRef, outs)
         writeDefinition(view.definition, outs)
         outs.write("\n")

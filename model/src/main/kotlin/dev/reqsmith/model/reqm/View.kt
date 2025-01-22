@@ -20,6 +20,7 @@ package dev.reqsmith.model.reqm
 
 class View : ElementBase() {
     var qid: QualifiedId? = null
+    var parent: QualifiedId = QualifiedId.Undefined
     var sourceRef: QualifiedId? = null
     var definition: Definition = Definition()
 

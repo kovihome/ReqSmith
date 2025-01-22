@@ -18,6 +18,6 @@
 
 package dev.reqsmith.composer.common.plugin
 
-interface Plugin {
+fun interface Plugin {
     fun definition(): PluginDef
 }

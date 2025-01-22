@@ -32,6 +32,10 @@ open class QualifiedId(var id: String? = null, var domain: String? = null) : Ele
         return if (domain == null) { "$id" } else { "$domain.$id" }
     }
 
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
+
     companion object {
         fun fromString(s: String) : QualifiedId {
             val id = s.substringAfterLast('.')

@@ -1,11 +1,29 @@
 /*
- * Template feature
+ * Persistent feature
  *
- * file - path of the template file, relative to the project src/main/resource folder, mandatory
- * templateType - type of the templating language, default is ThymeLeaf (at least in Spring environment)
  * generator - generator plugin ID
  */
 
+// Persistent feature for entities
 feature Persistent {
     generator: 'feature.persistence'
+}
+
+// Predefined view to create/modify an entity
+view EntityForm {
+    data
+    title: 'Add new entity'
+    remark
+    layout {
+        header
+        panel {
+            form {
+                title: title
+                data: data
+            }
+            spacer: line
+            text: remark
+        }
+        footer
+    }
 }

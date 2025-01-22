@@ -61,11 +61,9 @@ class ReqMParser {
             loadReqMTree(filePath)
         } catch (e: IOException) {
             Log.error("Parsing $filePath was failed - ${e.localizedMessage}")
-            // TODO: handle IO exception
             return false
         } catch (e: RecognitionException) {
             Log.error("Parsing $filePath was failed - ${e.localizedMessage}")
-            // TODO: handle parse errors
             return false
         } catch (e: ReqMParsingException) {
             Log.error(e.message!!)
@@ -104,6 +102,7 @@ class ReqMParser {
             val vw = View().apply {
                 saveSourceInfo(this, view.start)
                 qid = parseQualifiedId(view.qualifiedId())
+                parent = parseParent(view.parent())
                 sourceRef = parseSourceRef(view.sourceRef())
                 definition = parseViewDefinitionClosure(view.viewDefinitionClosure())
             }
@@ -520,8 +519,8 @@ class ReqMParser {
     private fun parsePropertyDefinition(propertyClosure: ReqMParserParser.PropertyClosureContext): Property {
         return if (propertyClosure.propertyAttribute().isNotEmpty()) {
             Property().apply {
-                propertyClosure.propertyAttribute().forEach {
-                    val attrib = parsePropertyAttribute(it)
+                propertyClosure.propertyAttribute().forEach { propertyAttributeContext ->
+                    val attrib = parsePropertyAttribute(propertyAttributeContext)
                     when {
                         attrib.key in listOf("optional", "mandatory") -> {
                             optionality = attrib.key

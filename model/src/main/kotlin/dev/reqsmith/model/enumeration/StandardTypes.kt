@@ -28,13 +28,6 @@ enum class StandardTypes {
     ;
 
     companion object {
-
-        fun has(s: String): Boolean {
-            return try {
-                StandardTypes.valueOf(s) != null
-            } catch (e: IllegalArgumentException) {
-                false
-            }
-        }
+        fun has(s: String) = entries.map { it.name }.contains(s)
     }
 }

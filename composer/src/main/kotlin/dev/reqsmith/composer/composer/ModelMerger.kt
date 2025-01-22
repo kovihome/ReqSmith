@@ -64,7 +64,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
             projectModel.dependencies.modules.addAll(modules)
 
             // resolve event sources
-            val eventActions = resolveEventActions(app, projectModel.source)
+            val eventActions = resolveEventActions(app)
             projectModel.dependencies.actions.addAll(eventActions)
         }
         projectModel.source.actors.forEach { act ->
@@ -105,7 +105,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                     errors.add("Source reference ${ent.sourceRef} is not found for entity ${ent.qid} (${ent.coords()}). (${ent.coords()})")
                 }
             }
-            collectFeatures(ent.definition.featureRefs, projectModel.dependencies)
+            collectFeatures(ent.definition.featureRefs)
         }
         // add dependent actions to the dependencies
         projectModel.source.actions.forEach { act ->
@@ -119,6 +119,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
         // add dependent views
         projectModel.source.views.forEach { view ->
             collectViewDependencies(view)
+            resolveViewPropertiesInLayout(view)
         }
 
         // TODO: merge styles
@@ -129,19 +130,38 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
         }
     }
 
+    private fun resolveViewPropertiesInLayout(view: View) {
+        view.definition.properties.find { it.key == "layout" }?.let { layout ->
+            resolveNodeProperties(layout, view.definition.properties)
+        }
+    }
+
+    private fun resolveNodeProperties(node: Property, properties: MutableList<Property>) {
+        node.simpleAttributes.filter { it.type != StandardTypes.propertyList.name  }.forEach { attr ->
+            attr.value?.let {
+                properties.find { it.key == attr.value }?.let { prop ->
+                    attr.value = prop.value
+                }
+            }
+        }
+        node.simpleAttributes.filter { it.type == StandardTypes.propertyList.name  }.forEach { child ->
+            resolveNodeProperties(child, properties)
+        }
+    }
+
     private fun collectViewDependencies(view: View) {
         if (view.sourceRef != null && view.sourceRef != QualifiedId.Undefined) {
-            collectViewSources(view.sourceRef!!, projectModel.dependencies)
-            mergeViewRef(view, projectModel.dependencies)
+            collectViewSources(view.sourceRef!!)
+            mergeViewRef(view)
         }
         val layout = view.definition.properties.find { it.key == "layout" }
-        layout?.simpleAttributes?.let { collectViewLayoutDeps(it, projectModel.dependencies) }
+        layout?.simpleAttributes?.let { collectViewLayoutDeps(it) }
 
-        collectFeatures(view.definition.featureRefs, projectModel.dependencies)
+        collectFeatures(view.definition.featureRefs)
 
     }
 
-    private fun collectFeatures(featureRefs: List<FeatureRef>, dependencies: ReqMSource) {
+    private fun collectFeatures(featureRefs: List<FeatureRef>) {
         featureRefs.forEach { featureRef ->
             val ic = finder.find(Ref.Type.ftr, featureRef.qid.id!!, featureRef.qid.domain)
             if (ic.items.isEmpty()) errors.add("Feature reference $featureRef is not found.")
@@ -153,7 +173,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                 val feature = reqmSource.features.find { item.name == it.qid.toString() }
                 if (feature != null) {
                     feature.increaseRefCount()
-                    dependencies.features.add(feature)
+                    projectModel.dependencies.features.add(feature)
                     addDependencyToList(feature.sourceRef, Ref.Type.ftr, ic)
                 }
                 ix++
@@ -161,31 +181,25 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
         }
     }
 
-    private fun mergeViewRef(view: View, dependencies: ReqMSource) {
-        var refId = view.sourceRef
-        while (refId != null && refId != QualifiedId.Undefined) {
-            val refView = dependencies.views.find { it.qid.toString() == refId.toString() }
-            if (refView != null) {
-                mergeProperties(view.definition.properties, refView.definition.properties)
-                refId = refView.sourceRef
-            } else {
-                refId = null
-            }
+    private fun mergeViewRef(view: View) {
+        val refView = projectModel.dependencies.views.find { it.qid.toString() == view.sourceRef.toString() }
+        if (refView != null) {
+            mergeProperties(view.definition.properties, refView.definition.properties)
         }
     }
 
-    private fun collectViewSources(sourceRef: QualifiedId, dependencies: ReqMSource) {
+    private fun collectViewSources(sourceRef: QualifiedId) {
         val ic = finder.find(Ref.Type.vie, sourceRef.id!!, sourceRef.domain)
         if (ic.items.isEmpty()) errors.add("Source reference $sourceRef is not found.")
         ic.items.forEach {
-            if (dependencies.views.none { d -> it.name == d.qid.toString() }) {
+            if (projectModel.dependencies.views.none { d -> it.name == d.qid.toString() }) {
                 val reqmSource = parseFile(it.filename!!)
                 val depView = reqmSource.views.find { v -> v.qid!!.id == it.name }
                 if (depView != null) {
-                    dependencies.views.add(depView)
+                    projectModel.dependencies.views.add(depView)
                     if (!StandardLayoutElements.contains(depView.qid.toString())) {
                         if (depView.sourceRef != null && depView.sourceRef != QualifiedId.Undefined) {
-                            collectViewSources(depView.sourceRef!!, dependencies)
+                            collectViewSources(depView.sourceRef!!)
                         }
                         collectViewDependencies(depView)
                     }
@@ -201,13 +215,16 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
         return actReqmSource
     }
 
-    private fun collectViewLayoutDeps(properties: MutableList<Property>, dependencies: ReqMSource) {
+    private fun collectViewLayoutDeps(properties: MutableList<Property>) {
         properties.forEach { prop ->
-            collectViewSources(QualifiedId(prop.key), dependencies)
+            collectViewSources(QualifiedId(prop.key))
             if (prop.type == StandardTypes.propertyList.name && !StandardLayoutElements.contains(prop.key!!)) {
-                collectViewLayoutDeps(prop.simpleAttributes, dependencies)
+                collectViewLayoutDeps(prop.simpleAttributes)
             }
-            val depView = dependencies.views.find { dep -> dep.qid.toString() == prop.key }
+            var depView = projectModel.source.views.find { dep -> dep.qid.toString() == prop.key }
+            if (depView == null) {
+                depView = projectModel.dependencies.views.find { dep -> dep.qid.toString() == prop.key }
+            }
             if (depView != null) {
                 if (prop.type != StandardTypes.propertyList.name) {
                     prop.type = StandardTypes.propertyList.name
@@ -226,13 +243,13 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
         }
     }
 
-    private fun resolveEventActions(app: Application, reqmsrc: ReqMSource): Collection<Action> {
+    private fun resolveEventActions(app: Application): Collection<Action> {
         val dependentActions : MutableList<Action> = ArrayList()
         val events = app.definition.properties.find { it.key == "events" }
         events?.simpleAttributes?.forEach { attr ->
             val actionName = attr.value
             // is this action exists in reqmsrc?
-            val srcAction = reqmsrc.actions.find { it.qid!!.id == actionName }
+            val srcAction = projectModel.source.actions.find { it.qid!!.id == actionName }
             if (srcAction == null) {
                 // not exists, search dependencies for it
                 val ic = finder.find(Ref.Type.acn, actionName!!, null)

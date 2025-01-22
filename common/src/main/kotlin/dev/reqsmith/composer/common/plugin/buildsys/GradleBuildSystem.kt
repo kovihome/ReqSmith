@@ -23,7 +23,6 @@ import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import java.io.File
-import java.io.FileReader
 import java.io.FileWriter
 
 class GradleBuildSystem : BuildSystem, Plugin {
@@ -48,31 +47,20 @@ class GradleBuildSystem : BuildSystem, Plugin {
 
         // check gradle build script existence
         val script = File("${projectRootFolder}/build.gradle.kts")
-//        if (!script.exists()) {
-            // create new build script
-            val s = Template().translateFile(params, "templates/build.gradle.st")
-            FileWriter(script, false).use {
-                it.write(s)
-//                it.write(taskScript)
-            }
-//        } else {
-//            FileReader(script).useLines { scl ->
-                // TODO: update dependencies, plugins, etc. if changed
-//                if (scl.none { it.contains("tasks.register(\"${taskName}\")") }) {
-//                    // build script exists, but it does not contain reqm composer task
-//                    FileWriter(script, true).use {
-//                        it.append(taskScript)
-//                    }
-//                }
-//            }
-//        }
+
+        // create build script
+        val s = Template().translateFile(params, "templates/build.gradle.st")
+        FileWriter(script, false).use {
+            it.write(s)
+//          it.write(taskScript)
+        }
 
         // check gradle settings script existence
         val settings = File("${projectRootFolder}/settings.gradle.kts")
         if (!settings.exists()) {
             // create new build script
             val s = Template().translateFile(params, "templates/settings.gradle.st")
-            FileWriter(settings).use {
+            FileWriter(settings, false).use {
                 it.write(s)
             }
         }
