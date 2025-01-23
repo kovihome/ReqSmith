@@ -101,7 +101,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         val localVars = LocalVariables().apply {
             setParameters(action.parameters)
             setParameters(cls.ctorParams)
-            setParameters(cls.members.map { IGMAction.IGMActionParam(it.key, it.value.type) })
+            setParameters(cls.members.map { IGMAction.IGMActionParam(it.memberId, it.type) })
         }
 
         // start with annotations
@@ -220,10 +220,10 @@ class KotlinBuilder : LanguageBuilder, Plugin {
 
             // class members
             cls.members.forEach {
-                addClassMember(sb, it.value, indent + tabsize)
+                addClassMember(sb, it, indent + tabsize)
             }
 
-            cls.actions.forEach { (_, action) ->
+            cls.actions.forEach { action ->
                 if (!action.isMain) {
                     addClassMethod(sb, action, cls, indent + tabsize)
                 }
@@ -237,7 +237,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         // main class
         if (cls.mainClass) {
             sb.append("\n\n")
-            cls.actions.filter { it.value.isMain }.forEach { (_, action) ->
+            cls.actions.filter { it.isMain }.forEach { action ->
                 addClassMethod(sb, action, cls, indent)
             }
         }

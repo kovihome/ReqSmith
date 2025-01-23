@@ -35,7 +35,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
     fun compose() : Boolean {
 
         // parse load each reqm files
-        Log.text("Parsing ReqM sources from folder ${project.inputFolder}")
+        Log.info("Parsing ReqM sources from folder ${project.inputFolder}")
         val parser = ReqMParser()
         // TODO: parse entire directory tree (as stdlib)
         val success = parser.parseFolder(project.inputFolder!!, projectModel.source)
@@ -111,7 +111,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
 
     private fun writeReqmFile(fileName: String, reqmModel: ReqMSource, reqmFileHeader: String, writer: dev.reqsmith.composer.parser.ReqMWriter) {
         val outputDepFileName = "${project.outputFolder}/$fileName"
-        Log.title("Saving dependencies to $outputDepFileName")
+        Log.text("Saving dependencies to $outputDepFileName")
         writer.writeReqM(reqmModel, outputDepFileName, reqmFileHeader)
         Log.info("=============== ${if (fileName.startsWith("dep")) "Dependencies" else "ReqMSource"} ===============")
         writer.printReqMSource(reqmModel)

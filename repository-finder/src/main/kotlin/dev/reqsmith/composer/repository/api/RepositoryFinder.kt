@@ -171,7 +171,7 @@ class RepositoryFinder {
         val files = path!!.toFile().listFiles()?.filter { it.extension == "reqm" }
         if (files.isNullOrEmpty()) return index
 
-        Log.text("Build index file for $path")
+        Log.info("Build index file for $path")
         val parser = ReqMParser()
         val extractor = ReferenceExtractor()
 

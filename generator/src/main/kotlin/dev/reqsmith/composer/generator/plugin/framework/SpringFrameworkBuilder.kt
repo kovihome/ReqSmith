@@ -297,6 +297,16 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         // add class notifications
         igmClass.annotations.add(IGMAction.IGMAnnotation(igmClass.addImport("jakarta.persistence.Entity")))
 
+        // set all entity members to optional, and add annotation to date fields
+        igmClass.members.forEach {
+            it.optionality = Optionality.Optional.name
+            if (it.type == "Date") {
+                it.annotations.add(IGMAction.IGMAnnotation(igmClass.addImport("org.springframework.format.annotation.DateTimeFormat")).apply {
+                    parameters.add(IGMAction.IGMAnnotationParam("pattern", "yyyy-MM-dd"))
+                })
+            }
+        }
+
         // add new class members from persistenceProperties
         igmClass.getMember("id").apply {
             type = ID_TYPE
@@ -308,10 +318,11 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             })
         }
 
+        // add member from persistent feature
         persistentProperties.forEach { prop ->
             igmClass.getMember(prop.key!!).apply {
-                optionality = Optionality.Mandatory.name
-                type = prop.type ?: "String" // TODO: default type
+                optionality = Optionality.Optional.name
+                type = prop.type ?: ConfigManager.defaults.getOrDefault("propertyType", "String")
             }
         }
 

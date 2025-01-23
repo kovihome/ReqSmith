@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [[Unreleased]](https://github.com/kovihome/ReqSmith)
 ### Added
+- New ReqM element definitions: class, entity
+- StdRepo: Persistent feature
+- New view layout elements: form, datatable, linkButton, linkGroup, spacer
 
 ### Modified
+- Spring plugin manages persistency with Spring Data
 
 ### Fixed
 

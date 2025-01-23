@@ -179,9 +179,12 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         socialMediaLinks.let { links ->
                             div { classes = setOf("mt-3")
                                 listOf("facebook", "twitter", "linkedin", "youtube", "github").forEach { media ->
-                                    val linkValue = links.find { it.first == "${media}Link" }?.second ?: "#"
+                                    val linkValue = links.find { it.first == "${media}Link" }?.second
                                     val mediaClass = "bi-${media}"
-                                    a { href = linkValue; classes = setOf("me-3")
+                                    a { classes = setOf("me-3")
+                                        if (!linkValue.isNullOrBlank()) {
+                                            href = linkValue
+                                        }
                                         i { classes = setOf("bi", mediaClass); style = "font-size:1.5rem;color:white;" }
                                     }
                                 }
@@ -212,13 +215,11 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 method = FormMethod.post
                 attributes["th:object"] = "\${${entityVar}}"
 
-                entity.members.filter { it.key != "id" }.forEach { member ->
+                entity.members.filter { it.memberId != "id" }.forEach { member ->
 
-                    val memberName = member.key
-                    val memberType = member.value.type
-                    val enumList = getEnumeration(memberType)
+                    val enumList = getEnumeration(member.type)
                     // control types: text, select, check, radio, range, date
-                    val controlType = when (memberType) {
+                    val controlType = when (member.type) {
                         "String" -> "text"
                         "Int", "Long" -> "text"
                         "Boolean" -> "checkbox"
@@ -233,13 +234,13 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     }
 
                     div { classes = setOf("row", "mb-3")
-                        label { htmlFor = memberName; classes = setOf(FORM_COLUMN_SIZE_CLS, "col-form-label"); text("${memberName.replaceFirstChar { it.uppercase() }}:") }
+                        label { htmlFor = member.memberId; classes = setOf(FORM_COLUMN_SIZE_CLS, "col-form-label"); text("${member.memberId.replaceFirstChar { it.uppercase() }}:") }
                         when (controlType) {
                             "text" -> {
                                 div {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
-                                    input { id = memberName; type = InputType.text; name = memberName; classes = setOf("form-control")
-                                        attributes["th:field"] = "*{${memberName}}"
+                                    input { id = member.memberId; type = InputType.text; name = member.memberId; classes = setOf("form-control")
+                                        attributes["th:field"] = "*{${member.memberId}}"
 //                                        value = memberType
                                     }
                                 }
@@ -248,8 +249,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                 div {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     select {
-                                        id = memberName; name = memberName; classes = setOf("form-select")
-                                        attributes["th:field"] = "*{${memberName}}"
+                                        id = member.memberId; name = member.memberId; classes = setOf("form-select")
+                                        attributes["th:field"] = "*{${member.memberId}}"
                                         option { value = ""; selected = true; text("Select...")  }
                                         enumList.forEach {
                                             option { value = it; text(it) }
@@ -261,8 +262,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                 div {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     input {
-                                        id = memberName; type = InputType.checkBox; name = memberName; classes = setOf("form-check-input")
-                                        attributes["th:field"] = "*{${memberName}}"
+                                        id = member.memberId; type = InputType.checkBox; name = member.memberId; classes = setOf("form-check-input")
+                                        attributes["th:field"] = "*{${member.memberId}}"
                                     }
                                 }
                             }
@@ -270,8 +271,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                 div {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     input {
-                                        id = memberName; type = InputType.date; name = memberName; classes = setOf("form-control")
-                                        attributes["th:field"] = "*{${memberName}}"
+                                        id = member.memberId; type = InputType.date; name = member.memberId; classes = setOf("form-control")
+                                        attributes["th:field"] = "*{${member.memberId}}"
                                     }
                                 }
                             }
@@ -310,10 +311,10 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 classes = setOf("table", "table-hover")
                 thead {
                     tr {
-                        entity.members.filter { it.key != "id" }.forEach { member ->
+                        entity.members.filter { it.memberId != "id" }.forEach { member ->
                             th {
                                 scope = ThScope.col
-                                text(member.key.replaceFirstChar { it.uppercase() })
+                                text(member.memberId.replaceFirstChar { it.uppercase() })
                             }
                         }
                         th {
@@ -327,9 +328,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     tr {
                         attributes["th:each"] = "$entityVar:\${${entityVar}s}"
                         attributes["th:if"] = "\${not #lists.isEmpty(${entityVar}s)}"
-                        entity.members.filter { it.key != "id" }.forEach { member ->
+                        entity.members.filter { it.memberId != "id" }.forEach { member ->
                             td {
-                                attributes["th:text"] = "\${$entityVar.${member.key}}"
+                                attributes["th:text"] = "\${$entityVar.${member.memberId}}"
                             }
                         }
                         td {

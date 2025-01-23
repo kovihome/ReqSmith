@@ -23,18 +23,18 @@ class IGMClass(val id: String) {
     var parent: String = ""
     val parentClasses: MutableList<String> = mutableListOf()
     var mainClass: Boolean = false
-    val actions : MutableMap<String, IGMAction> = HashMap()
-    val members: MutableMap<String, IGMClassMember> = HashMap()
+    val actions : MutableList<IGMAction> = mutableListOf()
+    val members: MutableList<IGMClassMember> = mutableListOf()
     val annotations: MutableList<IGMAction.IGMAnnotation> = mutableListOf()
     val imports: MutableList<String> = mutableListOf()
     val ctorParams: MutableList<IGMAction.IGMActionParam> = mutableListOf()
 
     fun getAction(actionId: String): IGMAction {
-        return actions.getOrPut(actionId) { IGMAction(actionId) }
+        return actions.find { it.actionId == actionId } ?: IGMAction(actionId).also { actions.add(it) }
     }
 
     fun getMember(memberId: String): IGMClassMember {
-        return members.getOrPut(memberId) { IGMClassMember(memberId) }
+        return members.find { it.memberId == memberId } ?: IGMClassMember(memberId).also { members.add(it) }
     }
 
     fun print(tabsize: Int = 0): String {
@@ -43,8 +43,8 @@ class IGMClass(val id: String) {
         if (parent.isNotBlank()) sb.append(" is $parent")
         if (mainClass) sb.append(" (main)")
         sb.append("\n")
-        members.forEach { sb.append(it.value.print(tabsize+4)) }
-        actions.forEach { sb.append(it.value.print(tabsize+4)) }
+        members.forEach { sb.append(it.print(tabsize+4)) }
+        actions.forEach { sb.append(it.print(tabsize+4)) }
         return sb.toString()
     }
 

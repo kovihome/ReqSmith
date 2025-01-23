@@ -116,8 +116,8 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
 //        if (cls.parent.isNotBlank()) {
 //            imports.add(cls.parent)
 //        }
-        cls.members.forEach {
-            val type = it.value.type
+        cls.members.forEach { member ->
+            val type = member.type
             if (!StandardTypes.has(type.replaceFirstChar { it.lowercase() })) {
                 var classOfType = igm.classes.keys.find { it.endsWith(type) }
                 if (classOfType == null) {
