@@ -41,10 +41,10 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
     override fun getArtFolder() : String = "html"
 
     override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
-        val template = view.definition.featureRefs.find { it.qid.toString() == "Template"}
+        val template = view.definition.featureRefs.find { it.qid.toString() == "Template" && it.properties.any { p -> p.key == "file" }}
         val layout = view.definition.properties.find { it.key == "layout" }
         if (template != null && layout != null) {
-            throw IGMGenerationException("Both layout and @Template cannot be defined for a view.")
+            throw IGMGenerationException("Both layout and @Template file cannot be defined for a view.")
         }
 
         if (layout != null) {

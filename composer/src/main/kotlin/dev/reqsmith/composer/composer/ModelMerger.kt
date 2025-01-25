@@ -121,6 +121,9 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
             collectViewDependencies(view)
             resolveViewPropertiesInLayout(view)
         }
+        projectModel.source.views.filter { v -> v.definition.featureRefs.any { it.qid.id == "Template" } }.forEach { view ->
+            resolveViewTemplates(view)
+        }
 
         // TODO: merge styles
 
@@ -128,6 +131,79 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
         if (errors.isNotEmpty()) {
             throw ReqMMergeException("Merge failed.", errors)
         }
+    }
+
+    private fun resolveViewTemplates(view: View) {
+        val templateViewName = view.definition.featureRefs.find { it.qid.toString() == "Template" }?.let { featureRef ->
+            featureRef.properties.find { it.key == "templateView" }?.type
+        }
+        if (templateViewName != null) {
+            var templateView = projectModel.source.views.find { it.qid?.id == templateViewName }
+            if (templateView == null) {
+                templateView = projectModel.dependencies.views.find { it.qid?.id == templateViewName }
+                if (templateView == null) {
+                    val ic = finder.find(Ref.Type.vie, templateViewName, null)
+                    if (ic.items.isNotEmpty()) {
+                        if (ic.items.size > 1) {
+                            errors.add("More than one template view reference $templateViewName was found.")
+                        } else {
+                            val icItem = ic.items[0]
+                            val reqmSource = parseFile(icItem.filename!!)
+                            val depView = reqmSource.views.find { v -> v.qid!!.id == icItem.name }
+                            if (depView != null) {
+                                resolveViewPropertiesInLayout(depView)
+                                templateView = depView
+                            }
+                        }
+                    }
+                } else {
+                    resolveViewPropertiesInLayout(templateView)
+                }
+            }
+            if (templateView == null) {
+                errors.add("Template view reference $templateViewName is not found.")
+            } else if (templateView.parent.toString() != "template") {
+                errors.add("Template view $templateViewName is not 'template' type view.")
+            } else {
+                val templateLayout = templateView.definition.properties.find { it.key == "layout" }
+                if (templateLayout != null) {
+                    var viewLayout = view.definition.properties.find { it.key == "layout" }
+                    if (viewLayout == null) {
+                        viewLayout = Property()
+                    }
+
+                    val nodeContainsContent = traversePropertiesForContentChild(templateLayout)
+                    if (nodeContainsContent != null) {
+                        val newProperties: MutableList<Property> = mutableListOf()
+                        nodeContainsContent.simpleAttributes.forEach { ta ->
+                            if (ta.key != "content") {
+                                newProperties.add(ta)
+                            } else {
+                                viewLayout.simpleAttributes.forEach { newProperties.add(it) }
+                            }
+                        }
+                        viewLayout.simpleAttributes.clear()
+                        viewLayout.simpleAttributes.addAll(newProperties)
+                    } else {
+                        errors.add("Template view $templateViewName has no 'content' layout element.")
+                    }
+                } else {
+                    errors.add("Template view $templateViewName has no layout properties.")
+                }
+            }
+        }
+    }
+
+    private fun traversePropertiesForContentChild(property: Property): Property? {
+        if (property.simpleAttributes.any { it.key == "content" })
+            return property
+        property.simpleAttributes.forEach { child ->
+            val result = traversePropertiesForContentChild(child)
+            if (result != null) {
+                return result
+            }
+        }
+        return null
     }
 
     private fun resolveViewPropertiesInLayout(view: View) {
@@ -217,28 +293,33 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
 
     private fun collectViewLayoutDeps(properties: MutableList<Property>) {
         properties.forEach { prop ->
-            collectViewSources(QualifiedId(prop.key))
-            if (prop.type == StandardTypes.propertyList.name && !StandardLayoutElements.contains(prop.key!!)) {
-                collectViewLayoutDeps(prop.simpleAttributes)
-            }
-            var depView = projectModel.source.views.find { dep -> dep.qid.toString() == prop.key }
-            if (depView == null) {
-                depView = projectModel.dependencies.views.find { dep -> dep.qid.toString() == prop.key }
-            }
-            if (depView != null) {
-                if (prop.type != StandardTypes.propertyList.name) {
-                    prop.type = StandardTypes.propertyList.name
-                    prop.simpleAttributes.addAll(depView.definition.properties)
-                } else {
-                    depView.definition.properties.forEach { depprop ->
-                        if (prop.simpleAttributes.none { it.key == depprop.key }) {
-                            prop.simpleAttributes.add(depprop)
+            if (!listOf("content").contains(prop.key)) {
+                collectViewSources(QualifiedId(prop.key))
+                if (prop.type == StandardTypes.propertyList.name && !StandardLayoutElements.contains(prop.key!!)) {
+                    collectViewLayoutDeps(prop.simpleAttributes)
+                }
+                var depView = projectModel.source.views.find { dep -> dep.qid.toString() == prop.key }
+                if (depView == null) {
+                    depView = projectModel.dependencies.views.find { dep -> dep.qid.toString() == prop.key }
+                }
+                if (depView != null) {
+                    if (prop.type != StandardTypes.propertyList.name) {
+                        prop.type = StandardTypes.propertyList.name
+                        prop.simpleAttributes.addAll(depView.definition.properties)
+                    } else {
+                        depView.definition.properties.forEach { depprop ->
+                            if (prop.simpleAttributes.none { it.key == depprop.key }) {
+                                prop.simpleAttributes.add(depprop)
+                            }
                         }
                     }
+                } else {
+                    // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni
+                    Log.warning("View layout element ${prop.key} is undefined (${prop.coords()})")
                 }
             } else {
-                // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni
-                Log.warning("View layout element ${prop.key} is undefined (${prop.coords()})")
+                // spaceholder for template
+                prop.type = "#"
             }
         }
     }

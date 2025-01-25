@@ -224,12 +224,12 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         var hasTemplateFiles = false
         projectModel.source.views.forEach { view ->
             view.definition.featureRefs.find { it.qid.toString() == "Template" }?.let { fr ->
-                hasTemplateFiles = true
                 fr.properties.find { it.key == "file" }?.value?.let { fileName ->
                     val fp = fileName.removeSurrounding("'").removeSurrounding("\"")
                     val fn = fp.substringAfterLast('/').substringAfterLast("\\")
                     val destFileName = "$buildResourcesFolderName/${getViewFolder()}/$fn"
                     projectModel.resources.add(Pair("$reqmResourcesFolderName/$fp", destFileName))
+                    hasTemplateFiles = true
                 }
             }
         }

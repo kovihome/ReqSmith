@@ -77,7 +77,7 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
         projectModel.source.actions.forEach { createAction(it, projectModel.igm, templateContext) }
 
         // create view descriptors
-        projectModel.source.views.forEach { createView(it, projectModel.igm, templateContext, codeBuilder!!) }
+        projectModel.source.views.filter { view -> listOf("template", "widget").none { it == view.parent.id } }.forEach { createView(it, projectModel.igm, templateContext, codeBuilder!!) }
 
         // manage additional resources
         val reqmResourceFolder = "${project.projectFolder}/${project.buildSystem.resourceFolder}"

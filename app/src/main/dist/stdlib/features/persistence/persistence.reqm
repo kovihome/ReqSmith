@@ -15,7 +15,6 @@ view EntityForm {
     title: 'Add new entity'
     remark
     layout {
-        header
         panel {
             form {
                 title: title
@@ -24,6 +23,5 @@ view EntityForm {
             spacer: line
             text: remark
         }
-        footer
     }
 }
