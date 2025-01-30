@@ -119,26 +119,23 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         action.statements.forEach { st ->
             sb.append(pre2)
             when (st.actionName) {
-                "call" -> {
+                IGMStatement.call -> {
                     writeCall(sb, st.parameters, localVars, pre2)
                 }
-                "set" -> {
+                IGMStatement.set -> {
                     val varName = st.parameters[0].value
                     if (!localVars.exist(varName)) sb.append("val ")
                     sb.append("$varName = ")
                     writeCall(sb, st.parameters.subList(1, st.parameters.size), localVars, pre2)
                 }
-                "print" -> {
+                IGMStatement.print -> {
                     sb.append("println (${st.parameters.joinToString(",") { p -> p.format() }})")
                 }
-                "return" -> {
+                IGMStatement.`return` -> {
                     sb.append("return ${st.parameters[0].format()}")
                 }
-                else -> {
-                    sb.append("${st.actionName} (${st.parameters.joinToString(",") { p -> p.format() }})")
-                }
             }
-            localVars.imports.forEach { addImport(it) } // TODO: this adds import to nothing
+//            localVars.imports.forEach { addImport(it) } // TODO: this adds import to nothing
             sb.append("\n")
         }
         sb.append(pre).append("}\n\n")

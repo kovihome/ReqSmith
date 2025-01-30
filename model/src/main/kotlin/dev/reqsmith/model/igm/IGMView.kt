@@ -35,7 +35,11 @@ class IGMView(val id: String) {
             var tab = " ".repeat(tabsize)
             sb.append("${tab}IGMNode $name\n")
             tab = " ".repeat(tabsize+4)
-            attributes.forEach { sb.append("${tab}${it.first}: ${it.second}\n") }
+            attributes.forEach {
+                sb.append("${tab}${it.first}: ")
+                if (it.second.contains(' ')) sb.append("\"${it.second}\"") else sb.append(it.second)
+                sb.append("\n")
+            }
             children.forEach {
                 sb.append(it.print(tabsize+4))
             }

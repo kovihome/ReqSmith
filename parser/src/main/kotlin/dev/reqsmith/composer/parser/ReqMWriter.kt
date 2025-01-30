@@ -178,10 +178,12 @@ class ReqMWriter {
         outs.write(tabs(tc))
         outs.write("@")
         writeQualifiedId(featureRef.qid, outs)
-
-        outs.write(" {\n")
-        featureRef.properties.forEach { writeProperty(it, outs, tc+1) }
-        outs.write("${tabs(tc)}}\n")
+        if (featureRef.properties.isNotEmpty()) {
+            outs.write(" {\n")
+            featureRef.properties.forEach { writeProperty(it, outs, tc + 1) }
+            outs.write("${tabs(tc)}}")
+        }
+        outs.write("\n")
     }
 
     private fun tabs(count: Int) : String {

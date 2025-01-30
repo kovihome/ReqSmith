@@ -22,6 +22,7 @@ import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.IGMClass
+import dev.reqsmith.model.igm.IGMStatement
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.Property
 import dev.reqsmith.model.reqm.View
@@ -41,7 +42,7 @@ open class BaseFrameworkBuilder : DefaultFrameworkBuilder() {
                 }
                 val param = IGMAction.IGMActionParam("args", "String", true)
                 main.parameters.add(param)
-                val call = IGMAction.IGMActionStmt("call").withParam("${cls.id}.${prop.value}")
+                val call = IGMAction.IGMActionStmt(IGMStatement.call).withParam("${cls.id}.${prop.value}")
                 main.statements.add(call)
             }
             else -> super.processEvent(prop, cls, igm)

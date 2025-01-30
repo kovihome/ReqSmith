@@ -41,7 +41,7 @@ open class IGMAction(val actionId: String) {
         }
     }
 
-    class IGMActionStmt(val actionName: String) {
+    class IGMActionStmt(val actionName: IGMStatement) {
         val parameters: MutableList<IGMStmtParam> = ArrayList()
         fun withParam(param: String, ptype: String = StandardTypes.string.name) : IGMActionStmt {
             parameters.add(IGMStmtParam(ptype, param))
@@ -104,7 +104,7 @@ open class IGMAction(val actionId: String) {
         return sb.toString()
     }
 
-    fun addStmt(actionName: String, vararg param: String) {
+    fun addStmt(actionName: IGMStatement, vararg param: String) {
         statements.add(IGMActionStmt(actionName).apply {
             param.forEach {
                 if (it.startsWith('\'') and it.endsWith('\'')) {

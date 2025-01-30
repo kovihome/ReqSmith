@@ -29,6 +29,7 @@ import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.IGMClass
+import dev.reqsmith.model.igm.IGMStatement
 import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.*
 
@@ -223,7 +224,8 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
         val actionSrc = projectModel.source.actions.find { it.qid.toString() == actionName }
         actionSrc?.let {
             it.definition.actionCalls.forEach {call ->
-                val stmt = IGMAction.IGMActionStmt(call.actionName)
+                val statementName = IGMStatement.valueOf(call.actionName)
+                val stmt = IGMAction.IGMActionStmt(statementName)
                 call.parameters.forEach { p ->
                     val newparam = if (p.value != null && (p.type == StandardTypes.string.name || p.type == StandardTypes.stringLiteral.name)) {
                             template.translate(templateContext, p.value!!)
