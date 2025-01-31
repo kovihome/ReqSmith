@@ -11,3 +11,11 @@ feature Template {
     templateType: 'thymeleaf'
     generator: 'feature.template'
 }
+
+view SimpleTemplate is template {
+    layout {
+        header
+        content
+        footer
+    }
+}

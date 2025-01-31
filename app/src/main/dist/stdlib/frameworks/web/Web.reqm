@@ -6,20 +6,16 @@ module frameworks.Web {
     generator: framework.web
 }
 
-view image
+view image is widget
 
-view text
+view text is widget
 
-view header from panel {
+view header is widget from panel {
     logo: ""
     title: "Web Application"
-//    layout {
-//        image: logo
-//        text: title
-//    }
 }
 
-view footer from panel {
+view footer is widget from panel {
     copyrightText: "Copyright \&copy; 2024 ReqSmith Ltd. All rights reserved."
     githubLink: 'https://github.com/kovihome/ReqSmith'
     linkGroup {
@@ -28,19 +24,6 @@ view footer from panel {
         to: Privacy_Policy
         to: Contact
     }
-//    layout {
-//        linkList: linkGroup
-//        copyright: copyrightText
-//        copyright: "Powered by Bootstrap."
-//        social {
-//            facebook
-//            twitter
-//            linkedin
-//            youtube
-//            github: githubLink
-//        }
-//    }
 }
 
-view panel {
-}
+view panel is widget

@@ -151,12 +151,15 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                             val reqmSource = parseFile(icItem.filename!!)
                             val depView = reqmSource.views.find { v -> v.qid!!.id == icItem.name }
                             if (depView != null) {
+                                projectModel.dependencies.views.add(depView)
+                                collectViewDependencies(depView)
                                 resolveViewPropertiesInLayout(depView)
                                 templateView = depView
                             }
                         }
                     }
                 } else {
+                    collectViewDependencies(templateView)
                     resolveViewPropertiesInLayout(templateView)
                 }
             }
