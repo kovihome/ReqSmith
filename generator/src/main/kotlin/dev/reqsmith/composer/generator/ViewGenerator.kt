@@ -53,9 +53,13 @@ class ViewGenerator(
         // create the view from the IGM model
         sb.append(langBuilder.createView(view))
 
+        // is this view static or dynamic?
+        val controllerName = "${view.id}Controller"
+        val isDynamic = projectModel.igm.classes.any { it.key.endsWith(controllerName) }
+
         // create file path
         val entPath = view.id.toPath()
-        val entFilePath = "$viewResourceFolderName/$entPath.${langBuilder.extension}"
+        val entFilePath = "${if (isDynamic) viewResourceFolderName else artResourceFolderName}/$entPath.${langBuilder.extension}"
         Log.info("Generating view $entFilePath")
         val success = Project.ensureFolderExists(File(entFilePath).parent, null)
         if (!success) {

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - New ReqM element definitions: class, entity
 - StdRepo: Persistent feature
+- Template view
 - New view layout elements: form, datatable, linkButton, linkGroup, spacer
 
 ### Modified

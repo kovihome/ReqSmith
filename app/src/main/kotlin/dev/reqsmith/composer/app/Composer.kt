@@ -57,8 +57,8 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
 
         // consolidate reqm source - inconsistencies, merge multiple element instances
         Log.title("Consolidate ReqM")
-        val validator = ModelValidator()
-        val isConsistent = validator.resolveInconsistencies(projectModel.source)
+        val validator = ModelValidator(projectModel)
+        val isConsistent = validator.resolveInconsistencies()
         if (!isConsistent) {
             // TODO: Failure Point #2 - inconsistencies in reqm model
             return false
@@ -79,7 +79,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
 
         // resolve ownership of actions
         Log.info("Resolve actions' ownership")
-        val errorList = validator.resolveActionOwnership(projectModel)
+        val errorList = validator.resolveActionOwnership()
         if (errorList.isNotEmpty()) {
             errorList.forEach { Log.error(it) }
             return false
@@ -90,7 +90,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
 
         // validate model completeness
         Log.title("Validate model completeness")
-        val isComplete = validator.validateCompleteness(projectModel.source)
+        val isComplete = validator.validateCompleteness()
         if (!isComplete) {
             // TODO: Failure Point #3 - merged model is not complete
             return false
@@ -104,7 +104,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
         writeReqmFile("dependencies.reqm", projectModel.dependencies, reqmFileHeader, writer)
 
         // add dependencies to the application reqm model for generation
-        addDependenciesToGenerate(projectModel)
+        addDependenciesToGenerate()
 
         return true
     }
@@ -118,7 +118,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
         Log.info("==========================================")
     }
 
-    private fun addDependenciesToGenerate(projectModel: ProjectModel) {
+    private fun addDependenciesToGenerate() {
         // copy relevant actions
         projectModel.source.actions.addAll(projectModel.dependencies.actions.filter { it.definition != ActionDefinition.Undefined && it.owner != null })
 

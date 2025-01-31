@@ -175,10 +175,10 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                         viewLayout = Property()
                     }
 
-                    val nodeContainsContent = traversePropertiesForContentChild(templateLayout)
-                    if (nodeContainsContent != null) {
+                    val nodesContainsContent = searchProperties(templateLayout) { p -> p.simpleAttributes.any { it.key == "content" } }
+                    if (nodesContainsContent.isNotEmpty()) {
                         val newProperties: MutableList<Property> = mutableListOf()
-                        nodeContainsContent.simpleAttributes.forEach { ta ->
+                        nodesContainsContent[0].simpleAttributes.forEach { ta ->
                             if (ta.key != "content") {
                                 newProperties.add(ta)
                             } else {
@@ -197,16 +197,13 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
         }
     }
 
-    private fun traversePropertiesForContentChild(property: Property): Property? {
-        if (property.simpleAttributes.any { it.key == "content" })
-            return property
-        property.simpleAttributes.forEach { child ->
-            val result = traversePropertiesForContentChild(child)
-            if (result != null) {
-                return result
-            }
+    private fun searchProperties(node: Property, expr: (Property) -> Boolean): List<Property> {
+        val nodeList = mutableListOf<Property>()
+        if (expr(node)) nodeList.add(node)
+        node.simpleAttributes.forEach { child ->
+            nodeList.addAll(searchProperties(child, expr))
         }
-        return null
+        return nodeList
     }
 
     private fun resolveViewPropertiesInLayout(view: View) {
