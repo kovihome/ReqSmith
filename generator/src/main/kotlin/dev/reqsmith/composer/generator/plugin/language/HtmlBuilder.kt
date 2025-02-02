@@ -20,7 +20,9 @@ package dev.reqsmith.composer.generator.plugin.language
 
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
+import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.composer.generator.plugin.template.HtmlTemplateBuilder
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
 import dev.reqsmith.model.igm.IGMView
@@ -36,11 +38,15 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
 
     override lateinit var igm: InternalGeneratorModel
 
+    lateinit var templateBuilder : HtmlTemplateBuilder
+
     override fun definition(): PluginDef {
         return PluginDef(language, PluginType.Language)
     }
 
     override fun createView(view: IGMView): String {
+        templateBuilder = PluginManager.getBest("html", PluginType.Template, "template")
+
         // build source code in string builder
         return createHTML().html {
             head {

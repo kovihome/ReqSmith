@@ -43,6 +43,7 @@ object ConfigManager {
         "framework.web" to "spring",
         "feature.template" to "framework.web.spring",
         "feature.persistence" to "framework.web.spring",
+        "template.html" to "template.html.thymeleaf",
         "language" to "kotlin",
         "html" to "bootstrap",
         "buildsys" to "gradle"

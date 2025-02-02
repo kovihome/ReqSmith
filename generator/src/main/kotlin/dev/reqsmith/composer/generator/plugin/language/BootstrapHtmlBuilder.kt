@@ -19,7 +19,9 @@
 package dev.reqsmith.composer.generator.plugin.language
 
 import dev.reqsmith.composer.common.plugin.PluginDef
+import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.composer.generator.plugin.template.HtmlTemplateBuilder
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
@@ -28,10 +30,11 @@ import kotlin.math.max
 
 private const val FORM_COLUMN_SIZE_CLS = "col-md-6"
 
+private const val ALIGN_ITEMS_CENTER = "align-items-center"
+
 class BootstrapHtmlBuilder: HtmlBuilder() {
-    override fun definition(): PluginDef {
-        return PluginDef("html.bootstrap", PluginType.Language)
-    }
+
+    override fun definition() = PluginDef("html.bootstrap", PluginType.Language)
 
     override fun createView(view: IGMView): String {
         view.imports.addAll(listOf(
@@ -52,7 +55,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         return createHTML(true).header {
             classes = setOf("bg-light", "py-3")
 
-            div { classes = setOf("container", "d-flex", "align-items-center")
+            div { classes = setOf("container", "d-flex", ALIGN_ITEMS_CENTER)
                 if (attr.contains("logo")) {
                     img { src = "$artPathPrefix/${attr["logo"]}"; alt = "logo"; classes = setOf("me-3"); style = "height: 128px;"
                         viewArts.add(attr["logo"] ?: "")
@@ -206,14 +209,15 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         val entity = getEntity(entityName)
 
         return createHTML(true).div {
-            classes = setOf("container-sm", "align-items-center", FORM_COLUMN_SIZE_CLS)
+            classes = setOf("container-sm", ALIGN_ITEMS_CENTER, FORM_COLUMN_SIZE_CLS)
 
             h5 { classes = setOf("mb-3"); text(title) }
             form {
-//              classes = setOf("row", "g-3")
                 action = "/data/${entityName.lowercase()}/persist"  // TODO: a konvenció szövegeket külön file-ba kell tenni, most a springfw-ben vannak
                 method = FormMethod.post
-                attributes["th:object"] = "\${${entityVar}}"
+                with(templateBuilder.htmlAttribute("form", "form_object", entityVar)) {
+                    attributes[first] = second
+                }
 
                 entity.members.filter { it.memberId != "id" }.forEach { member ->
 
@@ -240,7 +244,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                 div {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     input { id = member.memberId; type = InputType.text; name = member.memberId; classes = setOf("form-control")
-                                        attributes["th:field"] = "*{${member.memberId}}"
+                                        with(templateBuilder.htmlAttribute("input", "form_member", member.memberId)) {
+                                            attributes[first] = second
+                                        }
 //                                        value = memberType
                                     }
                                 }
@@ -250,7 +256,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     select {
                                         id = member.memberId; name = member.memberId; classes = setOf("form-select")
-                                        attributes["th:field"] = "*{${member.memberId}}"
+                                        with(templateBuilder.htmlAttribute("select", "form_member", member.memberId)) {
+                                            attributes[first] = second
+                                        }
                                         option { value = ""; selected = true; text("Select...")  }
                                         enumList.forEach {
                                             option { value = it; text(it) }
@@ -263,7 +271,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     input {
                                         id = member.memberId; type = InputType.checkBox; name = member.memberId; classes = setOf("form-check-input")
-                                        attributes["th:field"] = "*{${member.memberId}}"
+                                        with(templateBuilder.htmlAttribute("input", "form_member", member.memberId)) {
+                                            attributes[first] = second
+                                        }
                                     }
                                 }
                             }
@@ -272,7 +282,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                     classes = setOf(FORM_COLUMN_SIZE_CLS)
                                     input {
                                         id = member.memberId; type = InputType.date; name = member.memberId; classes = setOf("form-control")
-                                        attributes["th:field"] = "*{${member.memberId}}"
+                                        with(templateBuilder.htmlAttribute("input", "form_member", member.memberId)) {
+                                            attributes[first] = second
+                                        }
                                     }
                                 }
                             }
@@ -283,7 +295,11 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     }
 
                 }
-                input { id = "id"; type = InputType.hidden; name = "id"; attributes["th:value"] = "*{id}" }
+                input { id = "id"; type = InputType.hidden; name = "id"
+                    with(templateBuilder.htmlAttribute("input", "value", "id")) {
+                        attributes[first] = second
+                    }
+                }
                 button { classes = setOf("btn", "btn-primary"); type = ButtonType.submit; text("Submit") }
                 button { classes = setOf("btn", "btn-outline-secondary", "ms-3"); type = ButtonType.reset; text("Reset") }
             }
@@ -299,11 +315,11 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         // collect entity members
         val entity = getEntity(entityName)
         return createHTML(true).div {
-            classes = setOf("container-sm", "align-items-center")
+            classes = setOf("container-sm", ALIGN_ITEMS_CENTER)
             div {
                 classes = setOf("row", "mb-2")
-                div { classes = setOf("col-md-6", "h4"); text(title) }
-                div { classes = setOf("col-md-6", "align-items-end", "d-flex", "flex-row-reverse")
+                div { classes = setOf(FORM_COLUMN_SIZE_CLS, "h4"); text(title) }
+                div { classes = setOf(FORM_COLUMN_SIZE_CLS, "align-items-end", "d-flex", "flex-row-reverse")
                     a { href = "${checkLink(createForm)}?id=0"; classes = setOf("btn", "btn-primary", "btn-sm"); text("Add $entityName") }
                 }
             }
@@ -326,26 +342,39 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 tbody {
                     val entityVar = entityName.replaceFirstChar { it.lowercase() }
                     tr {
-                        attributes["th:each"] = "$entityVar:\${${entityVar}s}"
-                        attributes["th:if"] = "\${not #lists.isEmpty(${entityVar}s)}"
+                        with(templateBuilder.htmlAttribute("tr", "loop_var", entityVar)) {
+                            attributes[first] = second
+                        }
+                        with(templateBuilder.htmlAttribute("tr", "if_not_empty", entityVar)) {
+                            attributes[first] = second
+                        }
                         entity.members.filter { it.memberId != "id" }.forEach { member ->
                             td {
-                                attributes["th:text"] = "\${$entityVar.${member.memberId}}"
+                                with(templateBuilder.htmlAttribute("td", "loop_member", "$entityVar.${member.memberId}")) {
+                                    attributes[first] = second
+                                }
                             }
                         }
                         td {
                             a { classes = setOf("btn", "btn-primary", "btn-sm")
-                                attributes["th:href"] = "@{/${entityName}Form.html(id=\${$entityVar.id})}"
+                                with(templateBuilder.htmlAttribute("a", "href", "/${entityName}Form.html?id=$entityVar.id")) {
+                                    attributes[first] = second
+                                }
                                 text("Modify")
                             }
                             a { classes = setOf("btn", "btn-outline-danger", "btn-sm", "ms-1")
-                                attributes["th:href"] = "@{/data/${entityName.lowercase()}/delete(id=\${$entityVar.id})}"
+                                with(templateBuilder.htmlAttribute("a", "href", "/data/${entityName.lowercase()}/delete?id=$entityVar.id")) {
+                                    attributes[first] = second
+                                }
                                 text("Delete")
                             }
                         }
                     }
                     // message line, if no items in the result
-                    tr { attributes["th:if"] = "\${#lists.isEmpty(${entityVar}s)}"
+                    tr {
+                        with(templateBuilder.htmlAttribute("tr", "if_empty", entityVar)) {
+                            attributes[first] = second
+                        }
                         td {
                             colSpan = "${entity.members.size}"
                             div { classes = setOf("alert", "alert-warning", "text-center"); role = "alert"

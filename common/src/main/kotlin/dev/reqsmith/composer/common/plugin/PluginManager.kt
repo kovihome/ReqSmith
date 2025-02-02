@@ -24,9 +24,10 @@ import java.util.*
 
 object PluginManager {
     val plugins: MutableMap<PluginType, MutableMap<String, Plugin>> = hashMapOf(
-        PluginType.BuildSystem to HashMap(),
-        PluginType.Language to HashMap(),
-        PluginType.Framework to HashMap(),
+        PluginType.BuildSystem to mutableMapOf(),
+        PluginType.Language to mutableMapOf(),
+        PluginType.Framework to mutableMapOf(),
+        PluginType.Template to mutableMapOf()
     )
 
     /**
@@ -90,19 +91,18 @@ object PluginManager {
             // search for user declared plugin
             plugin = plugins[type]?.get(userPluginName) as? T
         }
-        if (plugin == null) {
+        if (plugin == null && language.isNotBlank()) {
             // search for default language specific plugin
-            val pluginName = "${language}.${name}"
-            val defaultPluginName = ConfigManager.defaults.getOrDefault(pluginName, "")
+            val defaultPluginName = ConfigManager.defaults.getOrDefault("$name.$language", "")
             if (defaultPluginName.isNotEmpty()) {
-                plugin = plugins[type]?.get("$name.$defaultPluginName") as? T
+                plugin = plugins[type]?.get(defaultPluginName) as? T
             }
         }
         if (plugin == null) {
             // search for default plugin
             val defaultPluginName = ConfigManager.defaults.getOrDefault(name, "")
             if (defaultPluginName.isNotEmpty()) {
-                plugin = plugins[type]?.get("$name.$defaultPluginName") as? T
+                plugin = plugins[type]?.get(defaultPluginName) as? T
             }
         }
         if (plugin == null) {
