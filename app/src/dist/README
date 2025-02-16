@@ -1,9 +1,0 @@
-ReqSmith::forge, version 0.3.0-Web
-=====================================
-
-ReqSmith::forge is an application generator, which creates code from requirements directly,
-using software requirement patterns, best cases and predefined solutions.
-
-For more information, please visit http://reqsmith.dev
-
-Typing 'forge --help' prints the command line help.
