@@ -18,10 +18,9 @@
 
 package dev.reqsmith.composer.generator.plugin.language
 
+import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.common.plugin.PluginDef
-import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
-import dev.reqsmith.composer.generator.plugin.template.HtmlTemplateBuilder
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
@@ -33,6 +32,8 @@ private const val FORM_COLUMN_SIZE_CLS = "col-md-6"
 private const val ALIGN_ITEMS_CENTER = "align-items-center"
 
 class BootstrapHtmlBuilder: HtmlBuilder() {
+
+    private val nf = NameFormatter()
 
     override fun definition() = PluginDef("html.bootstrap", PluginType.Language)
 
@@ -238,7 +239,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     }
 
                     div { classes = setOf("row", "mb-3")
-                        label { htmlFor = member.memberId; classes = setOf(FORM_COLUMN_SIZE_CLS, "col-form-label"); text("${member.memberId.replaceFirstChar { it.uppercase() }}:") }
+                        label { htmlFor = member.memberId; classes = setOf(FORM_COLUMN_SIZE_CLS, "col-form-label"); text("${nf.toDisplayText(member.memberId)}:") }
                         when (controlType) {
                             "text" -> {
                                 div {
@@ -261,7 +262,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                         }
                                         option { value = ""; selected = true; text("Select...")  }
                                         enumList.forEach {
-                                            option { value = it; text(it) }
+                                            option { value = it; text(nf.toDisplayText(it)) }
                                         }
                                     }
                                 }
@@ -330,7 +331,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         entity.members.filter { it.memberId != "id" }.forEach { member ->
                             th {
                                 scope = ThScope.col
-                                text(member.memberId.replaceFirstChar { it.uppercase() })
+                                text(nf.toDisplayText(member.memberId))
                             }
                         }
                         th {
