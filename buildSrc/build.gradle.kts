@@ -32,5 +32,5 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.20")
-    implementation("com.github.ben-manes:gradle-versions-plugin:0.51.0")
+    implementation("com.github.ben-manes:gradle-versions-plugin:0.52.0")
 }
