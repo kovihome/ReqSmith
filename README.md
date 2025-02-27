@@ -66,7 +66,7 @@
 - [Installation](https://github.com/kovihome/ReqSmith/wiki/Getting-Started#step-1-installing-reqsmith)
 - [Getting started with ReqSmith](https://github.com/kovihome/ReqSmith/wiki/Getting-Started)
 - [Documentation (on wiki pages)](https://github.com/kovihome/ReqSmith/wiki)
-- [Release notes](./CHANGELOG)
+- [Release notes](https://github.com/kovihome/ReqSmith/blob/main/CHANGELOG.md)
 - FAQ
 - For developers
 
