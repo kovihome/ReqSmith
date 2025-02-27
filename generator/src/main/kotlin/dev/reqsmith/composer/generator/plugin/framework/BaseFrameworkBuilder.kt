@@ -23,7 +23,6 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMStatement
-import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.Property
 import dev.reqsmith.model.reqm.View
 
@@ -33,7 +32,7 @@ open class BaseFrameworkBuilder : DefaultFrameworkBuilder() {
         return PluginDef("framework.base", PluginType.Framework)
     }
 
-    override fun processEvent(prop: Property, cls: IGMClass, igm: InternalGeneratorModel) {
+    override fun processEvent(prop: Property, cls: IGMClass) {
         when (prop.key) {
             "applicationStart" -> {
                 // create main action
@@ -45,12 +44,12 @@ open class BaseFrameworkBuilder : DefaultFrameworkBuilder() {
                 val call = IGMAction.IGMActionStmt(IGMStatement.call).withParam("${cls.id}.${prop.value}")
                 main.statements.add(call)
             }
-            else -> super.processEvent(prop, cls, igm)
+            else -> super.processEvent(prop, cls)
         }
 
     }
 
-    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
+    override fun buildView(view: View, templateContext: MutableMap<String, String>) {
         TODO("Not yet implemented")
     }
 

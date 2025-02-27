@@ -18,12 +18,11 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
-import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.igm.IGMClass
-import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.*
 
 open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
@@ -42,32 +41,32 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
         // nothing to do
     }
 
-    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, projectModel: ProjectModel) {
+    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String) {
         // nothing to do
     }
 
-    override fun applyFeatureOnEntity(ent: Entity, igm: InternalGeneratorModel, feature: Feature) {
+    override fun applyFeatureOnEntity(ent: Entity, feature: Feature) {
         TODO("Not yet implemented")
     }
 
-    override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
-        processEvents(app.definition, igm.getClass(app.qid.toString()).apply { mainClass = true }, igm)
+    override fun buildApplication(app: Application) {
+        processEvents(app.definition, WholeProject.projectModel.igm.getClass(app.qid.toString()).apply { mainClass = true })
     }
 
-    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
+    override fun buildView(view: View, templateContext: MutableMap<String, String>) {
         TODO("Not yet implemented")
     }
 
-    private fun processEvents(definition: Definition, cls: IGMClass, igm: InternalGeneratorModel) {
+    private fun processEvents(definition: Definition, cls: IGMClass) {
         val events = definition.properties.find { it.key == "events" }
         events?.let {
             it.simpleAttributes.forEach {prop ->
-                processEvent(prop, cls, igm)
+                processEvent(prop, cls)
             }
         }
     }
 
-    protected open fun processEvent(prop: Property, cls: IGMClass, igm: InternalGeneratorModel) {
+    protected open fun processEvent(prop: Property, cls: IGMClass) {
         // intentionally empty function: no default events to be processed
     }
 

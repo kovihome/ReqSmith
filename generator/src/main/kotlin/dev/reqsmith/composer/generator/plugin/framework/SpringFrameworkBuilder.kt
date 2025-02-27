@@ -19,6 +19,7 @@
 package dev.reqsmith.composer.generator.plugin.framework
 
 import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
@@ -26,7 +27,6 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.TemplateContextCollector
 import dev.reqsmith.composer.parser.enumeration.Optionality
-import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.*
 import dev.reqsmith.model.reqm.*
@@ -47,11 +47,7 @@ private const val CRUD_ACTION_LISTALL = "listAll"
 /**
  * Spring Framework Builder
  *
- * It works as plugin for:
- *
- *   frameworks.web
- *   feature.persistence
- *   feature.template
+ * It works as plugin for: frameworks.web, feature.persistence, feature.template
  */
 open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     private var applicationName : String? = null
@@ -82,12 +78,12 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
     override fun getArtFolder(): String = "static"
 
-    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
-        super.buildView(view, igm, templateContext)
+    override fun buildView(view: View, templateContext: MutableMap<String, String>) {
+        super.buildView(view, templateContext)
 
         // check view is it is a template type (
         val isTemplate = view.definition.featureRefs.any { it.qid.toString() == "Template" }
-        val igmView = igm.views.getOrDefault(view.qid.toString(), null)
+        val igmView = WholeProject.projectModel.igm.views.getOrDefault(view.qid.toString(), null)
         val dataAttributes : MutableList<Pair<String, String>> = mutableListOf()
         if (igmView != null) {
             findDataAttributeInNode(igmView.layout, dataAttributes)
@@ -96,12 +92,13 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         if (isTemplate || dataAttributes.isNotEmpty()) {
             hasTemplateViews = true
             // create a controller class for this view
-            val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else igm.rootPackage
+            val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else WholeProject.projectModel.igm.rootPackage
             val className = view.qid!!.id!!
             val serviceClasses = dataAttributes.map { "$domainName.service.${it.second}Service" }
             val formClass = dataAttributes.any { it.first == "form" }
-            
-            getSpringController("$domainName.controller.${className}Controller", igm, serviceClasses).apply {
+
+
+            getSpringController("$domainName.controller.${className}Controller", serviceClasses).apply {
 
                 getAction(className.lowercase()).apply {
                     this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.GetMapping")).apply {
@@ -149,9 +146,9 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         node.children.forEach { findDataAttributeInNode(it, dataAttributes) }
     }
 
-    override fun buildApplication(app: Application, igm: InternalGeneratorModel) {
-        super.buildApplication(app, igm)
-        val appClass = igm.getClass(app.qid!!.toString())
+    override fun buildApplication(app: Application) {
+        super.buildApplication(app)
+        val appClass = WholeProject.projectModel.igm.getClass(app.qid!!.toString())
         appClass.annotations.add(IGMAction.IGMAnnotation("SpringBootApplication"))
         appClass.addImport("org.springframework.boot.autoconfigure.SpringBootApplication")
 
@@ -182,12 +179,8 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         }
     }
 
-    override fun processResources(
-        reqmResourcesFolderName: String,
-        buildResourcesFolderName: String,
-        projectModel: ProjectModel
-    ) {
-        super.processResources(reqmResourcesFolderName, buildResourcesFolderName, projectModel)
+    override fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String) {
+        super.processResources(reqmResourcesFolderName, buildResourcesFolderName)
 
         // create or update application.properties
         val propFile = File("$buildResourcesFolderName/application.properties")
@@ -197,7 +190,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                 applicationProperties.load(it)
             }
         }
-        if (applicationName.isNullOrBlank()) applicationName = projectModel.source.applications[0].qid!!.id
+        if (applicationName.isNullOrBlank()) applicationName = WholeProject.projectModel.source.applications[0].qid!!.id
         addSpringApplicationProperties()
         propFile.bufferedWriter().use { writer ->
             writer.write("# Spring application properties for $applicationName\n\n")
@@ -205,27 +198,27 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         }
 
         // generate index.html page
-        if (projectModel.source.views.none { it.qid.toString() == "index" }) {
-            val startView = projectModel.source.applications[0].definition.properties.find { it.key == "startView" }
+        if (WholeProject.projectModel.source.views.none { it.qid.toString() == "index" }) {
+            val startView = WholeProject.projectModel.source.applications[0].definition.properties.find { it.key == "startView" }
             val viewName = if (startView != null) startView.value!! else "#"
             val context = mapOf( "WelcomePage" to viewName)
             val indexContent = Template().translateFile(context, "templates/index.html.st")
-            projectModel.resources.add(Pair("<save>$indexContent", "$buildResourcesFolderName/${getViewFolder()}/index.html"))
+            WholeProject.projectModel.resources.add(Pair("<save>$indexContent", "$buildResourcesFolderName/${getViewFolder()}/index.html"))
         }
 
         // copy error.html page
         val uri = javaClass.getResource("/templates/error.html.st") ?: throw FileNotFoundException("/templates/error.html.st")
-        projectModel.resources.add(Pair("<save>${uri.readText()}", "$buildResourcesFolderName/${getViewFolder()}/error.html"))
+        WholeProject.projectModel.resources.add(Pair("<save>${uri.readText()}", "$buildResourcesFolderName/${getViewFolder()}/error.html"))
 
         // file template files
         var hasTemplateFiles = false
-        projectModel.source.views.forEach { view ->
+        WholeProject.projectModel.source.views.forEach { view ->
             view.definition.featureRefs.find { it.qid.toString() == "Template" }?.let { fr ->
                 fr.properties.find { it.key == "file" }?.value?.let { fileName ->
                     val fp = fileName.removeSurrounding("'").removeSurrounding("\"")
                     val fn = fp.substringAfterLast('/').substringAfterLast("\\")
                     val destFileName = "$buildResourcesFolderName/${getViewFolder()}/$fn"
-                    projectModel.resources.add(Pair("$reqmResourcesFolderName/$fp", destFileName))
+                    WholeProject.projectModel.resources.add(Pair("$reqmResourcesFolderName/$fp", destFileName))
                     hasTemplateFiles = true
                 }
             }
@@ -239,14 +232,15 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             Project.ensureFolderExists(copyTo, null)
 
             File(copyFrom).listFiles()?.filter { it.isFile }?.forEach { file ->
-                projectModel.resources.add(Pair("$copyFrom/${file.name}", "$copyTo/${file.name}"))
+                WholeProject.projectModel.resources.add(Pair("$copyFrom/${file.name}", "$copyTo/${file.name}"))
             }
         }
 
     }
 
-    override fun applyFeatureOnEntity(ent: Entity, igm: InternalGeneratorModel, feature: Feature) {
+    override fun applyFeatureOnEntity(ent: Entity, feature: Feature) {
         if (feature.qid.toString() == "Persistent") {
+            // add spring data plugins and dependencies to build system
             if (!springPlugins.contains(springDataPlugins[0])) {
                 springPlugins.addAll(springDataPlugins)
                 springDependencies.addAll(springDataDependencies)
@@ -256,7 +250,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                 springDependencies.addAll(h2.dependencies)
                 h2.properties.forEach { applicationProperties.setProperty(it.first, it.second) }
             }
-            applySpringDataPersistenceOnEntity(ent, igm, feature)
+            applySpringDataPersistenceOnEntity(ent, WholeProject.projectModel.igm, feature)
         } else {
             TODO("Not implemented yet!")
         }
@@ -317,9 +311,11 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
         // add member from persistent feature
         persistentProperties.forEach { prop ->
-            igmClass.getMember(prop.key!!).apply {
-                optionality = Optionality.Optional.name
-                type = prop.type ?: ConfigManager.defaults.getOrDefault("propertyType", "String")
+            if (!listOf(StandardTypes.valueList.name, StandardTypes.propertyList.name).contains(prop.type)) {
+                igmClass.getMember(prop.key!!).apply {
+                    optionality = Optionality.Optional.name
+                    type = prop.type ?: ConfigManager.defaults.getOrDefault("propertyType", "String")
+                }
             }
         }
 
@@ -327,7 +323,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         // no annotation needed yet
 
         // create repository interface for this entity
-        val repoClassName = "${igmClass.id.replace("entities", "repository")}Repository"
+        val repoClassName = WholeProject.sourceArchitecture.repositoryName(igmClass.id)
         igm.getClass(repoClassName).apply {
             interfaceType = true
             parent = addImport("org.springframework.data.jpa.repository.JpaRepository")
@@ -336,7 +332,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
         // create service class for this entity
         // controller name: <base-package>/controller/<entity>Controller
-        val serviceClassName = "${igmClass.id.replace("entities", "service")}Service"
+        val serviceClassName = WholeProject.sourceArchitecture.serviceName(igmClass.id)
         val repo = repoClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }
         igm.getClass(serviceClassName).apply {
             annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Service")))
@@ -374,8 +370,11 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
         // create controller class for this entity
         // controller name: <base-package>/controller/<entity>Controller
-        val controllerClassName = "${igmClass.id.replace("entities", "controller")}Controller"
-        getSpringController(controllerClassName, igm, listOf(serviceClassName)).apply {
+        // TODO: a controller létrehozása nem a persistent feature dolga, hanem a view creatoré
+        //  a controller method neve a view event action-ből jön
+        //  a meghivandó service method a view event action-ből, itt validálni kell, hogy létezik-e ilyen method már, ha nem, warning
+        val controllerClassName = WholeProject.sourceArchitecture.controllerName(igmClass.id)
+        getSpringController(controllerClassName, listOf(serviceClassName)).apply {
 
             // create action for create entity
             var actionUrl = "/data/${igmClass.id.substringAfterLast('.').lowercase()}/${CRUD_ACTION_PERSIST}"
@@ -411,15 +410,11 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                 addStmt(IGMStatement.call, "$serviceClassName.$CRUD_ACTION_DELETE", "id")
                 addStmt(IGMStatement.`return`, "'redirect:/'")
             }
-
-
-
         }
-
     }
 
-    private fun getSpringController(controllerClassName: String, igm: InternalGeneratorModel, serviceClassNames: List<String> = listOf()): IGMClass {
-        return igm.getClass(controllerClassName).apply {
+    private fun getSpringController(controllerClassName: String, serviceClassNames: List<String> = listOf()): IGMClass {
+        return WholeProject.projectModel.igm.getClass(controllerClassName).apply {
             annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Controller")))
             serviceClassNames.forEach { serviceClassName ->
                 val service = serviceClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }

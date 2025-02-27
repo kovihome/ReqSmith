@@ -19,15 +19,15 @@
 package dev.reqsmith.composer.validator
 
 import dev.reqsmith.composer.common.Log
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
-import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 
-class ModelValidator(private val projectModel: ProjectModel) {
+class ModelValidator {
 
     fun validateCompleteness(): Boolean {
-        val model = projectModel.source
+        val model = WholeProject.projectModel.source
 
         // Search for typeless properties, and assign default type to them
         val defPropertyType = ConfigManager.defaults["propertyType"] ?: "String"
@@ -67,7 +67,7 @@ class ModelValidator(private val projectModel: ProjectModel) {
                     })
                 }
             }
-            projectModel.source.views.add(newView)
+            model.views.add(newView)
         }
 
         // TODO search for missing reference in srcRef (applications and modules? excluded), property types, features
@@ -79,7 +79,7 @@ class ModelValidator(private val projectModel: ProjectModel) {
     private fun resolveMissingLinks(property: Property, missingLinks: MutableList<String>) {
         if (property.key == "to") {
             val link = property.value
-            if (link != null && !link.startsWith("http:") && !link.startsWith("https:") && projectModel.source.views.none { it.qid.toString() == link }) {
+            if (link != null && !link.startsWith("http:") && !link.startsWith("https:") && WholeProject.projectModel.source.views.none { it.qid.toString() == link }) {
                 Log.warning("Missing link ${link}; create new view for this link. (${property.coords()})")
                 if (!missingLinks.contains(link)) missingLinks.add(link)
             }
@@ -102,7 +102,7 @@ class ModelValidator(private val projectModel: ProjectModel) {
      *
      */
     fun resolveInconsistencies(): Boolean {
-        val model = projectModel.source
+        val model = WholeProject.projectModel.source
 
         // TODO if multiple application items exist, merge them
         // error conditions:
@@ -143,16 +143,16 @@ class ModelValidator(private val projectModel: ProjectModel) {
         val errors: MutableList<String> = ArrayList()
 
         // search event actions in event sources
-        projectModel.source.applications.forEach { app ->
+        WholeProject.projectModel.source.applications.forEach { app ->
             resolveActionOwnershipFromAppEvents(app, errors)
         }
-        projectModel.dependencies.modules.forEach { mod ->
+        WholeProject.projectModel.dependencies.modules.forEach { mod ->
             resolveActionOwnershipFromModEvents(mod, errors)
         }
 
         // search modules/applications for orphan actions
-        searchModuleForOrphanActions(projectModel.source, errors)
-        searchModuleForOrphanActions(projectModel.dependencies, errors)
+        searchModuleForOrphanActions(WholeProject.projectModel.source, errors)
+        searchModuleForOrphanActions(WholeProject.projectModel.dependencies, errors)
 
         return errors
     }
@@ -175,12 +175,12 @@ class ModelValidator(private val projectModel: ProjectModel) {
         val events = app.definition.properties.find { it.key == "events" }
         events?.simpleAttributes?.forEach { ev ->
             val actionName = ev.value
-            var result = searchActionOwnerInModel(projectModel.source, actionName, app.qid!!, null)
+            var result = searchActionOwnerInModel(WholeProject.projectModel.source, actionName, app.qid!!, null)
             var srcRef: QualifiedId? = app.sourceRef
             while (result == null && srcRef != null) {
-                val parent = projectModel.dependencies.applications.find { it.qid == srcRef }
+                val parent = WholeProject.projectModel.dependencies.applications.find { it.qid == srcRef }
                 result = if (parent != null) {
-                    searchActionOwnerInModel(projectModel.dependencies, actionName, app.qid!!, parent.sourceFileName)
+                    searchActionOwnerInModel(WholeProject.projectModel.dependencies, actionName, app.qid!!, parent.sourceFileName)
                 } else {
                     "action $actionName was not found."
                 }
@@ -196,12 +196,12 @@ class ModelValidator(private val projectModel: ProjectModel) {
         val events = mod.definition.properties.find { it.key == "events" }
         events?.simpleAttributes?.forEach { ev ->
             val actionName = ev.value
-            var result = searchActionOwnerInModel(projectModel.source, actionName, mod.qid!!, null)
+            var result = searchActionOwnerInModel(WholeProject.projectModel.source, actionName, mod.qid!!, null)
             var srcRef: QualifiedId? = mod.sourceRef
             while (result == null && srcRef != null) {
-                val parent = projectModel.dependencies.modules.find { it.qid == srcRef }
+                val parent = WholeProject.projectModel.dependencies.modules.find { it.qid == srcRef }
                 result = if (parent != null) {
-                    searchActionOwnerInModel(projectModel.dependencies, actionName, mod.qid!!, parent.sourceFileName)
+                    searchActionOwnerInModel(WholeProject.projectModel.dependencies, actionName, mod.qid!!, parent.sourceFileName)
                 } else {
                     "action $actionName was not found."
                 }

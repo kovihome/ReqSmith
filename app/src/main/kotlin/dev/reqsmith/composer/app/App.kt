@@ -21,12 +21,12 @@ package dev.reqsmith.composer.app
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.exceptions.ReqMMergeException
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.plugin.buildsys.BuildSystem
-import dev.reqsmith.model.ProjectModel
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
@@ -83,13 +83,14 @@ class App(private val args: Array<String>) {
 
         // set up project environment
         val project = Project(projectDir, buildSystem)
+        WholeProject.project = project
         if (!project.calculateFolders(forInit = true)) {
             project.printErrors()
             return false
         }
 
         // create default minimal app
-        Composer(project, ProjectModel(), path).createApp(projectName!!)
+        Composer(/*project, ProjectModel(), */path).createApp(projectName!!)
 
         return true
 
@@ -112,6 +113,7 @@ class App(private val args: Array<String>) {
             inputFolder = inputDir
             outputFolder = outputDir
         }
+        WholeProject.project = project
         if (!project.calculateFolders()) {
             project.printErrors()
             return false
@@ -129,12 +131,9 @@ class App(private val args: Array<String>) {
         // check output directory, create if it does not exist
         Log.info("Output directory: ${project.outputFolder}")
 
-        // create project data
-        val projectModel = ProjectModel()
-
         // compose full requirement model
         val composeOk = try {
-            Composer(project, projectModel, path).compose()
+            Composer(/*project, projectModel, */path).compose()
         } catch (me: ReqMMergeException) {
             me.errors.forEach { Log.error(it) }
             return false
@@ -148,7 +147,7 @@ class App(private val args: Array<String>) {
         }
 
         // generate source code
-        val generator = Generator(project, projectModel, path, language)
+        val generator = Generator(/*project, projectModel, */path, language)
         val success = try {
             generator.generate()
         } catch (e: Exception) {

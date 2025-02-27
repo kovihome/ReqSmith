@@ -20,20 +20,14 @@ package dev.reqsmith.composer.generator
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
-import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.igm.IGMView
 import java.io.File
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
 
-class ViewGenerator(
-    private val langBuilder: LanguageBuilder,
-    private val project: Project,
-    private val projectModel: ProjectModel,
-    private val viewResourceFolderName: String,
-    private val artResourceFolderName: String
-) {
+class ViewGenerator(private val langBuilder: LanguageBuilder, private val viewResourceFolderName: String, private val artResourceFolderName: String) {
 
     private fun String.toPath():String = this.replace('.', '/')
 
@@ -41,7 +35,7 @@ class ViewGenerator(
         langBuilder.artPathPrefix = "art"
 
         // generate view files
-        projectModel.igm.views.forEach { buildView(it.value) }
+        WholeProject.projectModel.igm.views.forEach { buildView(it.value) }
 
         return true
     }
@@ -55,7 +49,7 @@ class ViewGenerator(
 
         // is this view static or dynamic?
         val controllerName = "${view.id}Controller"
-        val isDynamic = projectModel.igm.classes.any { it.key.endsWith(controllerName) }
+        val isDynamic = WholeProject.projectModel.igm.classes.any { it.key.endsWith(controllerName) }
 
         // create file path
         val entPath = view.id.toPath()
@@ -71,13 +65,13 @@ class ViewGenerator(
     }
 
     fun copyArts(): Boolean {
-        val copyFrom = "${project.projectFolder}/${project.artFolder}"
+        val copyFrom = "${WholeProject.project.projectFolder}/${WholeProject.project.artFolder}"
         val copyTo = "$artResourceFolderName/art"
         Project.ensureFolderExists(copyTo, null)
 
         langBuilder.viewArts.forEach {
             val resourceFileName = it.removeSurrounding("'").removeSurrounding("\"")
-            projectModel.resources.add(Pair("$copyFrom/$resourceFileName", "$copyTo/$resourceFileName"))
+            WholeProject.projectModel.resources.add(Pair("$copyFrom/$resourceFileName", "$copyTo/$resourceFileName"))
         }
         return true
     }

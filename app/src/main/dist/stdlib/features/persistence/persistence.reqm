@@ -6,6 +6,12 @@
 
 // Persistent feature for entities
 feature Persistent {
+    actions {
+        persist
+        delete
+        get
+        listAll
+    }
     generator: 'feature.persistence'
 }
 

@@ -20,26 +20,26 @@ package dev.reqsmith.composer.generator
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
-import dev.reqsmith.model.igm.InternalGeneratorModel
 import java.io.File
 import java.io.FileWriter
 import java.nio.charset.StandardCharsets
 
-class CodeGenerator(private val langBuilder: LanguageBuilder, private val project: Project, private val igm: InternalGeneratorModel) {
+class CodeGenerator(private val langBuilder: LanguageBuilder) {
 
-    private val srcPath = project.srcPath(langBuilder.language)
+    private val srcPath = WholeProject.project.srcPath(langBuilder.language)
 
     private fun String.toPath():String = this.replace('.', '/')
 
     fun generate(fileHeader: String): Boolean {
 
-        igm.classes.forEach {  buildClass(it.value, fileHeader) }
+        WholeProject.projectModel.igm.classes.forEach {  buildClass(it.value, fileHeader) }
 
-        igm.enumerations.forEach { buildEnumeration(it.value, fileHeader) }
+        WholeProject.projectModel.igm.enumerations.forEach { buildEnumeration(it.value, fileHeader) }
 
         return true
     }
@@ -119,9 +119,9 @@ class CodeGenerator(private val langBuilder: LanguageBuilder, private val projec
         cls.members.forEach { member ->
             val type = member.type
             if (!StandardTypes.has(type.replaceFirstChar { it.lowercase() })) {
-                var classOfType = igm.classes.keys.find { it.endsWith(type) }
+                var classOfType = WholeProject.projectModel.igm.classes.keys.find { it.endsWith(type) }
                 if (classOfType == null) {
-                    classOfType = igm.enumerations.keys.find { it.endsWith(type) }
+                    classOfType = WholeProject.projectModel.igm.enumerations.keys.find { it.endsWith(type) }
                 }
                 if (classOfType == null) classOfType = type
                 if (classOfType.contains('.')) {

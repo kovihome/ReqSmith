@@ -19,45 +19,44 @@
 package dev.reqsmith.composer.app
 
 import dev.reqsmith.composer.common.Log
-import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.composer.ModelMerger
 import dev.reqsmith.composer.parser.ReqMParser
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.validator.ModelValidator
-import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.reqm.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class Composer(private val project: Project, private val projectModel: ProjectModel, private val appHome: String) {
+class Composer(/*private val project: Project, private val projectModel: ProjectModel, */private val appHome: String) {
 
     fun compose() : Boolean {
 
         // parse load each reqm files
-        Log.info("Parsing ReqM sources from folder ${project.inputFolder}")
+        Log.info("Parsing ReqM sources from folder ${WholeProject.project.inputFolder}")
         val parser = ReqMParser()
         // TODO: parse entire directory tree (as stdlib)
-        val success = parser.parseFolder(project.inputFolder!!, projectModel.source)
+        val success = parser.parseFolder(WholeProject.project.inputFolder!!, WholeProject.projectModel.source)
         if (!success) {
             // Failure Point #1 - syntactical errors in reqm files
             return false
         }
         Log.info("=============== ReqMSource ===============")
-        Log.info("ReqM source folder ${project.inputFolder} contains:")
-        if (projectModel.source.applications.isNotEmpty()) Log.info("  ${projectModel.source.applications.size} applications")
-        if (projectModel.source.modules.isNotEmpty()) Log.info("  ${projectModel.source.modules.size} modules")
-        if (projectModel.source.actors.isNotEmpty()) Log.info("  ${projectModel.source.actors.size} actors")
-        if (projectModel.source.classes.isNotEmpty()) Log.info("  ${projectModel.source.classes.size} classes")
-        if (projectModel.source.entities.isNotEmpty()) Log.info("  ${projectModel.source.entities.size} entities")
-        if (projectModel.source.actions.isNotEmpty()) Log.info("  ${projectModel.source.actions.size} actions")
-        if (projectModel.source.views.isNotEmpty()) Log.info("  ${projectModel.source.views.size} views")
-        if (projectModel.source.features.isNotEmpty()) Log.info("  ${projectModel.source.features.size} features")
+        Log.info("ReqM source folder ${WholeProject.project.inputFolder} contains:")
+        if (WholeProject.projectModel.source.applications.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.applications.size} applications")
+        if (WholeProject.projectModel.source.modules.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.modules.size} modules")
+        if (WholeProject.projectModel.source.actors.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.actors.size} actors")
+        if (WholeProject.projectModel.source.classes.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.classes.size} classes")
+        if (WholeProject.projectModel.source.entities.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.entities.size} entities")
+        if (WholeProject.projectModel.source.actions.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.actions.size} actions")
+        if (WholeProject.projectModel.source.views.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.views.size} views")
+        if (WholeProject.projectModel.source.features.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.features.size} features")
         Log.info("==========================================")
 
         // consolidate reqm source - inconsistencies, merge multiple element instances
         Log.title("Consolidate ReqM")
-        val validator = ModelValidator(projectModel)
+        val validator = ModelValidator()
         val isConsistent = validator.resolveInconsistencies()
         if (!isConsistent) {
             // TODO: Failure Point #2 - inconsistencies in reqm model
@@ -75,7 +74,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
 
         // compose fully defined reqm from reqm source and repository search result
         Log.title("Merge model with identified references")
-        ModelMerger(projectModel, finder).merge()
+        ModelMerger(finder).merge()
 
         // resolve ownership of actions
         Log.info("Resolve actions' ownership")
@@ -86,7 +85,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
         }
 
         // drop applications from dependencies
-        projectModel.dependencies.applications.clear()
+        WholeProject.projectModel.dependencies.applications.clear()
 
         // validate model completeness
         Log.title("Validate model completeness")
@@ -97,11 +96,11 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
         }
 
         // save composed reqm and dependencies
-        val projectName = projectModel.source.applications[0].qid!!.id!!
+        val projectName = WholeProject.projectModel.source.applications[0].qid!!.id!!
         val reqmFileHeader = getReqmFileHeader(projectName, "templates/reqm_eff_header.st")
         val writer = dev.reqsmith.composer.parser.ReqMWriter()
-        writeReqmFile("effective.reqm", projectModel.source, reqmFileHeader, writer)
-        writeReqmFile("dependencies.reqm", projectModel.dependencies, reqmFileHeader, writer)
+        writeReqmFile("effective.reqm", WholeProject.projectModel.source, reqmFileHeader, writer)
+        writeReqmFile("dependencies.reqm", WholeProject.projectModel.dependencies, reqmFileHeader, writer)
 
         // add dependencies to the application reqm model for generation
         addDependenciesToGenerate()
@@ -110,7 +109,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
     }
 
     private fun writeReqmFile(fileName: String, reqmModel: ReqMSource, reqmFileHeader: String, writer: dev.reqsmith.composer.parser.ReqMWriter) {
-        val outputDepFileName = "${project.outputFolder}/$fileName"
+        val outputDepFileName = "${WholeProject.project.outputFolder}/$fileName"
         Log.text("Saving dependencies to $outputDepFileName")
         writer.writeReqM(reqmModel, outputDepFileName, reqmFileHeader)
         Log.info("=============== ${if (fileName.startsWith("dep")) "Dependencies" else "ReqMSource"} ===============")
@@ -120,10 +119,10 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
 
     private fun addDependenciesToGenerate() {
         // copy relevant actions
-        projectModel.source.actions.addAll(projectModel.dependencies.actions.filter { it.definition != ActionDefinition.Undefined && it.owner != null })
+        WholeProject.projectModel.source.actions.addAll(WholeProject.projectModel.dependencies.actions.filter { it.definition != ActionDefinition.Undefined && it.owner != null })
 
         // copy features
-        projectModel.source.features.addAll(projectModel.dependencies.features)
+        WholeProject.projectModel.source.features.addAll(WholeProject.projectModel.dependencies.features)
 
         // TODO: copy other relevant elements into model
     }
@@ -137,7 +136,7 @@ class Composer(private val project: Project, private val projectModel: ProjectMo
         val reqmsrc = ReqMSource().apply {
             applications.add(application)
         }
-        val outputFileName = "${project.inputFolder}/$projectName.reqm"
+        val outputFileName = "${WholeProject.project.inputFolder}/$projectName.reqm"
         Log.info("\nSaving model to $outputFileName")
         val writer = dev.reqsmith.composer.parser.ReqMWriter()
         writer.writeReqM(reqmsrc, outputFileName, getReqmFileHeader(projectName, "templates/reqm_src_header.st"))

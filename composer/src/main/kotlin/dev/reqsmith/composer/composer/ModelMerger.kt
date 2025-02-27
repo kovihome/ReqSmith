@@ -19,24 +19,23 @@
 package dev.reqsmith.composer.composer
 
 import dev.reqsmith.composer.common.Log
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.exceptions.ReqMMergeException
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
 import dev.reqsmith.composer.parser.ReqMParser
 import dev.reqsmith.composer.parser.enumeration.Optionality
-import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
-import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.enumeration.StandardLayoutElements
+import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 
 /**
  * Merge missing requirement elements and collect dependencies from repository into project model
- * @param projectModel the Project Model
  * @param finder Repository finder
  */
-class ModelMerger(private val projectModel: ProjectModel, private val finder: RepositoryFinder) {
+class ModelMerger(private val finder: RepositoryFinder) {
     private val parser = ReqMParser()
     private val errors: MutableList<String> = ArrayList()
 
@@ -46,12 +45,12 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
      * @throws ReqMMergeException - holds all merge errors
      */
     fun merge() {
-        projectModel.source.applications.forEach { app ->
+        WholeProject.projectModel.source.applications.forEach { app ->
             // collect reference applications
             if (app.sourceRef != null && app.sourceRef != QualifiedId.Undefined) {
                 val apps = collectApplicationSources(app.sourceRef!!)
                 if (apps.isNotEmpty()) {
-                    projectModel.dependencies.applications.addAll(apps)
+                    WholeProject.projectModel.dependencies.applications.addAll(apps)
                     // TODO: sort the list by score
                     mergeApplicationRef(app, apps)
                 } else {
@@ -61,18 +60,18 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
 
             // resolve dependencies
             val modules = resolveDependencies(app)
-            projectModel.dependencies.modules.addAll(modules)
+            WholeProject.projectModel.dependencies.modules.addAll(modules)
 
             // resolve event sources
             val eventActions = resolveEventActions(app)
-            projectModel.dependencies.actions.addAll(eventActions)
+            WholeProject.projectModel.dependencies.actions.addAll(eventActions)
         }
-        projectModel.source.actors.forEach { act ->
+        WholeProject.projectModel.source.actors.forEach { act ->
             // collect reference actors
             if (act.sourceRef != null && act.sourceRef != QualifiedId.Undefined) {
                 val acts = collectActorSources(act.sourceRef!!)
                 if (acts.isNotEmpty()) {
-                    projectModel.dependencies.actors.addAll(acts)
+                    WholeProject.projectModel.dependencies.actors.addAll(acts)
                     // TODO: sort the list by score
                     mergeActorRef(act, acts)
                 } else {
@@ -80,12 +79,12 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                 }
             }
         }
-        projectModel.source.classes.forEach { cls ->
+        WholeProject.projectModel.source.classes.forEach { cls ->
             // collect reference classes
             if (cls.sourceRef != null && cls.sourceRef != QualifiedId.Undefined) {
                 val clss = collectClassSources(cls.sourceRef!!)
                 if (clss.isNotEmpty()) {
-                    projectModel.dependencies.classes.addAll(clss)
+                    WholeProject.projectModel.dependencies.classes.addAll(clss)
                     // TODO: sort the list by score
                     mergeClassRef(cls, clss)
                 } else {
@@ -93,12 +92,12 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                 }
             }
         }
-        projectModel.source.entities.forEach { ent ->
+        WholeProject.projectModel.source.entities.forEach { ent ->
             // collect reference entities
             if (ent.sourceRef != null && ent.sourceRef != QualifiedId.Undefined) {
                 val ents = collectEntitySources(ent.sourceRef!!)
                 if (ents.isNotEmpty()) {
-                    projectModel.dependencies.entities.addAll(ents)
+                    WholeProject.projectModel.dependencies.entities.addAll(ents)
                     // TODO: sort the list by score
                     mergeEntityRef(ent, ents)
                 } else {
@@ -108,20 +107,20 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
             collectFeatures(ent.definition.featureRefs)
         }
         // add dependent actions to the dependencies
-        projectModel.source.actions.forEach { act ->
+        WholeProject.projectModel.source.actions.forEach { act ->
             act.definition.actionCalls.forEach {
                 val actdep = collectActionSources(it.actionName)
-                projectModel.dependencies.actions.addAll(actdep)
+                WholeProject.projectModel.dependencies.actions.addAll(actdep)
             }
             
         }
 
         // add dependent views
-        projectModel.source.views.forEach { view ->
+        WholeProject.projectModel.source.views.forEach { view ->
             collectViewDependencies(view)
             resolveViewPropertiesInLayout(view)
         }
-        projectModel.source.views.filter { v -> v.definition.featureRefs.any { it.qid.id == "Template" } }.forEach { view ->
+        WholeProject.projectModel.source.views.filter { v -> v.definition.featureRefs.any { it.qid.id == "Template" } }.forEach { view ->
             resolveViewTemplates(view)
         }
 
@@ -138,9 +137,9 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
             featureRef.properties.find { it.key == "templateView" }?.type
         }
         if (templateViewName != null) {
-            var templateView = projectModel.source.views.find { it.qid?.id == templateViewName }
+            var templateView = WholeProject.projectModel.source.views.find { it.qid?.id == templateViewName }
             if (templateView == null) {
-                templateView = projectModel.dependencies.views.find { it.qid?.id == templateViewName }
+                templateView = WholeProject.projectModel.dependencies.views.find { it.qid?.id == templateViewName }
                 if (templateView == null) {
                     val ic = finder.find(Ref.Type.vie, templateViewName, null)
                     if (ic.items.isNotEmpty()) {
@@ -151,7 +150,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                             val reqmSource = parseFile(icItem.filename!!)
                             val depView = reqmSource.views.find { v -> v.qid!!.id == icItem.name }
                             if (depView != null) {
-                                projectModel.dependencies.views.add(depView)
+                                WholeProject.projectModel.dependencies.views.add(depView)
                                 collectViewDependencies(depView)
                                 resolveViewPropertiesInLayout(depView)
                                 templateView = depView
@@ -249,7 +248,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                 val feature = reqmSource.features.find { item.name == it.qid.toString() }
                 if (feature != null) {
                     feature.increaseRefCount()
-                    projectModel.dependencies.features.add(feature)
+                    WholeProject.projectModel.dependencies.features.add(feature)
                     addDependencyToList(feature.sourceRef, Ref.Type.ftr, ic)
                 }
                 ix++
@@ -258,7 +257,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
     }
 
     private fun mergeViewRef(view: View) {
-        val refView = projectModel.dependencies.views.find { it.qid.toString() == view.sourceRef.toString() }
+        val refView = WholeProject.projectModel.dependencies.views.find { it.qid.toString() == view.sourceRef.toString() }
         if (refView != null) {
             mergeProperties(view.definition.properties, refView.definition.properties)
         }
@@ -268,11 +267,11 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
         val ic = finder.find(Ref.Type.vie, sourceRef.id!!, sourceRef.domain)
         if (ic.items.isEmpty()) errors.add("Source reference $sourceRef is not found.")
         ic.items.forEach {
-            if (projectModel.dependencies.views.none { d -> it.name == d.qid.toString() }) {
+            if (WholeProject.projectModel.dependencies.views.none { d -> it.name == d.qid.toString() }) {
                 val reqmSource = parseFile(it.filename!!)
                 val depView = reqmSource.views.find { v -> v.qid!!.id == it.name }
                 if (depView != null) {
-                    projectModel.dependencies.views.add(depView)
+                    WholeProject.projectModel.dependencies.views.add(depView)
                     if (!StandardLayoutElements.contains(depView.qid.toString())) {
                         if (depView.sourceRef != null && depView.sourceRef != QualifiedId.Undefined) {
                             collectViewSources(depView.sourceRef!!)
@@ -298,9 +297,9 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
                 if (prop.type == StandardTypes.propertyList.name && !StandardLayoutElements.contains(prop.key!!)) {
                     collectViewLayoutDeps(prop.simpleAttributes)
                 }
-                var depView = projectModel.source.views.find { dep -> dep.qid.toString() == prop.key }
+                var depView = WholeProject.projectModel.source.views.find { dep -> dep.qid.toString() == prop.key }
                 if (depView == null) {
-                    depView = projectModel.dependencies.views.find { dep -> dep.qid.toString() == prop.key }
+                    depView = WholeProject.projectModel.dependencies.views.find { dep -> dep.qid.toString() == prop.key }
                 }
                 if (depView != null) {
                     if (prop.type != StandardTypes.propertyList.name) {
@@ -330,7 +329,7 @@ class ModelMerger(private val projectModel: ProjectModel, private val finder: Re
         events?.simpleAttributes?.forEach { attr ->
             val actionName = attr.value
             // is this action exists in reqmsrc?
-            val srcAction = projectModel.source.actions.find { it.qid!!.id == actionName }
+            val srcAction = WholeProject.projectModel.source.actions.find { it.qid!!.id == actionName }
             if (srcAction == null) {
                 // not exists, search dependencies for it
                 val ic = finder.find(Ref.Type.acn, actionName!!, null)

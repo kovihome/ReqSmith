@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.generator.plugin.language
 
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
@@ -60,7 +61,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 if (attr.contains("logo")) {
                     img { src = "$artPathPrefix/${attr["logo"]}"; alt = "logo"; classes = setOf("me-3"); style = "height: 128px;"
                         viewArts.add(attr["logo"] ?: "")
-                        igm.addResource("static/$artPathPrefix", "$artPathPrefix/${attr["logo"]}") // TODO static
+                        WholeProject.projectModel.igm.addResource("static/$artPathPrefix", "$artPathPrefix/${attr["logo"]}") // TODO static
                     }
                 }
                 if (attr.contains("title")) {
@@ -390,17 +391,17 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     }
 
     private fun getEntity(entityName: String): IGMClass {
-        val className = igm.classes.keys.find { it.endsWith(entityName) }
-        return if (className != null) igm.getClass(className) else IGMClass(entityName)
+        val className = WholeProject.projectModel.igm.classes.keys.find { it.endsWith(entityName) }
+        return if (className != null) WholeProject.projectModel.igm.getClass(className) else IGMClass(entityName)
     }
 
     private fun getEnumeration(enumName: String): List<String> {
-        val enumerationName = igm.enumerations.keys.find { it.endsWith(enumName) }
-        return if (enumerationName != null) igm.getEnumeration(enumerationName).values else listOf()
+        val enumerationName = WholeProject.projectModel.igm.enumerations.keys.find { it.endsWith(enumName) }
+        return if (enumerationName != null) WholeProject.projectModel.igm.getEnumeration(enumerationName).values else listOf()
     }
 
     private fun existingView(viewName: String): Boolean {
-        return igm.views.keys.any { it.endsWith(viewName) }
+        return WholeProject.projectModel.igm.views.keys.any { it.endsWith(viewName) }
     }
 
 }

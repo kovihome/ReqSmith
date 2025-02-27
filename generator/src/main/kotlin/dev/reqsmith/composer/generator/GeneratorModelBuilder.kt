@@ -19,28 +19,26 @@
 package dev.reqsmith.composer.generator
 
 import dev.reqsmith.composer.common.Log
-import dev.reqsmith.composer.common.Project
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilder
-import dev.reqsmith.model.ProjectModel
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMStatement
-import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.*
 
-class GeneratorModelBuilder(private val projectModel: ProjectModel, private val resourcesFolderName: String, private val project: Project) {
-    private val appRootPackage = projectModel.source.applications[0].qid?.domain ?: "com.sample.app"
+class GeneratorModelBuilder(private val resourcesFolderName: String) {
+    private val appRootPackage = WholeProject.projectModel.source.applications[0].qid?.domain ?: "com.sample.app"
     var viewGeneratorName = ""
     var codeBuilder: FrameworkBuilder? = null
 
     private fun determineBuilders() {
         // determine code generator
-        val app = projectModel.source.applications[0]
+        val app = WholeProject.projectModel.source.applications[0]
         val generatorName = app.definition.properties.find { it.key == "generator" }?.value ?: "framework.base"
         codeBuilder = determineFrameworkBuilder(generatorName)
 
@@ -53,94 +51,105 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
 
     fun build() {
         // set root package for internal generator model
-        projectModel.igm.rootPackage = appRootPackage
+        WholeProject.projectModel.igm.rootPackage = appRootPackage
 
         // determine code and view generator
         determineBuilders()
 
         // create application
-        val app = projectModel.source.applications[0]
-        createApplication(app, projectModel.igm, codeBuilder!!)
+        val app = WholeProject.projectModel.source.applications[0]
+        createApplication(app, codeBuilder!!)
 
         // create classes for classes
-        projectModel.source.classes.forEach {
+        WholeProject.projectModel.source.classes.forEach {
             when {
-                it.enumeration -> createEnumeration(it, projectModel.igm)
-                else -> createClass(it, projectModel.igm)
+                it.enumeration -> createEnumeration(it)
+                else -> createClass(it)
             }
         }
 
         // create classes for entities
-        projectModel.source.entities.forEach { createEntity(it, projectModel.igm) }
+        WholeProject.projectModel.source.entities.forEach { createEntity(it) }
 
         // create class methods for actions
-        val templateContext = TemplateContextCollector().getItemTemplateContext(projectModel.source.applications[0].qid, projectModel.source.applications[0].definition.properties, "app")
-        projectModel.source.actions.forEach { createAction(it, projectModel.igm, templateContext) }
+        val templateContext = TemplateContextCollector().getItemTemplateContext(WholeProject.projectModel.source.applications[0].qid, WholeProject.projectModel.source.applications[0].definition.properties, "app")
+        WholeProject.projectModel.source.actions.forEach { createAction(it, templateContext) }
 
         // create view descriptors
-        projectModel.source.views.filter { view -> listOf("template", "widget").none { it == view.parent.id } }.forEach { createView(it, projectModel.igm, templateContext, codeBuilder!!) }
+        WholeProject.projectModel.source.views.filter { view -> listOf("template", "widget").none { it == view.parent.id } }.forEach { createView(it, templateContext, codeBuilder!!) }
 
         // manage additional resources
-        val reqmResourceFolder = "${project.projectFolder}/${project.buildSystem.resourceFolder}"
-        codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName, projectModel)
+        val reqmResourceFolder = "${WholeProject.project.projectFolder}/${WholeProject.project.buildSystem.resourceFolder}"
+        codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName)
 
     }
 
-    private fun createView(viewModel: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>, builder: FrameworkBuilder) {
-        builder.buildView(viewModel, igm, templateContext)
+    private fun createView(viewModel: View, templateContext: MutableMap<String, String>, builder: FrameworkBuilder) {
+        builder.buildView(viewModel, templateContext)
     }
 
-    private fun createAction(act: Action, igm: InternalGeneratorModel, templateContext: Map<String, String>) {
+    private fun createAction(act: Action, templateContext: Map<String, String>) {
         val ownerClass = act.owner
-        val cls = igm.getClass(ownerClass!!)
+        val cls = WholeProject.projectModel.igm.getClass(ownerClass!!)
         act.qid?.id?.let {
             addActionToClass(it, cls, templateContext)
         }
     }
 
-    private fun createEntity(ent: Entity, igm: InternalGeneratorModel) {
+    private fun createEntity(ent: Entity) {
         // ensure package exists
         if (ent.qid?.domain == null) {
             ent.qid?.domain = "$appRootPackage.entities"
         }
 
-        val c = igm.getClass(ent.qid.toString())
+        // create entity class
+        val c = WholeProject.projectModel.igm.getClass(ent.qid.toString())
 
         if (ent.parent != QualifiedId.Undefined) {
             c.parent = ent.parent.toString()
         }
 
-        // class members
+        // add class members
         ent.definition.properties.forEach { property ->
-            val member = c.getMember(property.key!!)
-            member.type = property.type!!
-            projectModel.source.classes.find { it.enumeration && it.qid?.id == member.type }?.let { cl ->
-                member.enumerationType = true
-                val def = cl.definition.properties.getOrNull(0)
-                member.value = def?.key
+            // valueList and propertyList are not real members, exclude them
+            if (!listOf(StandardTypes.valueList.name, StandardTypes.propertyList.name).contains(property.type)) {
+                val member = c.getMember(property.key!!)
+                member.type = property.type!!
+                WholeProject.projectModel.source.classes.find { it.enumeration && it.qid?.id == member.type }?.let { cl ->
+                    member.enumerationType = true
+                    val def = cl.definition.properties.getOrNull(0)
+                    member.value = def?.key
+                }
+                member.listOf = property.listOf
+                member.optionality = property.optionality ?: ""
+                if (!member.enumerationType) member.value = property.value
             }
-            member.listOf = property.listOf
-            member.optionality = property.optionality ?: ""
-            if (!member.enumerationType) member.value = property.value
         }
 
-        // TODO v0.3: add actions as class methods
+        // create empty entity service class
+        val sc = WholeProject.projectModel.igm.getClass("${c.id.replace("entities", "service")}Service")
 
-//            cls.actions.forEach {
-//                addClassMethod(it.qid?.id, emptyList(), emptyList())
-//            }
+        // TODO v0.3: add actions as class methods
+        ent.definition.properties.find { it.key == "actions" }?.let { actions ->
+            actions.valueList.forEach { action ->
+                sc.getAction(action).apply {
+                    // TODO:
+                }
+            }
+        }
 
         // apply features on entities
         ent.definition.featureRefs.forEach { featureRef ->
 
-            val feature = projectModel.source.features.find { it.qid.toString() ==  featureRef.qid.toString()}
+            val feature = WholeProject.projectModel.source.features.find { it.qid.toString() ==  featureRef.qid.toString()}
             if (feature != null) {
-                var generatorId = feature.definition.properties.find { it.key == "generator" }?.value?.removeSurrounding("'")?.removeSurrounding("\"")
+                val generatorId = feature.definition.properties.find { it.key == "generator" }?.value?.removeSurrounding("'")?.removeSurrounding("\"")
                 if (generatorId != null) {
-                    generatorId = ConfigManager.defaults[generatorId] ?: generatorId
-                    Log.debug("feature (framework) plugin $generatorId is using in generator.GeneratorModelBuilder.createEntity().")
-                    val featurePlugin = PluginManager.get<FrameworkBuilder>(PluginType.Framework, generatorId)
-                    featurePlugin.applyFeatureOnEntity(ent, igm, feature)
+                    val featurePlugin = PluginManager.getBest<FrameworkBuilder>("", PluginType.Framework, generatorId)
+//                    generatorId = ConfigManager.defaults[generatorId] ?: generatorId
+//                    Log.debug("feature (framework) plugin ${generatorId is using in generator.GeneratorModelBuilder.createEntity().")
+//                    val featurePlugin = PluginManager.get<FrameworkBuilder>(PluginType.Framework, generatorId)
+                    featurePlugin.applyFeatureOnEntity(ent, feature)
                 } else {
                     Log.error("Generator property not found in feature ${feature.qid} (${feature.coords()})")
                 }
@@ -153,14 +162,14 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
 
     }
 
-    private fun createEnumeration(cls: Classs, igm: InternalGeneratorModel) {
+    private fun createEnumeration(cls: Classs) {
         if (!cls.atomic) {
             // ensure package exists
             if (cls.qid?.domain == null) {
                 cls.qid?.domain = "$appRootPackage.enumeration"
             }
 
-            val e = igm.getEnumeration(cls.qid.toString())
+            val e = WholeProject.projectModel.igm.getEnumeration(cls.qid.toString())
 
             if (cls.parent != QualifiedId.Undefined) {
                 e.parent = cls.parent.toString()
@@ -172,14 +181,14 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
 
     }
 
-    private fun createClass(cls: Classs, igm: InternalGeneratorModel) {
+    private fun createClass(cls: Classs) {
         if (!cls.atomic) {
             // ensure package exists
             if (cls.qid?.domain == null) {
                 cls.qid?.domain = "$appRootPackage.entities"
             }
 
-            val c = igm.getClass(cls.qid.toString())
+            val c = WholeProject.projectModel.igm.getClass(cls.qid.toString())
 
             if (cls.parent != QualifiedId.Undefined) {
                 c.parent = cls.parent.toString()
@@ -201,9 +210,9 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
 
     }
 
-    private fun createApplication(app: Application, igm: InternalGeneratorModel, builder: FrameworkBuilder): Boolean {
-        builder.buildApplication(app, igm)
-        igm.getClass(app.qid.toString()).apply {
+    private fun createApplication(app: Application, builder: FrameworkBuilder): Boolean {
+        builder.buildApplication(app)
+        WholeProject.projectModel.igm.getClass(app.qid.toString()).apply {
             mainClass = true
         }
         return true
@@ -221,7 +230,7 @@ class GeneratorModelBuilder(private val projectModel: ProjectModel, private val 
 
         val action = cls.getAction(actionName)
 
-        val actionSrc = projectModel.source.actions.find { it.qid.toString() == actionName }
+        val actionSrc = WholeProject.projectModel.source.actions.find { it.qid.toString() == actionName }
         actionSrc?.let {
             it.definition.actionCalls.forEach {call ->
                 val statementName = IGMStatement.valueOf(call.actionName)

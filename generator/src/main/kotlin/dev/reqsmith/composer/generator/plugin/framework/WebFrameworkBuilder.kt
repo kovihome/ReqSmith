@@ -18,15 +18,15 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.exceptions.IGMGenerationException
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
+import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMView
-import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.Property
 import dev.reqsmith.model.reqm.View
-import dev.reqsmith.model.enumeration.StandardTypes
 
 open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
@@ -40,7 +40,7 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
     override fun getArtFolder() : String = "html"
 
-    override fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>) {
+    override fun buildView(view: View, templateContext: MutableMap<String, String>) {
         val template = view.definition.featureRefs.find { it.qid.toString() == "Template" && it.properties.any { p -> p.key == "file" }}
         val layout = view.definition.properties.find { it.key == "layout" }
         if (template != null && layout != null) {
@@ -48,10 +48,10 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
         }
 
         if (layout != null) {
-            val igmView = igm.getView(view.qid.toString())
+            val igmView = WholeProject.projectModel.igm.getView(view.qid.toString())
             igmView.layout = propertyToNode(layout, templateContext)
         } else if (template != null) {
-            igm.addResource("template", template.properties.find { it.key == "file" }?.value!!) // TODO: get template folder name
+            WholeProject.projectModel.igm.addResource("template", template.properties.find { it.key == "file" }?.value!!) // TODO: get template folder name
         }
     }
 

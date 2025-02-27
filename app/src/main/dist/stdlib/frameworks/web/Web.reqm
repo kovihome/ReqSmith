@@ -27,3 +27,21 @@ view footer is widget from panel {
 }
 
 view panel is widget
+
+view form is widget {
+    title: 'Form'
+    data
+    events {
+        submitForm: persist
+    }
+}
+
+view datatable is widget {
+    title: 'Data Table'
+    data
+    events {
+        addItem: '<data>Form'
+        modifyItem: update
+        deleteItem: delete
+    }
+}

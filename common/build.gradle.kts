@@ -25,6 +25,8 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":model"))
+
 //    implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
     implementation(libs.snakeyaml)
     implementation(libs.antlr)

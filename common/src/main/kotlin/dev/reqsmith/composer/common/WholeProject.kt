@@ -16,14 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.model.enumeration
+package dev.reqsmith.composer.common
 
-enum class StandardLayoutElements {
-    panel,
-    header,
-    footer;
+import dev.reqsmith.model.ProjectModel
 
-    companion object {
-        fun contains(s: String) : Boolean = entries.map { it.name }.contains(s)
-    }
+object WholeProject {
+    lateinit var project: Project
+    var projectModel = ProjectModel()
+    val sourceArchitecture = SourceArchitecture()
 }

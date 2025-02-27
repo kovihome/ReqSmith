@@ -18,8 +18,6 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
-import dev.reqsmith.model.ProjectModel
-import dev.reqsmith.model.igm.InternalGeneratorModel
 import dev.reqsmith.model.reqm.Application
 import dev.reqsmith.model.reqm.Entity
 import dev.reqsmith.model.reqm.Feature
@@ -29,17 +27,15 @@ interface FrameworkBuilder {
     /**
      * Build an application IGM from ReqM application elem
      * @param app The ReqM application model
-     * @param igm IGM container, which will hold the application IGM
      */
-    fun buildApplication(app: Application, igm: InternalGeneratorModel)
+    fun buildApplication(app: Application)
 
     /**
      * Build a view IGM from ReqM view model
      * @param view The ReqM view model
-     * @param igm IGM container, which will hold the view IGM
      * @param templateContext Templating context to substitute string values
      */
-    fun buildView(view: View, igm: InternalGeneratorModel, templateContext: MutableMap<String, String>)
+    fun buildView(view: View, templateContext: MutableMap<String, String>)
 
     /**
      * Get the view language
@@ -69,15 +65,13 @@ interface FrameworkBuilder {
      * Process additional resources
      * @param reqmResourcesFolderName Source folder name for the project resources
      * @param buildResourcesFolderName Build folder name for the project resources
-     * @param projectModel The Project Model
      */
-    fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String, projectModel: ProjectModel)
+    fun processResources(reqmResourcesFolderName: String, buildResourcesFolderName: String)
 
     /**
      * Apply a feature on an entity
      * @param ent The entity on which the feature have to be applied
-     * @param igm The full IGM structure
      * @param feature The feature which have to be applied on the entity
      */
-    fun applyFeatureOnEntity(ent: Entity, igm: InternalGeneratorModel, feature: Feature)
+    fun applyFeatureOnEntity(ent: Entity, feature: Feature)
 }

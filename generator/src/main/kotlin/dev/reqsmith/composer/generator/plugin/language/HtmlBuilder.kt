@@ -26,7 +26,6 @@ import dev.reqsmith.composer.generator.plugin.template.HtmlTemplateBuilder
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
 import dev.reqsmith.model.igm.IGMView
-import dev.reqsmith.model.igm.InternalGeneratorModel
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
 
@@ -35,8 +34,6 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
     override val language: String = "html"
     override var artPathPrefix: String = ""
     override val viewArts: MutableList<String> = ArrayList()
-
-    override lateinit var igm: InternalGeneratorModel
 
     lateinit var templateBuilder : HtmlTemplateBuilder
 

@@ -35,6 +35,7 @@ import kotlin.io.path.notExists
  * -- build/src/main/reqm : output reqm and index files
  * -- build/src/main/<lang> : generated source code folder
  */
+//class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
 class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
     var inputFolder: String? = null
     var outputFolder: String? = null
@@ -49,7 +50,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
          *
          * @param folder the folder must be existing
          * @param errors Folder creation errors
-         * @return *true* - if the folder exists, *false* - if some errors has occured in creating the folder
+         * @return *true* - if the folder exists, *false* - if some errors has occurred in creating the folder
          */
         fun ensureFolderExists(folder: String, errors: MutableList<String>?): Boolean {
             val folderPath = Path(folder)

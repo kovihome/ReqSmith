@@ -29,7 +29,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
 
     class LocalVariables {
         private val variables : MutableMap<String, String> = HashMap()
-        val imports : MutableList<String> = ArrayList()
+        private val imports : MutableList<String> = ArrayList()
 
         fun exist(variable: String) = variables.containsKey(variable)
 
@@ -62,7 +62,6 @@ class KotlinBuilder : LanguageBuilder, Plugin {
     override var artPathPrefix: String = ""
     override val viewArts: MutableList<String>
         get() = TODO("Not yet implemented")
-    override lateinit var igm: InternalGeneratorModel
 
     private val tabsize = 4
 
@@ -135,7 +134,6 @@ class KotlinBuilder : LanguageBuilder, Plugin {
                     sb.append("return ${st.parameters[0].format()}")
                 }
             }
-//            localVars.imports.forEach { addImport(it) } // TODO: this adds import to nothing
             sb.append("\n")
         }
         sb.append(pre).append("}\n\n")

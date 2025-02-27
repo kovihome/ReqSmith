@@ -512,6 +512,7 @@ class ReqMParser {
                 type = definition.type
                 listOf = definition.listOf
                 optionality = definition.optionality
+                valueList.addAll(definition.valueList)
             }
         }
     }
