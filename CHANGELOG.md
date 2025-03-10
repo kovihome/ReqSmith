@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New ReqM element definitions: class, entity
 - StdRepo: Persistent feature
 - Template view
-- New view layout elements: form, datatable, linkButton, linkGroup, spacer
+- New view layout elements: form, datatable, linkButton, linkGroup, spacer, text
+- Code Generation: Three-layer source architecture
 
 ### Modified
-- Spring plugin manages persistency with Spring Data
+- Cache .reqm file parsing
+- Spring plugin manages persistency with Spring Data and H2 embedded database
 
 ### Fixed
 

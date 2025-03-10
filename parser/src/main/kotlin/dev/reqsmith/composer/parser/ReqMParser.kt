@@ -18,16 +18,23 @@
 
 package dev.reqsmith.composer.parser
 
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
+import dev.reqsmith.composer.common.Log
+import dev.reqsmith.composer.common.exceptions.ReqMParsingException
+import dev.reqsmith.composer.parser.ReqMParserParser.ReqmContext
+import dev.reqsmith.model.enumeration.StandardTypes
+import dev.reqsmith.model.reqm.*
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.RecognitionException
 import org.antlr.v4.runtime.Token
-import dev.reqsmith.composer.common.Log
-import dev.reqsmith.composer.common.exceptions.ReqMParsingException
-import dev.reqsmith.model.enumeration.StandardTypes
-import dev.reqsmith.model.reqm.*
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.TimeUnit
+
+val parseCache: Cache<String, ReqmContext> = Caffeine.newBuilder().expireAfterWrite(1, TimeUnit.DAYS)
+    .expireAfterAccess(1, TimeUnit.DAYS).initialCapacity(10).maximumSize(1000).build()
 
 class ReqMParser {
 
@@ -58,7 +65,9 @@ class ReqMParser {
     fun parseReqMTree(filePath: String, reqmSource: ReqMSource): Boolean {
 
         val tree = try {
-            loadReqMTree(filePath)
+            parseCache.get(filePath) { _ ->
+                loadReqMTree(filePath)
+            }
         } catch (e: IOException) {
             Log.error("Parsing $filePath was failed - ${e.localizedMessage}")
             return false
@@ -82,6 +91,7 @@ class ReqMParser {
             parseFeature(stat.feature(), reqmSource)
             // TODO: parseStyle(stat.style(), reqmSource)
         }
+
         return true
     }
 
@@ -250,7 +260,7 @@ class ReqMParser {
         }
     }
 
-    private fun loadReqMTree(filePath: String): ReqMParserParser.ReqmContext {
+    private fun loadReqMTree(filePath: String): ReqmContext {
         val s = CharStreams.fromFileName(filePath)
 
         // setup lexer and tokenize input
