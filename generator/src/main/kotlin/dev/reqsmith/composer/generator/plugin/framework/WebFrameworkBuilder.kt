@@ -23,6 +23,7 @@ import dev.reqsmith.composer.common.exceptions.IGMGenerationException
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
+import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMView
 import dev.reqsmith.model.reqm.Property
@@ -60,15 +61,32 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
             name = prop.key!!
         }
         val template = Template()
+        val localTemplateContext = HashMap(prop.simpleAttributes.filter { it.type != StandardTypes.propertyList.name && it.value != null }
+            .associate { it.key!! to it.value!! }).apply { putAll(templateContext) }
+
         if (prop.type == StandardTypes.propertyList.name) {
             // collect attributes of this node
-            val attributeList = layoutElementAttributes[prop.key] ?: listOf()
+            val attributeList = if (StandardLayoutElements.contains(prop.key!!)) StandardLayoutElements.valueOf(prop.key!!).attributes else listOf()
             prop.simpleAttributes.forEach { a ->
-                if (a.type != StandardTypes.propertyList.name && attributeList.contains(a.key)) {
+                if (listOf("events").contains(a.key)) {
+                    val eventNode = IGMView.IGMNode().apply {
+                        name = "events"
+                    }
+                    a.simpleAttributes.forEach { event ->
+                        var value = event.value ?: ""
+                        if ((value.startsWith('\'') && value.endsWith('\'')) || (value.startsWith('"') && value.endsWith('"'))) {
+                            value = value.removeSurrounding("'").removeSurrounding("\"")
+                            value = template.translate(localTemplateContext, value)
+                        }
+                        eventNode.attributes.add(Pair(event.key!!, value))
+                    }
+                    node.children.add(eventNode)
+
+                } else if (a.type != StandardTypes.propertyList.name && attributeList.contains(a.key)) {
                     // real attribute
                     var value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
                     if (a.key in listOf("text", "title")) {
-                        value = template.translate(templateContext, value)
+                        value = template.translate(localTemplateContext, value)
                     }
                     node.attributes.add(Pair(a.key!!, value))
                 } else {
@@ -80,15 +98,16 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
                             if (a.value?.isNotBlank() == true) {
                                 var value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
                                 if (a.key in listOf("text")) {
-                                    value = template.translate(templateContext, value)
+                                    value = template.translate(localTemplateContext, value)
                                 }
-                                val defaultAttributeName = layoutElementAttributes[a.key!!]?.getOrElse(0) { "default" } ?: "default"
+                                val elementAttributeList = if (StandardLayoutElements.contains(a.key!!)) StandardLayoutElements.valueOf(a.key!!).attributes else listOf()
+                                val defaultAttributeName = elementAttributeList.getOrElse(0) { "default" }
                                 attributes.add(Pair(defaultAttributeName, value))
                             }
                         })
                     } else {
                         // compound child
-                        node.children.add(propertyToNode(a, templateContext))
+                        node.children.add(propertyToNode(a, localTemplateContext))
                     }
                 }
             }
@@ -97,22 +116,5 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
         }
         return node
     }
-
-    private val layoutElementAttributes = mapOf(
-        "footer" to listOf("linkGroup", "copyrightText", "facebookLink", "twitterLink", "linkedinLink", "youtubeLink", "githubLink"),
-        "header" to listOf("title", "logo"),
-        "linkButton" to listOf("title", "to"),
-        "linkGroup" to listOf("title", "to"),
-        "panel" to listOf(),
-        "spacer" to listOf(),
-        "text" to listOf(),
-        "form" to listOf("title", "data"),
-        "datatable" to listOf("title", "data", "createForm"),
-//        "image" to listOf("src", "alt", "width", "height"),
-//        "input" to listOf("name", "type", "placeholder", "value", "required", "readonly", "disabled", "autocomplete", "autofocus", "list", "maxlength", "minlength", "pattern", "size", "step", "min", "max"),
-//        "label" to listOf("for"),
-//        "link" to listOf("to", "text", "title", "target"),
-    )
-
 
 }

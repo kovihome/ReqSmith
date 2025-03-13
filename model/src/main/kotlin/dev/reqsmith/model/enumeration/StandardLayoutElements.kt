@@ -18,10 +18,21 @@
 
 package dev.reqsmith.model.enumeration
 
-enum class StandardLayoutElements {
-    panel,
-    header,
-    footer;
+enum class StandardLayoutElements(val attributes: List<String>) {
+    datatable(listOf("title", "data", "createForm")),
+    footer(listOf("linkGroup", "copyrightText", "facebookLink", "twitterLink", "linkedinLink", "youtubeLink", "githubLink")),
+    form(listOf("title", "data")),
+    `header`(listOf("title", "logo")),
+    linkButton(listOf("title", "to")),
+    linkGroup(listOf("title", "to")),
+    panel(listOf()),
+    spacer(listOf()),
+    text(listOf()),
+//  image(listOf("src", "alt", "width", "height")),
+//  input(listOf("name", "type", "placeholder", "value", "required", "readonly", "disabled", "autocomplete", "autofocus", "list", "maxlength", "minlength", "pattern", "size", "step", "min", "max")),
+//  label(listOf("for")),
+//  link(listOf("to", "text", "title", "target")),
+    ;
 
     companion object {
         fun contains(s: String) : Boolean = entries.map { it.name }.contains(s)

@@ -16,7 +16,7 @@ view header is widget from panel {
 }
 
 view footer is widget from panel {
-    copyrightText: "Copyright \&copy; 2024 ReqSmith Ltd. All rights reserved."
+    copyrightText: "Copyright \&copy; 2025. ReqSmith Ltd. All rights reserved."
     githubLink: 'https://github.com/kovihome/ReqSmith'
     linkGroup {
         title: "Quick Links"

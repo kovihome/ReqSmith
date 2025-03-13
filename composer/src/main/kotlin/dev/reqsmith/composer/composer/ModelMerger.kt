@@ -27,7 +27,6 @@ import dev.reqsmith.composer.parser.enumeration.Optionality
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
-import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 
@@ -118,10 +117,8 @@ class ModelMerger(private val finder: RepositoryFinder) {
         // add dependent views
         WholeProject.projectModel.source.views.forEach { view ->
             collectViewDependencies(view)
-            resolveViewPropertiesInLayout(view)
-        }
-        WholeProject.projectModel.source.views.filter { v -> v.definition.featureRefs.any { it.qid.id == "Template" } }.forEach { view ->
             resolveViewTemplates(view)
+            resolveViewPropertiesInLayout(view)
         }
 
         // TODO: merge styles
@@ -133,9 +130,12 @@ class ModelMerger(private val finder: RepositoryFinder) {
     }
 
     private fun resolveViewTemplates(view: View) {
+        // get template view name
         val templateViewName = view.definition.featureRefs.find { it.qid.toString() == "Template" }?.let { featureRef ->
             featureRef.properties.find { it.key == "templateView" }?.type
         }
+
+        // find template view
         if (templateViewName != null) {
             var templateView = WholeProject.projectModel.source.views.find { it.qid?.id == templateViewName }
             if (templateView == null) {
@@ -152,16 +152,16 @@ class ModelMerger(private val finder: RepositoryFinder) {
                             if (depView != null) {
                                 WholeProject.projectModel.dependencies.views.add(depView)
                                 collectViewDependencies(depView)
-                                resolveViewPropertiesInLayout(depView)
                                 templateView = depView
                             }
                         }
                     }
                 } else {
                     collectViewDependencies(templateView)
-                    resolveViewPropertiesInLayout(templateView)
                 }
             }
+
+            // inject view layout into template layout
             if (templateView == null) {
                 errors.add("Template view reference $templateViewName is not found.")
             } else if (templateView.parent.toString() != "template") {
@@ -272,12 +272,10 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 val depView = reqmSource.views.find { v -> v.qid!!.id == it.name }
                 if (depView != null) {
                     WholeProject.projectModel.dependencies.views.add(depView)
-                    if (!StandardLayoutElements.contains(depView.qid.toString())) {
-                        if (depView.sourceRef != null && depView.sourceRef != QualifiedId.Undefined) {
-                            collectViewSources(depView.sourceRef!!)
-                        }
-                        collectViewDependencies(depView)
+                    if (depView.sourceRef != null && depView.sourceRef != QualifiedId.Undefined) {
+                        collectViewSources(depView.sourceRef!!)
                     }
+                    collectViewDependencies(depView)
                 }
             }
         }
@@ -292,33 +290,36 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
     private fun collectViewLayoutDeps(properties: MutableList<Property>) {
         properties.forEach { prop ->
-            if (!listOf("content").contains(prop.key)) {
-                collectViewSources(QualifiedId(prop.key))
-                if (prop.type == StandardTypes.propertyList.name && !StandardLayoutElements.contains(prop.key!!)) {
-                    collectViewLayoutDeps(prop.simpleAttributes)
-                }
-                var depView = WholeProject.projectModel.source.views.find { dep -> dep.qid.toString() == prop.key }
-                if (depView == null) {
-                    depView = WholeProject.projectModel.dependencies.views.find { dep -> dep.qid.toString() == prop.key }
-                }
-                if (depView != null) {
-                    if (prop.type != StandardTypes.propertyList.name) {
-                        prop.type = StandardTypes.propertyList.name
-                        prop.simpleAttributes.addAll(depView.definition.properties)
-                    } else {
-                        depView.definition.properties.forEach { depprop ->
-                            if (prop.simpleAttributes.none { it.key == depprop.key }) {
-                                prop.simpleAttributes.add(depprop)
+            if (!listOf("content", "events").contains(prop.key)) {
+                if (prop.type == StandardTypes.propertyList.name || prop.value == null) {
+                    collectViewSources(QualifiedId(prop.key))
+                    if (prop.type == StandardTypes.propertyList.name /*&& !StandardLayoutElements.contains(prop.key!!)*/) {
+                        collectViewLayoutDeps(prop.simpleAttributes)
+                    }
+                    var depView = WholeProject.projectModel.source.views.find { dep -> dep.qid.toString() == prop.key }
+                    if (depView == null) {
+                        depView = WholeProject.projectModel.dependencies.views.find { dep -> dep.qid.toString() == prop.key }
+                    }
+                    if (depView != null) {
+                        if (prop.type != StandardTypes.propertyList.name) {
+                            prop.type = StandardTypes.propertyList.name
+                            prop.simpleAttributes.addAll(depView.definition.properties)
+                        } else {
+                            depView.definition.properties.forEach { depprop ->
+                                if (prop.simpleAttributes.none { it.key == depprop.key }) {
+                                    prop.simpleAttributes.add(depprop)
+                                }
                             }
                         }
+                    } else {
+                        // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni
+                        Log.warning("View layout element ${prop.key} is undefined (${prop.coords()})")
                     }
-                } else {
-                    // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni
-                    Log.warning("View layout element ${prop.key} is undefined (${prop.coords()})")
+
                 }
             } else {
                 // spaceholder for template
-                prop.type = "#"
+                if (prop.key == "content") prop.type = "#"
             }
         }
     }
