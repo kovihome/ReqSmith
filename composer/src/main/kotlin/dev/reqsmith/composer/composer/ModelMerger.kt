@@ -103,7 +103,12 @@ class ModelMerger(private val finder: RepositoryFinder) {
                     errors.add("Source reference ${ent.sourceRef} is not found for entity ${ent.qid} (${ent.coords()}). (${ent.coords()})")
                 }
             }
-            collectFeatures(ent.definition.featureRefs)
+            // apply features on the entity
+            ent.definition.featureRefs.forEach { featureRef ->
+                resolveFeatureRef(featureRef).forEach { feature ->
+                    mergeProperties(ent.definition.properties, feature.definition.properties.filter { it.key != "generator" })
+                }
+            }
         }
         // add dependent actions to the dependencies
         WholeProject.projectModel.source.actions.forEach { act ->
@@ -236,23 +241,30 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
     }
 
+    private fun resolveFeatureRef(featureRef: FeatureRef): List<Feature> {
+        val featureList = mutableListOf<Feature>()
+        val ic = finder.find(Ref.Type.ftr, featureRef.qid.id!!, featureRef.qid.domain)
+        if (ic.items.isEmpty()) errors.add("Feature reference $featureRef is not found.")
+        var ix = 0
+        while (ix < ic.items.size) {
+            val item = ic.items[ix]
+            Log.debug("${item.itemType} ${item.name} in ${item.filename}")
+            val reqmSource = parseFile(item.filename!!)
+            val feature = reqmSource.features.find { item.name == it.qid.toString() }
+            if (feature != null) {
+                feature.increaseRefCount()
+                WholeProject.projectModel.dependencies.features.add(feature)
+                addDependencyToList(feature.sourceRef, Ref.Type.ftr, ic)
+                featureList.add(feature)
+            }
+            ix++
+        }
+        return featureList
+    }
+
     private fun collectFeatures(featureRefs: List<FeatureRef>) {
         featureRefs.forEach { featureRef ->
-            val ic = finder.find(Ref.Type.ftr, featureRef.qid.id!!, featureRef.qid.domain)
-            if (ic.items.isEmpty()) errors.add("Feature reference $featureRef is not found.")
-            var ix = 0
-            while (ix < ic.items.size) {
-                val item = ic.items[ix]
-                Log.debug("${item.itemType} ${item.name} in ${item.filename}")
-                val reqmSource = parseFile(item.filename!!)
-                val feature = reqmSource.features.find { item.name == it.qid.toString() }
-                if (feature != null) {
-                    feature.increaseRefCount()
-                    WholeProject.projectModel.dependencies.features.add(feature)
-                    addDependencyToList(feature.sourceRef, Ref.Type.ftr, ic)
-                }
-                ix++
-            }
+            resolveFeatureRef(featureRef)
         }
     }
 
@@ -312,7 +324,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                             }
                         }
                     } else {
-                        // TODO: esetleg lehetne egy StandardLayoutElements enum, abban is lehetne keresni
+                        // TODO: esetleg a StandardLayoutElements enumban is lehetne keresni
                         Log.warning("View layout element ${prop.key} is undefined (${prop.coords()})")
                     }
 

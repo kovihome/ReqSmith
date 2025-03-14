@@ -44,7 +44,7 @@ class ModelValidator {
         val missingLinks = mutableListOf<String>()
         model.views.forEach { view ->
             view.definition.properties.find { it.key == "layout" }?.let { layout ->
-                resolveMissingLinks(layout, missingLinks)
+                validateViewLayoutElement(layout, missingLinks)
             }
         }
         missingLinks.forEach { link ->
@@ -76,16 +76,38 @@ class ModelValidator {
         return true
     }
 
-    private fun resolveMissingLinks(property: Property, missingLinks: MutableList<String>) {
+    private fun validateViewLayoutElement(property: Property, missingLinks: MutableList<String>) {
+        // resolve missing links
         if (property.key == "to") {
             val link = property.value
-            if (link != null && !link.startsWith("http:") && !link.startsWith("https:") && WholeProject.projectModel.source.views.none { it.qid.toString() == link }) {
+            if (link != null && !link.startsWith("http:") && !link.startsWith("https:")
+                && WholeProject.projectModel.source.views.none { it.qid.toString() == link } && !missingLinks.contains(link)) {
                 Log.warning("Missing link ${link}; create new view for this link. (${property.coords()})")
-                if (!missingLinks.contains(link)) missingLinks.add(link)
+                missingLinks.add(link)
+            }
+        }
+        // check view event action existence
+        val events = property.simpleAttributes.find { it.key == "events" }
+        val data = property.simpleAttributes.find { it.key == "data" }
+        if (events != null && data != null) {
+            val entity = WholeProject.projectModel.source.entities.find { it.qid?.id == data.value }
+            if (entity != null) {
+                val entityActions = entity.definition.properties.find { it.key == "actions" }
+                if (entityActions != null) {
+                    events.simpleAttributes.forEach { event ->
+                        if (entityActions.valueList.none { it == event.value }) {
+                            Log.warning("View event '${event.key}' does not match with action '${event.value}' of entity '${data.value}' (${event.coords()})")
+                        }
+                    }
+                } else {
+                    Log.warning("Data layout attribute '${data.value}' match with an entity, but the entity has no actions (${data.coords()})")
+                }
+            } else {
+                Log.warning("Data layout attribute '${data.value}' is not match any entity (${data.coords()})")
             }
         }
         property.simpleAttributes.forEach {
-            resolveMissingLinks(it, missingLinks)
+            validateViewLayoutElement(it, missingLinks)
         }
     }
 

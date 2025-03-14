@@ -32,6 +32,7 @@ view form is widget {
     title: 'Form'
     data
     events {
+        init: get
         submitForm: persist
     }
 }
@@ -39,9 +40,9 @@ view form is widget {
 view datatable is widget {
     title: 'Data Table'
     data
+    createForm: '<data>Form'
     events {
-        addItem: '<data>Form'
-        modifyItem: update
+        init: listAll
         deleteItem: delete
     }
 }
