@@ -20,6 +20,7 @@ package dev.reqsmith.composer.generator.plugin.framework
 
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.model.enumeration.StandardEvents
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMStatement
@@ -34,7 +35,7 @@ open class BaseFrameworkBuilder : DefaultFrameworkBuilder() {
 
     override fun processEvent(prop: Property, cls: IGMClass) {
         when (prop.key) {
-            "applicationStart" -> {
+            StandardEvents.applicationStart.name -> {
                 // create main action
                 val main = cls.getAction("main").apply {
                     isMain = true

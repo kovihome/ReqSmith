@@ -22,6 +22,7 @@ import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.model.enumeration.StandardEvents
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
@@ -215,7 +216,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
             h5 { classes = setOf("mb-3"); text(title) }
             form {
-                action = "/data/${entityName.lowercase()}/persist"  // TODO: a konvenció szövegeket külön file-ba kell tenni, most a springfw-ben vannak
+                action = "/data/${entityName.lowercase()}/${StandardEvents.submitForm}"
                 method = FormMethod.post
                 with(templateBuilder.htmlAttribute("form", "form_object", entityVar)) {
                     attributes[first] = second
@@ -359,13 +360,13 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         }
                         td {
                             a { classes = setOf("btn", "btn-primary", "btn-sm")
-                                with(templateBuilder.htmlAttribute("a", "href", "/${entityName}Form.html?id=$entityVar.id")) {
+                                with(templateBuilder.htmlAttribute("a", "href", "${checkLink(createForm)}?id=$entityVar.id")) {
                                     attributes[first] = second
                                 }
                                 text("Modify")
                             }
                             a { classes = setOf("btn", "btn-outline-danger", "btn-sm", "ms-1")
-                                with(templateBuilder.htmlAttribute("a", "href", "/data/${entityName.lowercase()}/delete?id=$entityVar.id")) {
+                                with(templateBuilder.htmlAttribute("a", "href", "/data/${entityName.lowercase()}/${StandardEvents.deleteItem.name}?id=$entityVar.id")) {
                                     attributes[first] = second
                                 }
                                 text("Delete")

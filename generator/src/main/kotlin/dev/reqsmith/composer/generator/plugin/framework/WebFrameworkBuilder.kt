@@ -84,11 +84,8 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
                 } else if (a.type != StandardTypes.propertyList.name && attributeList.contains(a.key)) {
                     // real attribute
-                    var value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
-                    if (a.key in listOf("text", "title")) {
-                        value = template.translate(localTemplateContext, value)
-                    }
-                    node.attributes.add(Pair(a.key!!, value))
+                    val value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                    node.attributes.add(Pair(a.key!!, template.translate(localTemplateContext, value)))
                 } else {
                     // child node
                     if (a.type != StandardTypes.propertyList.name) {

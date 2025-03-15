@@ -110,7 +110,7 @@ class Composer(/*private val project: Project, private val projectModel: Project
 
     private fun writeReqmFile(fileName: String, reqmModel: ReqMSource, reqmFileHeader: String, writer: dev.reqsmith.composer.parser.ReqMWriter) {
         val outputDepFileName = "${WholeProject.project.outputFolder}/$fileName"
-        Log.text("Saving dependencies to $outputDepFileName")
+        Log.text("Saving ${if (fileName.startsWith("effective")) "effective model" else "dependencies"} to $outputDepFileName")
         writer.writeReqM(reqmModel, outputDepFileName, reqmFileHeader)
         Log.info("=============== ${if (fileName.startsWith("dep")) "Dependencies" else "ReqMSource"} ===============")
         writer.printReqMSource(reqmModel)

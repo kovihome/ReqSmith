@@ -27,6 +27,8 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.TemplateContextCollector
 import dev.reqsmith.composer.parser.enumeration.Optionality
+import dev.reqsmith.model.enumeration.StandardEvents
+import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.*
 import dev.reqsmith.model.reqm.*
@@ -34,7 +36,9 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.util.*
 
-private const val ID_TYPE = "Long"
+private const val ID_FIELD_NAME = "id"
+
+private const val ID_FIELD_TYPE = "Long"
 
 private const val CRUD_ACTION_PERSIST = "persist"
 
@@ -43,6 +47,8 @@ private const val CRUD_ACTION_DELETE = "delete"
 private const val CRUD_ACTION_GET = "get"
 
 private const val CRUD_ACTION_LISTALL = "listAll"
+
+private const val SPRING_CLASS_MODEL = "org.springframework.ui.Model"
 
 /**
  * Spring Framework Builder
@@ -78,6 +84,45 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
     override fun getArtFolder(): String = "static"
 
+    private fun findIgmClass(className: String): IGMClass {
+        val dataClassFullName = WholeProject.projectModel.igm.classes.keys.find { it.substringAfterLast('.') == className }
+        return WholeProject.projectModel.igm.classes[dataClassFullName]!!
+    }
+
+    // TODO: move it another class
+    private fun findInLayoutNodes(node: Property, expression: (Property) -> Boolean): Property? {
+        if (expression(node)) return node
+        node.simpleAttributes.forEach { subNode -> findInLayoutNodes(subNode, expression)?.let { return it } }
+        return null
+    }
+
+    // TODO: move it another class
+    private fun traverseLayoutNodes(node: Property, action: (Property) -> Unit) {
+        action(node)
+        node.simpleAttributes.forEach { subNode -> traverseLayoutNodes(subNode, action) }
+    }
+
+    // TODO: move it another class
+    private fun findViewLayoutElement(view: View, elementName: String): Property? {
+        val layout = view.definition.properties.find { it.key == "layout" }
+        if (layout != null) {
+            return findInLayoutNodes(layout) { it.key == elementName }
+        }
+        return null
+    }
+
+    // TODO: move it another class
+    private fun findViewEvent(view: View, eventType: String): String? {
+        view.definition.properties.find { it.key == "layout" }?.let { layout ->
+            findInLayoutNodes(layout) { it.key == "events"}?.let { events ->
+                events.simpleAttributes.find { it.key == eventType }?.let {
+                    return it.value
+                }
+            }
+        }
+        return null
+    }
+
     override fun buildView(view: View, templateContext: MutableMap<String, String>) {
         super.buildView(view, templateContext)
 
@@ -97,29 +142,32 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             val serviceClasses = dataAttributes.map { "$domainName.service.${it.second}Service" }
             val formClass = dataAttributes.any { it.first == "form" }
 
-
+            // create controller class
             getSpringController("$domainName.controller.${className}Controller", serviceClasses).apply {
 
+                // create init event handler action
                 getAction(className.lowercase()).apply {
                     this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.GetMapping")).apply {
                         parameters.add(IGMAction.IGMAnnotationParam("", "/${className}.${getViewLanguage()}"))
                     })
                     if (formClass) {
-                        parameters.add(IGMAction.IGMActionParam("id", ID_TYPE).apply {
+                        parameters.add(IGMAction.IGMActionParam(ID_FIELD_NAME, ID_FIELD_TYPE).apply {
                             annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.RequestParam")))
                         })
                     }
-                    parameters.add(IGMAction.IGMActionParam("model", addImport("org.springframework.ui.Model")))
+                    parameters.add(IGMAction.IGMActionParam("model", addImport(SPRING_CLASS_MODEL)))
                     returns(StandardTypes.string.name)
 
                     // read data
                     dataAttributes.forEach { (nodeType, dataClass) ->
+                        val actionName = findViewEvent(view, StandardEvents.init.name) ?: if (nodeType == StandardLayoutElements.datatable.name) CRUD_ACTION_LISTALL else CRUD_ACTION_GET
+                        val action = "$domainName.service.${dataClass}Service.$actionName"
                         var dataVar = dataClass.lowercase()
-                        if (nodeType == "datatable") {
+                        if (nodeType == StandardLayoutElements.datatable.name) {
                             dataVar = "${dataVar}s"
-                            addStmt(IGMStatement.set, dataVar, "$domainName.service.${dataClass}Service.$CRUD_ACTION_LISTALL")
+                            addStmt(IGMStatement.set, dataVar, action)
                         } else {
-                            addStmt(IGMStatement.set, dataVar, "$domainName.service.${dataClass}Service.$CRUD_ACTION_GET", "id")  // TODO get id parameter
+                            addStmt(IGMStatement.set, dataVar, action, ID_FIELD_NAME)
                         }
                         addStmt(IGMStatement.call, "model.addAttribute", "'$dataVar'", dataVar)
                     }
@@ -132,8 +180,60 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                     }
                     addStmt(IGMStatement.`return`, "'$className'")
                 }
-            }
 
+                // create action for create entity
+                val formAttribute = dataAttributes.find { it.first == StandardLayoutElements.form.name }
+                if (formAttribute != null) {
+                    val dataClass = findIgmClass(formAttribute.second)
+                    val serviceClassName = WholeProject.sourceArchitecture.serviceName(dataClass.id)
+                    val actionName = findViewEvent(view, StandardEvents.submitForm.name) ?: CRUD_ACTION_PERSIST
+                    val persistServiceAction = "$serviceClassName.$actionName"
+                    val actionUrl = "/data/${dataClass.id.substringAfterLast('.').lowercase()}/${StandardEvents.submitForm.name}"
+                    getAction(StandardEvents.submitForm.name).apply {
+                        annotations.add(
+                            IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.PostMapping"))
+                                .apply {
+                                    parameters.add(IGMAction.IGMAnnotationParam("", actionUrl))
+                                })
+                        parameters.add(IGMAction.IGMActionParam("formData", addImport(dataClass.id)).apply {
+                            this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.ModelAttribute")))
+                        })
+                        parameters.add(IGMAction.IGMActionParam("model", addImport(SPRING_CLASS_MODEL)))
+                        returns(StandardTypes.string.name)
+
+                        addStmt(IGMStatement.print, "'controller $actionUrl invoked'")
+                        addStmt(IGMStatement.call, persistServiceAction, "formData")
+                        addStmt(IGMStatement.`return`, "'redirect:/'")
+                    }
+                }
+
+                // delete action for delete datatable item
+                val datatableAttribute = dataAttributes.find { it.first == StandardLayoutElements.datatable.name }
+                if (datatableAttribute != null) {
+                    val dataClass = findIgmClass(datatableAttribute.second)
+                    val serviceClassName = WholeProject.sourceArchitecture.serviceName(dataClass.id)
+                    val actionName = findViewEvent(view, StandardEvents.deleteItem.name) ?: CRUD_ACTION_DELETE
+                    val deleteServiceAction = "$serviceClassName.$actionName"
+                    val actionUrl = "/data/${dataClass.id.substringAfterLast('.').lowercase()}/${StandardEvents.deleteItem.name}"
+                    getAction(StandardEvents.deleteItem.name).apply {
+                        annotations.add(
+                            IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.GetMapping"))
+                                .apply {
+                                    parameters.add(IGMAction.IGMAnnotationParam("", actionUrl))
+                                })
+                        parameters.add(IGMAction.IGMActionParam(ID_FIELD_NAME, ID_FIELD_TYPE).apply {
+                            this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.RequestParam")))
+                        })
+                        parameters.add(IGMAction.IGMActionParam("model", addImport(SPRING_CLASS_MODEL)))
+
+                        returns(StandardTypes.string.name)
+
+                        addStmt(IGMStatement.print, "'controller $actionUrl invoked'")
+                        addStmt(IGMStatement.call, deleteServiceAction, ID_FIELD_NAME)
+                        addStmt(IGMStatement.`return`, "'redirect:/'")
+                    }
+                }
+            }
         }
 
     }
@@ -299,8 +399,8 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         }
 
         // add new class members from persistenceProperties
-        igmClass.getMember("id").apply {
-            type = ID_TYPE
+        igmClass.getMember(ID_FIELD_NAME).apply {
+            type = ID_FIELD_TYPE
             value = "0"
             optionality = Optionality.Mandatory.name
             annotations.add(IGMAction.IGMAnnotation(igmClass.addImport("jakarta.persistence.Id")))
@@ -327,7 +427,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         igm.getClass(repoClassName).apply {
             interfaceType = true
             parent = addImport("org.springframework.data.jpa.repository.JpaRepository")
-            parentClasses.addAll(listOf(addImport(igmClass.id), ID_TYPE))
+            parentClasses.addAll(listOf(addImport(igmClass.id), ID_FIELD_TYPE))
         }
 
         // create service class for this entity
@@ -347,15 +447,15 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             }
 
             getAction(CRUD_ACTION_DELETE).apply {
-                parameters.add(IGMAction.IGMActionParam("id", ID_TYPE))
-                addStmt(IGMStatement.call, "${repoClassName}.deleteById", "id")
+                parameters.add(IGMAction.IGMActionParam(ID_FIELD_NAME, ID_FIELD_TYPE))
+                addStmt(IGMStatement.call, "${repoClassName}.deleteById", ID_FIELD_NAME)
             }
 
             getAction(CRUD_ACTION_GET).apply {
-                parameters.add(IGMAction.IGMActionParam("id", ID_TYPE))
+                parameters.add(IGMAction.IGMActionParam(ID_FIELD_NAME, ID_FIELD_TYPE))
                 returns(entityClassName)
                 val varname = entityClassName.replaceFirstChar { it.lowercase() }
-                addStmt(IGMStatement.set, varname, "${repoClassName}.findById", "id")
+                addStmt(IGMStatement.set, varname, "${repoClassName}.findById", ID_FIELD_NAME)
                 addStmt(IGMStatement.`return`, "$varname.orElse($entityClassName())") // TODO: is kotlin or spring data specific?
             }
 
@@ -365,52 +465,8 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                 addStmt(IGMStatement.set, varname, "${repoClassName}.findAll")
                 addStmt(IGMStatement.`return`, varname)
             }
-
         }
 
-        // create controller class for this entity
-        // controller name: <base-package>/controller/<entity>Controller
-        // TODO: a controller létrehozása nem a persistent feature dolga, hanem a view creatoré
-        //  a controller method neve a view event action-ből jön
-        //  a meghivandó service method a view event action-ből, itt validálni kell, hogy létezik-e ilyen method már, ha nem, warning
-        val controllerClassName = WholeProject.sourceArchitecture.controllerName(igmClass.id)
-        getSpringController(controllerClassName, listOf(serviceClassName)).apply {
-
-            // create action for create entity
-            var actionUrl = "/data/${igmClass.id.substringAfterLast('.').lowercase()}/${CRUD_ACTION_PERSIST}"
-            getAction(CRUD_ACTION_PERSIST).apply {
-                annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.PostMapping")).apply {
-                    parameters.add(IGMAction.IGMAnnotationParam("", actionUrl))
-                })
-                parameters.add(IGMAction.IGMActionParam("formData", addImport(igmClass.id)).apply {
-                    this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.ModelAttribute")))
-                })
-                parameters.add(IGMAction.IGMActionParam("model", addImport("org.springframework.ui.Model")))
-                returns(StandardTypes.string.name)
-
-                addStmt(IGMStatement.print, "'controller $actionUrl invoked'")
-                addStmt(IGMStatement.call, "$serviceClassName.$CRUD_ACTION_PERSIST", "formData")
-                addStmt(IGMStatement.`return`, "'redirect:/'")
-            }
-
-            // create action for create delete
-            actionUrl = "/data/${igmClass.id.substringAfterLast('.').lowercase()}/$CRUD_ACTION_DELETE"
-            getAction(CRUD_ACTION_DELETE).apply {
-                annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.GetMapping")).apply {
-                    parameters.add(IGMAction.IGMAnnotationParam("", actionUrl))
-                })
-                parameters.add(IGMAction.IGMActionParam("id", ID_TYPE).apply {
-                    this.annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.RequestParam")))
-                })
-                parameters.add(IGMAction.IGMActionParam("model", addImport("org.springframework.ui.Model")))
-
-                returns(StandardTypes.string.name)
-
-                addStmt(IGMStatement.print, "'controller $actionUrl invoked'")
-                addStmt(IGMStatement.call, "$serviceClassName.$CRUD_ACTION_DELETE", "id")
-                addStmt(IGMStatement.`return`, "'redirect:/'")
-            }
-        }
     }
 
     private fun getSpringController(controllerClassName: String, serviceClassNames: List<String> = listOf()): IGMClass {
