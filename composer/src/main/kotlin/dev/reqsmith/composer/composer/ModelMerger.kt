@@ -149,8 +149,8 @@ class ModelMerger(private val finder: RepositoryFinder) {
         val defaultViewTemplateName = ConfigManager.defaults[FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW]
         return if (defaultViewTemplateName != null) {
             val view = WholeProject.projectModel.source.views.find { it.qid.toString() == defaultViewTemplateName }
-            if (view?.parent.toString() != VIEW_SUBTYPE_TEMPLATE) {
-                Log.warning("View '$defaultViewTemplateName' is exists in the project, but is is not template view (${view?.coords()})")
+            if (view != null && view.parent.toString() != VIEW_SUBTYPE_TEMPLATE) {
+                Log.warning("View '$defaultViewTemplateName' is exists in the project, but is is not template view (${view.coords()})")
                 return null
             }
             return view

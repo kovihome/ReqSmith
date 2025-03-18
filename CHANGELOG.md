@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template view
 - New view layout elements: form, datatable, linkButton, linkGroup, spacer, text
 - Code Generation: Three-layer source architecture
+- Forge command line options: --compile and --run
 
 ### Modified
 - Cache .reqm file parsing

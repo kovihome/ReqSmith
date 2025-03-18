@@ -24,4 +24,6 @@ interface BuildSystem {
     val resourceFolder: String
 
     fun updateBuildScript(params: MutableMap<String, String>)
+
+    fun build(projectPath: String, buildAndRun: Boolean, infoLogging: Boolean)
 }

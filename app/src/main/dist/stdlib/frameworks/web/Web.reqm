@@ -46,3 +46,8 @@ view datatable is widget {
         deleteItem: delete
     }
 }
+
+view linkButton is widget {
+    title: 'Link Button'
+    to: '#'
+}

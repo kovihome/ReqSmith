@@ -57,6 +57,8 @@ class App(private val args: Array<String>) {
     // forge options
     private val inputDir by argParser.option(fullName = "in", shortName = "i", type = ArgType.String, description = "input directory (relative to project folder)")
     private val outputDir by argParser.option(fullName = "out", shortName = "o", type = ArgType.String, description = "output directory (relative to project folder)")
+    private val compileApp by argParser.option(fullName = "compile", type = ArgType.Boolean, description = "invoke build system to build the application")
+    private val runApp by argParser.option(fullName = "run", type = ArgType.Boolean, description = "invoke build system to build and run the application")
 
     // init options
     val initCommand by argParser.option(fullName = "init", type = ArgType.Boolean, description = "project structure initialization command")
@@ -157,6 +159,12 @@ class App(private val args: Array<String>) {
         if (!success) {
             Log.error("Something goes wrong with the code generator, see previous errors; source code will not or just partially be generated. ")
             return false
+        }
+
+        // compile and run the build system
+        if (compileApp == true || runApp == true) {
+            Log.title("Build ${if (runApp == true) "and run " else ""}the application")
+            buildSystem.build(project.projectFolder!!, runApp == true, info == true || debug == true)
         }
 
         return true

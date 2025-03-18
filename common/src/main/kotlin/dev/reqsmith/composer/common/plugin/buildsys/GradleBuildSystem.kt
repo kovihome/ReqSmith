@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.common.plugin.buildsys
 
+import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
@@ -64,6 +65,15 @@ class GradleBuildSystem : BuildSystem, Plugin {
                 it.write(s)
             }
         }
+    }
+
+    override fun build(projectPath: String, buildAndRun: Boolean, infoLogging: Boolean) {
+        val gradleCommand = "gradle build ${if (buildAndRun) "run " else ""}-p $projectPath ${if (infoLogging) "--info" else ""}"
+        Log.debug("Gradle command: $gradleCommand")
+        // TODO: Windows specific command execution
+        val process = ProcessBuilder("cmd /C $gradleCommand".split(" ")).redirectOutput(ProcessBuilder.Redirect.INHERIT).start()
+        process.waitFor()
+        Log.debug("Gradle exit code: ${process.exitValue()}")
     }
 
 }
