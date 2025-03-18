@@ -34,10 +34,11 @@ import kotlin.io.path.Path
  * Configuration manager singleton
  */
 object ConfigManager {
-    var defaults = mapOf(
+    var defaults = mutableMapOf(
         "domainName" to "dev.reqsmith.sample",
         "applicationType" to "applications.CommandLineApplication",
         "propertyType" to "String",
+        "templateView" to "DefaultTemplate",
 
         "framework.base" to "",
         "framework.web" to "spring",
@@ -67,6 +68,13 @@ object ConfigManager {
     private const val DEFAULTS_FILE_NAME = "defaults.yaml"
     private const val DEFAULTS_HEADER = "#\n# ReqSmith::forge configuration for default values\n#\n\n"
 
+    private fun writeDefaultsFile(externalDefaultsFilePath: String) {
+        FileWriter(externalDefaultsFilePath).use {
+            it.write(DEFAULTS_HEADER)
+            yaml.dump(defaults, it)
+        }
+    }
+
     /**
      * Loads default values from defaults.yaml config file
      *
@@ -77,16 +85,27 @@ object ConfigManager {
     fun load(path: String) {
         val externalDefaultsFilePath = "$path/bin/$DEFAULTS_FILE_NAME"
         if (Files.exists(Path(externalDefaultsFilePath))) {
-            Log.debug("defaults file found: $externalDefaultsFilePath")
+            Log.debug("Defaults file found: $externalDefaultsFilePath")
+            // save default defaults
+            val savedDefaults = mutableMapOf<String, String>().apply { putAll(defaults) }
+            // load defaults file
             FileInputStream(externalDefaultsFilePath).use {
                 defaults = yaml.load(it)
             }
+            // insert new values from saved map
+            val residualKeys = savedDefaults.keys.minus(defaults.keys)
+            if (residualKeys.isNotEmpty()) {
+                Log.debug("Some items were missing from default file $externalDefaultsFilePath, update it")
+                residualKeys.forEach {
+                    defaults[it] = savedDefaults[it]!!
+                }
+                // save modified default set
+                writeDefaultsFile(externalDefaultsFilePath)
+            }
+
         } else {
             Log.debug("defaults file $externalDefaultsFilePath is not found; creates new one")
-            FileWriter(externalDefaultsFilePath).use {
-                it.write(DEFAULTS_HEADER)
-                yaml.dump(defaults, it)
-            }
+            writeDefaultsFile(externalDefaultsFilePath)
         }
     }
 }

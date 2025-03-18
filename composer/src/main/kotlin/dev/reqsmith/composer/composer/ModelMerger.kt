@@ -20,6 +20,7 @@ package dev.reqsmith.composer.composer
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
+import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.exceptions.ReqMMergeException
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
 import dev.reqsmith.composer.parser.ReqMParser
@@ -29,6 +30,15 @@ import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
+
+private const val FEATURE_TEMPLATE = "Template"
+private const val FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW = "templateView"
+private const val REQM_GENERAL_ATTRIBUTE_EVENTS = "events"
+private const val REQM_GENERAL_ATTRIBUTE_GENERATOR = "generator"
+private const val TEMPLATE_NAME_TO_AVOID_DEFAULT = "avoidDefault"
+private const val VIEW_ATTRIBUTE_LAYOUT = "layout"
+private const val VIEW_LAYOUT_ELEMENT_CONTENT = "content"
+private const val VIEW_SUBTYPE_TEMPLATE = "template"
 
 /**
  * Merge missing requirement elements and collect dependencies from repository into project model
@@ -106,7 +116,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             // apply features on the entity
             ent.definition.featureRefs.forEach { featureRef ->
                 resolveFeatureRef(featureRef).forEach { feature ->
-                    mergeProperties(ent.definition.properties, feature.definition.properties.filter { it.key != "generator" })
+                    mergeProperties(ent.definition.properties, feature.definition.properties.filter { it.key != REQM_GENERAL_ATTRIBUTE_GENERATOR })
                 }
             }
         }
@@ -119,10 +129,11 @@ class ModelMerger(private val finder: RepositoryFinder) {
             
         }
 
-        // add dependent views
+        // merge views
+        val defaultViewTemplate = getDefaultViewTemplate()
         WholeProject.projectModel.source.views.forEach { view ->
             collectViewDependencies(view)
-            resolveViewTemplates(view)
+            resolveViewTemplates(view, defaultViewTemplate)
             resolveViewPropertiesInLayout(view)
         }
 
@@ -134,11 +145,26 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
     }
 
-    private fun resolveViewTemplates(view: View) {
-        // get template view name
-        val templateViewName = view.definition.featureRefs.find { it.qid.toString() == "Template" }?.let { featureRef ->
-            featureRef.properties.find { it.key == "templateView" }?.type
+    private fun getDefaultViewTemplate(): View? {
+        val defaultViewTemplateName = ConfigManager.defaults[FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW]
+        return if (defaultViewTemplateName != null) {
+            val view = WholeProject.projectModel.source.views.find { it.qid.toString() == defaultViewTemplateName }
+            if (view?.parent.toString() != VIEW_SUBTYPE_TEMPLATE) {
+                Log.warning("View '$defaultViewTemplateName' is exists in the project, but is is not template view (${view?.coords()})")
+                return null
+            }
+            return view
+        } else {
+            null
         }
+    }
+
+    private fun resolveViewTemplates(view: View, defaultViewTemplate: View?) {
+        // get template view name
+        val templateViewName = view.definition.featureRefs.find { it.qid.toString() == FEATURE_TEMPLATE }?.let { featureRef ->
+            featureRef.properties.find { it.key == FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW }?.type
+        }
+        if (defaultViewTemplate != null && templateViewName == TEMPLATE_NAME_TO_AVOID_DEFAULT) return
 
         // find template view
         if (templateViewName != null) {
@@ -164,26 +190,29 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 } else {
                     collectViewDependencies(templateView)
                 }
+            } else if (defaultViewTemplate != null) {
+                collectViewDependencies(defaultViewTemplate)
+                templateView = defaultViewTemplate
             }
 
             // inject view layout into template layout
             if (templateView == null) {
                 errors.add("Template view reference $templateViewName is not found.")
-            } else if (templateView.parent.toString() != "template") {
+            } else if (templateView.parent.toString() != VIEW_SUBTYPE_TEMPLATE) {
                 errors.add("Template view $templateViewName is not 'template' type view.")
             } else {
-                val templateLayout = templateView.definition.properties.find { it.key == "layout" }
+                val templateLayout = templateView.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }
                 if (templateLayout != null) {
-                    var viewLayout = view.definition.properties.find { it.key == "layout" }
+                    var viewLayout = view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }
                     if (viewLayout == null) {
                         viewLayout = Property()
                     }
 
-                    val nodesContainsContent = searchProperties(templateLayout) { p -> p.simpleAttributes.any { it.key == "content" } }
+                    val nodesContainsContent = searchProperties(templateLayout) { p -> p.simpleAttributes.any { it.key == VIEW_LAYOUT_ELEMENT_CONTENT } }
                     if (nodesContainsContent.isNotEmpty()) {
                         val newProperties: MutableList<Property> = mutableListOf()
                         nodesContainsContent[0].simpleAttributes.forEach { ta ->
-                            if (ta.key != "content") {
+                            if (ta.key != VIEW_LAYOUT_ELEMENT_CONTENT) {
                                 newProperties.add(ta)
                             } else {
                                 viewLayout.simpleAttributes.forEach { newProperties.add(it) }
@@ -211,7 +240,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
     }
 
     private fun resolveViewPropertiesInLayout(view: View) {
-        view.definition.properties.find { it.key == "layout" }?.let { layout ->
+        view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }?.let { layout ->
             resolveNodeProperties(layout, view.definition.properties)
         }
     }
@@ -234,7 +263,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             collectViewSources(view.sourceRef!!)
             mergeViewRef(view)
         }
-        val layout = view.definition.properties.find { it.key == "layout" }
+        val layout = view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }
         layout?.simpleAttributes?.let { collectViewLayoutDeps(it) }
 
         collectFeatures(view.definition.featureRefs)
@@ -302,7 +331,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
     private fun collectViewLayoutDeps(properties: MutableList<Property>) {
         properties.forEach { prop ->
-            if (!listOf("content", "events").contains(prop.key)) {
+            if (!listOf(VIEW_LAYOUT_ELEMENT_CONTENT, REQM_GENERAL_ATTRIBUTE_EVENTS).contains(prop.key)) {
                 if (prop.type == StandardTypes.propertyList.name || prop.value == null) {
                     collectViewSources(QualifiedId(prop.key))
                     if (prop.type == StandardTypes.propertyList.name /*&& !StandardLayoutElements.contains(prop.key!!)*/) {
@@ -331,14 +360,14 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 }
             } else {
                 // spaceholder for template
-                if (prop.key == "content") prop.type = "#"
+                if (prop.key == VIEW_LAYOUT_ELEMENT_CONTENT) prop.type = "#"
             }
         }
     }
 
     private fun resolveEventActions(app: Application): Collection<Action> {
         val dependentActions : MutableList<Action> = ArrayList()
-        val events = app.definition.properties.find { it.key == "events" }
+        val events = app.definition.properties.find { it.key == REQM_GENERAL_ATTRIBUTE_EVENTS }
         events?.simpleAttributes?.forEach { attr ->
             val actionName = attr.value
             // is this action exists in reqmsrc?
