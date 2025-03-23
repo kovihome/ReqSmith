@@ -22,6 +22,7 @@ import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.reqm.*
 
@@ -58,7 +59,7 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
     }
 
     private fun processEvents(definition: Definition, cls: IGMClass) {
-        val events = definition.properties.find { it.key == "events" }
+        val events = definition.properties.find { it.key == REQM_GENERAL_ATTRIBUTE_EVENTS }
         events?.let {
             it.simpleAttributes.forEach {prop ->
                 processEvent(prop, cls)

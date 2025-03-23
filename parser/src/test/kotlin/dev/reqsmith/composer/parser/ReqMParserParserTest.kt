@@ -91,7 +91,7 @@ class ReqMParserParserTest {
         // check feature item
         assert(s.features.isNotEmpty())
         val f = s.features[0]
-        assert(f.qid?.id.equals("Template"))
+        assert(f.qid?.id.equals("Resource"))
         assert(f.definition != Definition.Undefined)
         assert(f.definition.properties.isNotEmpty())
         val pFile = f.definition.properties.find { it.key == "file" }
@@ -110,7 +110,7 @@ class ReqMParserParserTest {
         assert(v.qid?.id.equals("TemplatePage"))
         assert(v.definition != Definition.Undefined)
         assert(v.definition.featureRefs.isNotEmpty())
-        val frTemp = v.definition.featureRefs.find { it.qid.toString() == "Template" }
+        val frTemp = v.definition.featureRefs.find { it.qid.toString() == "Resource" }
         assert(frTemp != null)
         assert(frTemp?.properties!!.isNotEmpty())
         val fpFile = frTemp.properties.find { it.key == "file" }

@@ -28,17 +28,11 @@ import dev.reqsmith.composer.parser.enumeration.Optionality
 import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
+import dev.reqsmith.model.*
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 
-private const val FEATURE_TEMPLATE = "Template"
-private const val FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW = "templateView"
-private const val REQM_GENERAL_ATTRIBUTE_EVENTS = "events"
-private const val REQM_GENERAL_ATTRIBUTE_GENERATOR = "generator"
-private const val TEMPLATE_NAME_TO_AVOID_DEFAULT = "avoidDefault"
-private const val VIEW_ATTRIBUTE_LAYOUT = "layout"
-private const val VIEW_LAYOUT_ELEMENT_CONTENT = "content"
-private const val VIEW_SUBTYPE_TEMPLATE = "template"
+const val TEMPLATE_NAME_TO_AVOID_DEFAULT = "avoidDefault"
 
 /**
  * Merge missing requirement elements and collect dependencies from repository into project model
@@ -148,7 +142,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
     private fun applyDefaultViewTemplate(view: View, defaultViewTemplate: View?) {
         if (defaultViewTemplate != null) {
-            val noTemplateFeature = view.definition.featureRefs.none { it.qid.toString() == FEATURE_TEMPLATE}
+            val noTemplateFeature = view.definition.featureRefs.none { it.qid.toString() == FEATURE_TEMPLATE }
             if (view.parent == QualifiedId.Undefined && noTemplateFeature) {
                 view.definition.featureRefs.add(FeatureRef().apply {
                     qid = QualifiedId(FEATURE_TEMPLATE)
@@ -182,7 +176,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
 
         // find template view
-        if (templateViewName != null) {
+        if (templateViewName != null && templateViewName != TEMPLATE_NAME_TO_AVOID_DEFAULT) {
             var templateView = WholeProject.projectModel.source.views.find { it.qid?.id == templateViewName }
             if (templateView == null) {
                 templateView = WholeProject.projectModel.dependencies.views.find { it.qid?.id == templateViewName }

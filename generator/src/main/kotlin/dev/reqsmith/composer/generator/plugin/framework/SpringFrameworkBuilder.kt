@@ -27,6 +27,7 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.TemplateContextCollector
 import dev.reqsmith.composer.parser.enumeration.Optionality
+import dev.reqsmith.model.*
 import dev.reqsmith.model.enumeration.StandardEvents
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardTypes
@@ -104,7 +105,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
     // TODO: move it another class
     private fun findViewLayoutElement(view: View, elementName: String): Property? {
-        val layout = view.definition.properties.find { it.key == "layout" }
+        val layout = view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }
         if (layout != null) {
             return findInLayoutNodes(layout) { it.key == elementName }
         }
@@ -113,8 +114,8 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
     // TODO: move it another class
     private fun findViewEvent(view: View, eventType: String): String? {
-        view.definition.properties.find { it.key == "layout" }?.let { layout ->
-            findInLayoutNodes(layout) { it.key == "events"}?.let { events ->
+        view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }?.let { layout ->
+            findInLayoutNodes(layout) { it.key == REQM_GENERAL_ATTRIBUTE_EVENTS}?.let { events ->
                 events.simpleAttributes.find { it.key == eventType }?.let {
                     return it.value
                 }
@@ -127,14 +128,15 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         super.buildView(view, templateContext)
 
         // check view is it is a template type (
-        val isTemplate = view.definition.featureRefs.any { it.qid.toString() == "Template" }
+        val isTemplate = view.definition.featureRefs.any { it.qid.toString() == FEATURE_TEMPLATE }
+        val isResource  = view.definition.featureRefs.any { it.qid.toString() == FEATURE_RESOURCE }
         val igmView = WholeProject.projectModel.igm.views.getOrDefault(view.qid.toString(), null)
         val dataAttributes : MutableList<Pair<String, String>> = mutableListOf()
         if (igmView != null) {
             findDataAttributeInNode(igmView.layout, dataAttributes)
         }
 
-        if (isTemplate || dataAttributes.isNotEmpty()) {
+        if (isResource || isTemplate || dataAttributes.isNotEmpty()) {
             hasTemplateViews = true
             // create a controller class for this view
             val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else WholeProject.projectModel.igm.rootPackage
@@ -313,11 +315,11 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         val uri = javaClass.getResource("/templates/error.html.st") ?: throw FileNotFoundException("/templates/error.html.st")
         WholeProject.projectModel.resources.add(Pair("<save>${uri.readText()}", "$buildResourcesFolderName/${getViewFolder()}/error.html"))
 
-        // file template files
+        // file resource files
         var hasTemplateFiles = false
         WholeProject.projectModel.source.views.forEach { view ->
-            view.definition.featureRefs.find { it.qid.toString() == "Template" }?.let { fr ->
-                fr.properties.find { it.key == "file" }?.value?.let { fileName ->
+            view.definition.featureRefs.find { it.qid.toString() == FEATURE_RESOURCE }?.let { fr ->
+                fr.properties.find { it.key == FEATURE_RESOURCE_ATTRIBUTE_FILE }?.value?.let { fileName ->
                     val fp = fileName.removeSurrounding("'").removeSurrounding("\"")
                     val fn = fp.substringAfterLast('/').substringAfterLast("\\")
                     val destFileName = "$buildResourcesFolderName/${getViewFolder()}/$fn"

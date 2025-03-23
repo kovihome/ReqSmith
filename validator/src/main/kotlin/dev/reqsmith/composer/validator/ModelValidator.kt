@@ -21,6 +21,8 @@ package dev.reqsmith.composer.validator
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
+import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
+import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 
@@ -43,7 +45,7 @@ class ModelValidator {
         // search for missing view links
         val missingLinks = mutableListOf<String>()
         model.views.forEach { view ->
-            view.definition.properties.find { it.key == "layout" }?.let { layout ->
+            view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }?.let { layout ->
                 validateViewLayoutElement(layout, missingLinks)
             }
         }
@@ -53,7 +55,7 @@ class ModelValidator {
                 parent = QualifiedId("static")
                 definition = Definition().apply {
                     properties.add(Property().apply {
-                        key = "layout"
+                        key = VIEW_ATTRIBUTE_LAYOUT
                         type = StandardTypes.propertyList.name
                         simpleAttributes.add(Property().apply {
                             key = "panel"
@@ -87,7 +89,7 @@ class ModelValidator {
             }
         }
         // check view event action existence
-        val events = property.simpleAttributes.find { it.key == "events" }
+        val events = property.simpleAttributes.find { it.key == REQM_GENERAL_ATTRIBUTE_EVENTS }
         val data = property.simpleAttributes.find { it.key == "data" }
         if (events != null && data != null) {
             val entity = WholeProject.projectModel.source.entities.find { it.qid?.id == data.value }
@@ -194,7 +196,7 @@ class ModelValidator {
     }
 
     private fun resolveActionOwnershipFromAppEvents(app: Application, errors: MutableList<String>) {
-        val events = app.definition.properties.find { it.key == "events" }
+        val events = app.definition.properties.find { it.key == REQM_GENERAL_ATTRIBUTE_EVENTS }
         events?.simpleAttributes?.forEach { ev ->
             val actionName = ev.value
             var result = searchActionOwnerInModel(WholeProject.projectModel.source, actionName, app.qid!!, null)
@@ -215,7 +217,7 @@ class ModelValidator {
     }
 
     private fun resolveActionOwnershipFromModEvents(mod: Modul, errors: MutableList<String>) {
-        val events = mod.definition.properties.find { it.key == "events" }
+        val events = mod.definition.properties.find { it.key == REQM_GENERAL_ATTRIBUTE_EVENTS }
         events?.simpleAttributes?.forEach { ev ->
             val actionName = ev.value
             var result = searchActionOwnerInModel(WholeProject.projectModel.source, actionName, mod.qid!!, null)

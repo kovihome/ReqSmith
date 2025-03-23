@@ -23,6 +23,10 @@ import dev.reqsmith.composer.common.exceptions.IGMGenerationException
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
+import dev.reqsmith.model.FEATURE_RESOURCE
+import dev.reqsmith.model.FEATURE_RESOURCE_ATTRIBUTE_FILE
+import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
+import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMView
@@ -42,17 +46,17 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
     override fun getArtFolder() : String = "html"
 
     override fun buildView(view: View, templateContext: MutableMap<String, String>) {
-        val template = view.definition.featureRefs.find { it.qid.toString() == "Template" && it.properties.any { p -> p.key == "file" }}
-        val layout = view.definition.properties.find { it.key == "layout" }
-        if (template != null && layout != null) {
-            throw IGMGenerationException("Both layout and @Template file cannot be defined for a view.")
+        val resource = view.definition.featureRefs.find { it.qid.toString() == FEATURE_RESOURCE && it.properties.any { p -> p.key == "file" }}
+        val layout = view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }
+        if (resource != null && layout != null) {
+            throw IGMGenerationException("Both layout and @Resource file cannot be defined for a view.")
         }
 
         if (layout != null) {
             val igmView = WholeProject.projectModel.igm.getView(view.qid.toString())
             igmView.layout = propertyToNode(layout, templateContext)
-        } else if (template != null) {
-            WholeProject.projectModel.igm.addResource("template", template.properties.find { it.key == "file" }?.value!!) // TODO: get template folder name
+        } else if (resource != null) {
+            WholeProject.projectModel.igm.addResource("template", resource.properties.find { it.key == FEATURE_RESOURCE_ATTRIBUTE_FILE }?.value!!) // TODO: get template folder name
         }
     }
 
@@ -68,9 +72,9 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
             // collect attributes of this node
             val attributeList = if (StandardLayoutElements.contains(prop.key!!)) StandardLayoutElements.valueOf(prop.key!!).attributes else listOf()
             prop.simpleAttributes.forEach { a ->
-                if (listOf("events").contains(a.key)) {
+                if (listOf(REQM_GENERAL_ATTRIBUTE_EVENTS).contains(a.key)) {
                     val eventNode = IGMView.IGMNode().apply {
-                        name = "events"
+                        name = REQM_GENERAL_ATTRIBUTE_EVENTS
                     }
                     a.simpleAttributes.forEach { event ->
                         var value = event.value ?: ""

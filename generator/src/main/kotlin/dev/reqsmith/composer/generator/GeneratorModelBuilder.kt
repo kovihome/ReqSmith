@@ -25,6 +25,8 @@ import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.plugin.framework.FrameworkBuilder
+import dev.reqsmith.model.VIEW_SUBTYPE_TEMPLATE
+import dev.reqsmith.model.VIEW_SUBTYPE_WIDGET
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.IGMClass
@@ -76,7 +78,7 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
         WholeProject.projectModel.source.actions.forEach { createAction(it, templateContext) }
 
         // create view descriptors
-        WholeProject.projectModel.source.views.filter { view -> listOf("template", "widget").none { it == view.parent.id } }.forEach { createView(it, templateContext, codeBuilder!!) }
+        WholeProject.projectModel.source.views.filter { view -> listOf(VIEW_SUBTYPE_TEMPLATE, VIEW_SUBTYPE_WIDGET).none { it == view.parent.id } }.forEach { createView(it, templateContext, codeBuilder!!) }
 
         // manage additional resources
         val reqmResourceFolder = "${WholeProject.project.projectFolder}/${WholeProject.project.buildSystem.resourceFolder}"
@@ -146,9 +148,6 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
                 val generatorId = feature.definition.properties.find { it.key == "generator" }?.value?.removeSurrounding("'")?.removeSurrounding("\"")
                 if (generatorId != null) {
                     val featurePlugin = PluginManager.getBest<FrameworkBuilder>("", PluginType.Framework, generatorId)
-//                    generatorId = ConfigManager.defaults[generatorId] ?: generatorId
-//                    Log.debug("feature (framework) plugin ${generatorId is using in generator.GeneratorModelBuilder.createEntity().")
-//                    val featurePlugin = PluginManager.get<FrameworkBuilder>(PluginType.Framework, generatorId)
                     featurePlugin.applyFeatureOnEntity(ent, feature)
                 } else {
                     Log.error("Generator property not found in feature ${feature.qid} (${feature.coords()})")

@@ -3,14 +3,14 @@
  */
 
 // Template feature
-feature Template {
+feature Resource {
     file
     templateType: 'st4'
     generator: 'framework.template'
 }
 
 view TemplatePage {
-    @Template {
+    @Resource {
         file: 'templates/test.st'
     }
 }
