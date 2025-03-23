@@ -133,7 +133,8 @@ class ModelMerger(private val finder: RepositoryFinder) {
         val defaultViewTemplate = getDefaultViewTemplate()
         WholeProject.projectModel.source.views.forEach { view ->
             collectViewDependencies(view)
-            resolveViewTemplates(view, defaultViewTemplate)
+            applyDefaultViewTemplate(view, defaultViewTemplate)
+            resolveViewTemplates(view)
             resolveViewPropertiesInLayout(view)
         }
 
@@ -142,6 +143,21 @@ class ModelMerger(private val finder: RepositoryFinder) {
         // throw errors
         if (errors.isNotEmpty()) {
             throw ReqMMergeException("Merge failed.", errors)
+        }
+    }
+
+    private fun applyDefaultViewTemplate(view: View, defaultViewTemplate: View?) {
+        if (defaultViewTemplate != null) {
+            val noTemplateFeature = view.definition.featureRefs.none { it.qid.toString() == FEATURE_TEMPLATE}
+            if (view.parent == QualifiedId.Undefined && noTemplateFeature) {
+                view.definition.featureRefs.add(FeatureRef().apply {
+                    qid = QualifiedId(FEATURE_TEMPLATE)
+                    properties.add(Property().apply {
+                        key = "templateView"
+                        type = defaultViewTemplate.qid.toString()
+                    })
+                })
+            }
         }
     }
 
@@ -159,12 +175,11 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
     }
 
-    private fun resolveViewTemplates(view: View, defaultViewTemplate: View?) {
+    private fun resolveViewTemplates(view: View) {
         // get template view name
         val templateViewName = view.definition.featureRefs.find { it.qid.toString() == FEATURE_TEMPLATE }?.let { featureRef ->
             featureRef.properties.find { it.key == FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW }?.type
         }
-        if (defaultViewTemplate != null && templateViewName == TEMPLATE_NAME_TO_AVOID_DEFAULT) return
 
         // find template view
         if (templateViewName != null) {
@@ -190,9 +205,6 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 } else {
                     collectViewDependencies(templateView)
                 }
-            } else if (defaultViewTemplate != null) {
-                collectViewDependencies(defaultViewTemplate)
-                templateView = defaultViewTemplate
             }
 
             // inject view layout into template layout

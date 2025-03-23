@@ -17,9 +17,10 @@ feature Persistent {
 
 // Predefined view to create/modify an entity
 view EntityForm {
-    data
     title: 'Add new entity'
+    data
     remark
+    returnView
     layout {
         panel {
             form {

@@ -24,28 +24,28 @@ plugins {
     id("com.github.ben-manes.versions")
 }
 
+val buildNumber = providers.exec {
+    commandLine("git rev-list --count HEAD".split(" "))
+}.standardOutput.asText.get().toString().replace(Regex("[^0-9]"), "")
+
 allprojects {
     group = "dev.reqsmith.composer"
     version = "0.3.0"
-    description = "ReqSmith::composer - build application source code from requirement model"
-//    project.ext {
-//        "vendor" to "ReqSmith Dev"
-//        "email" to "kovihome86@gmail.com"
-//    }
+    description = "ReqSmith::forge - build application source code from requirement model"
+    extensions.add("vendor", "ReqSmith Dev")
+    extensions.add("email", "kovihome86@gmail.com")
+    extensions.add("buildNumber", buildNumber)
 
     // Configure the manifest for all subprojects
     tasks.withType<Jar> {
         archiveBaseName = "reqsmith-${project.name}"
         manifest {
             attributes (
-//                "Specification-Title" to project.description,
-//                "Specification-Version" to project.version,
-//                "Specification-Vendor" to project.ext["vendor"],
                 "Implementation-Title" to project.description,
-                "Implementation-Version" to project.version,
-                "Implementation-Vendor" to "ReqSmith Dev", // project.ext["vendor"],
+                "Implementation-Version" to "${project.version}.${project.extensions["buildNumber"]}",
+                "Implementation-Vendor" to project.extensions["vendor"],
                 "Build-Timestamp" to LocalDateTime.now().toString().substringBefore('.'),
-                "Built-By" to "${System.getProperty("user.name")} <kovihome86@gmail.com>", // ${project.ext["email"]}
+                "Built-By" to "${System.getProperty("user.name")} <${project.extensions["email"]}>",
                 "Gradle-Version" to gradle.gradleVersion,
                 "Java-Version" to JavaVersion.current().toString(),
 //                "Class-Path" to configurations.runtimeClasspath.get().joinToString(" ") { it.name }

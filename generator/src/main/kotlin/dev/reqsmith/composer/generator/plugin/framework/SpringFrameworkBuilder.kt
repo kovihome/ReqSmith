@@ -189,6 +189,9 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                     val actionName = findViewEvent(view, StandardEvents.submitForm.name) ?: CRUD_ACTION_PERSIST
                     val persistServiceAction = "$serviceClassName.$actionName"
                     val actionUrl = "/data/${dataClass.id.substringAfterLast('.').lowercase()}/${StandardEvents.submitForm.name}"
+                    var returnViewName = view.definition.properties.find { it.key == "returnView" }?.value
+                    returnViewName = if (returnViewName != null) "/$returnViewName.${getViewLanguage()}" else "/"
+
                     getAction(StandardEvents.submitForm.name).apply {
                         annotations.add(
                             IGMAction.IGMAnnotation(addImport("org.springframework.web.bind.annotation.PostMapping"))
@@ -203,7 +206,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
                         addStmt(IGMStatement.print, "'controller $actionUrl invoked'")
                         addStmt(IGMStatement.call, persistServiceAction, "formData")
-                        addStmt(IGMStatement.`return`, "'redirect:/'")
+                        addStmt(IGMStatement.`return`, "'redirect:$returnViewName'")
                     }
                 }
 
