@@ -47,22 +47,22 @@ class GradleBuildSystem : BuildSystem, Plugin {
         val projectRootFolder = params["projectRootFolder"]
 
         // check gradle build script existence
-        val script = File("${projectRootFolder}/build.gradle.kts")
+        val buildFile = File("${projectRootFolder}/build.gradle.kts")
 
         // create build script
-        val s = Template().translateFile(params, "templates/build.gradle.st")
-        FileWriter(script, false).use {
-            it.write(s)
+        val buildContent = Template().translateFile(params, "templates/build.gradle.st")
+        FileWriter(buildFile, false).use {
+            it.write(buildContent)
 //          it.write(taskScript)
         }
 
         // check gradle settings script existence
-        val settings = File("${projectRootFolder}/settings.gradle.kts")
-        if (!settings.exists()) {
+        val settingsFile = File("${projectRootFolder}/settings.gradle.kts")
+        if (!settingsFile.exists()) {
             // create new build script
-            val s = Template().translateFile(params, "templates/settings.gradle.st")
-            FileWriter(settings, false).use {
-                it.write(s)
+            val settingsContent = Template().translateFile(params, "templates/settings.gradle.st")
+            FileWriter(settingsFile, false).use {
+                it.write(settingsContent)
             }
         }
     }
@@ -74,6 +74,24 @@ class GradleBuildSystem : BuildSystem, Plugin {
         val process = ProcessBuilder("cmd /C $gradleCommand".split(" ")).redirectOutput(ProcessBuilder.Redirect.INHERIT).start()
         process.waitFor()
         Log.debug("Gradle exit code: ${process.exitValue()}")
+    }
+
+    override fun formatPluginBlock(plugins: List<String>): String {
+        return plugins.joinToString("\n") {
+            if (it.startsWith("id:"))
+                "    id(\"${it.substring(3).substringBefore(":")}\") version \"${it.substringAfterLast(":")}\""
+            else
+                "    ${it.substringBefore(":")} version \"${it.substringAfterLast(":")}\""
+        }
+    }
+
+    override fun formatDependenciesBlock(dependencies: List<String>): String {
+        return dependencies.joinToString("\n") {
+            if (it.startsWith("rt:"))
+                "    runtimeOnly(\"${it.substring(3)}\")"
+            else
+                "    implementation(\"$it\")"
+        }
     }
 
 }

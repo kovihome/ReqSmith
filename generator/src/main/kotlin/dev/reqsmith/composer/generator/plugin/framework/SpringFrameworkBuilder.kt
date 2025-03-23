@@ -362,7 +362,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     }
 
     class H2Configurator {
-        val dependencies = listOf("com.h2database:h2")
+        val dependencies = listOf("rt:com.h2database:h2") // runtimeOnly
         val properties = listOf(
             Pair("spring.datasource.url", "jdbc:h2:mem:testdb"),
             Pair("spring.datasource.driver-class-name", "org.h2.Driver"),

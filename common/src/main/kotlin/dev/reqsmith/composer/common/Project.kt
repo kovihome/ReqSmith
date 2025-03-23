@@ -142,16 +142,8 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
         appVersion: String,
         buildScriptUpdates: Map<String, List<String>>
     ) {
-        val plugins = buildScriptUpdates["plugins"] ?: listOf()
-        val pluginsBlock = plugins.joinToString("\n") {
-            if (it.startsWith("id:"))
-                "    id(\"${it.substring(3).substringBefore(":")}\") version \"${it.substringAfterLast(":")}\""
-            else
-                "    ${it.substringBefore(":")} version \"${it.substringAfterLast(":")}\""
-        }
-        val dependencies = buildScriptUpdates["dependencies"] ?: listOf()
-        val dependenciesBlock = dependencies.joinToString("\n") { "    implementation(\"$it\")" }
-
+        val pluginsBlock = buildSystem.formatPluginBlock(buildScriptUpdates["plugins"] ?: listOf())
+        val dependenciesBlock = buildSystem.formatDependenciesBlock(buildScriptUpdates["dependencies"] ?: listOf())
         val params = mutableMapOf (
             "composerCommand" to "${appHome.replace('\\', '/')}/bin/forge".replace("//", "/"),
             "projectName" to mainClass.substringAfterLast('.').lowercase(),

@@ -23,7 +23,31 @@ interface BuildSystem {
     val sourceFolder: String
     val resourceFolder: String
 
+    /**
+     * Update the build scripts
+     * @param params Template parameters of the build script template file
+     */
     fun updateBuildScript(params: MutableMap<String, String>)
 
+    /**
+     * Invoke the build system command to compile/run the application
+     * @param projectPath The path of the project root folder
+     * @param buildAndRun True - build, then run the application, false - build only
+     * @param infoLogging Logging level: true - info log level, false - normal log level
+     */
     fun build(projectPath: String, buildAndRun: Boolean, infoLogging: Boolean)
+
+    /**
+     * Formats the plugin list in build script format
+     * @param plugins List of the build system plugins
+     * @return The formatted plugin block
+     */
+    fun formatPluginBlock(plugins: List<String>): String
+
+    /**
+     * Formats the dependencies in build script format
+     * @param dependencies List of the build system dependecies
+     * @return The formatted dependencies block
+     */
+    fun formatDependenciesBlock(dependencies: List<String>): String
 }
