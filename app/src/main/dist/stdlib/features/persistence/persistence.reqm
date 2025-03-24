@@ -6,6 +6,7 @@
 
 // Persistent feature for entities
 feature Persistent {
+    id
     actions {
         persist
         delete

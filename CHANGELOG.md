@@ -7,21 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [[Unreleased]](https://github.com/kovihome/ReqSmith)
 ### Added
+
+### Modified
+
+### Fixed
+
+---
+
+## [[0.3.0] - 2025-03-24](https://github.com/kovihome/ReqSmith/releases/tag/0.3.0)
+### Added
 - New ReqM element definitions: class, entity
 - StdRepo: Persistent feature
 - Template view
 - New view layout elements: form, datatable, linkButton, linkGroup, spacer, text
+- View events
 - Code Generation: Three-layer source architecture
 - Forge command line options: --compile and --run
 
 ### Modified
 - Cache .reqm file parsing
 - Spring plugin manages persistency with Spring Data and H2 embedded database
+- File-based @Template feature was renamed @Resource feature
 
-### Fixed
-
-
----
 
 ## [[0.2.0] - 2025-01-16](https://github.com/kovihome/ReqSmith/releases/tag/0.2.0)
 ### Added
