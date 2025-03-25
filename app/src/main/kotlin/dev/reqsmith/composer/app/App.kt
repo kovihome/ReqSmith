@@ -22,6 +22,7 @@ package dev.reqsmith.composer.app
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.WholeProject
+import dev.reqsmith.composer.common.configuration.ApplicationInfo
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.exceptions.ReqMMergeException
 import dev.reqsmith.composer.common.plugin.PluginManager
@@ -36,12 +37,8 @@ import kotlin.io.path.absolutePathString
 import kotlin.system.measureTimeMillis
 
 class App(private val args: Array<String>) {
-    val systemName = "ReqSmith"
-    val composerVersion = "0.3.0-Forms"
-    val composerDesc = "Requirement composer and code generator"
-
     val path = System.getenv("APP_HOME") ?: "."
-    val name = System.getenv("APP_BASE_NAME") ?: "forge"
+    private val name = System.getenv("APP_BASE_NAME") ?: ApplicationInfo.name
 
     private val argParser = ArgParser(name)
 
@@ -183,8 +180,8 @@ fun main(args: Array<String>) {
 
         // create the app
         val app = App(args)
-        Log.title("${app.systemName}::${app.name}, version ${app.composerVersion}")
-        Log.text("${app.composerDesc}\n")
+        Log.title(ApplicationInfo.printTitle())
+        Log.text("${ApplicationInfo.description}\n")
         Log.info("Application root folder: ${Path(app.path).absolutePathString()}")
 
         // process command line arguments

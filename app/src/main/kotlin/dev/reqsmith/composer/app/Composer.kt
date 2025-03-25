@@ -20,6 +20,7 @@ package dev.reqsmith.composer.app
 
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
+import dev.reqsmith.composer.common.configuration.ApplicationInfo
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.composer.ModelMerger
 import dev.reqsmith.composer.parser.ReqMParser
@@ -145,8 +146,8 @@ class Composer(/*private val project: Project, private val projectModel: Project
     private fun getReqmFileHeader(appName: String, headerFileName: String): String {
         val context = mapOf(
             "appName" to appName,
-            "composerName" to "ReqSmith::forge",
-            "version" to "0.3.0-Forms",
+            "composerName" to "${ApplicationInfo.system}::${ApplicationInfo.name}",
+            "version" to ApplicationInfo.version,
             "now" to LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
         )
         return Template().translateFile(context, headerFileName)
