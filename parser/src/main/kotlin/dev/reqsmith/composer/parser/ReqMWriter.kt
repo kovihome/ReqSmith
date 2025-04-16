@@ -19,6 +19,7 @@
 package dev.reqsmith.composer.parser
 
 import dev.reqsmith.composer.common.Log
+import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_FEATURE_REFERENCE
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 import java.io.FileOutputStream
@@ -42,8 +43,17 @@ class ReqMWriter {
             source.entities.forEach { writeEntity(it, outs) }
             source.actions.forEach { writeAction(it, outs) }
             source.views.forEach { writeView(it, outs) }
+            source.styles.forEach { writeStyle(it, outs) }
             source.features.forEach { writeFeature(it, outs) }
         }
+    }
+
+    private fun writeStyle(style: Style, outs: OutputStreamWriter) {
+        outs.write("style ")
+        writeQualifiedId(style.qid, outs)
+        writeSourceRef(style.sourceRef, outs)
+        writeDefinition(style.definition, outs)
+        outs.write("\n")
     }
 
     private fun writeFeature(feature: Feature, outs: OutputStreamWriter) {
@@ -179,9 +189,13 @@ class ReqMWriter {
         outs.write("@")
         writeQualifiedId(featureRef.qid, outs)
         if (featureRef.properties.isNotEmpty()) {
-            outs.write(" {\n")
-            featureRef.properties.forEach { writeProperty(it, outs, tc + 1) }
-            outs.write("${tabs(tc)}}")
+            if (featureRef.properties[0].key == REQM_GENERAL_ATTRIBUTE_FEATURE_REFERENCE) {
+                outs.write(": ${featureRef.properties[0].value}\n")
+            } else {
+                outs.write(" {\n")
+                featureRef.properties.forEach { writeProperty(it, outs, tc + 1) }
+                outs.write("${tabs(tc)}}")
+            }
         }
         outs.write("\n")
     }
@@ -271,6 +285,10 @@ class ReqMWriter {
             printActionDefinition(it.definition)
         }
         source.views.forEach {
+            Log.info(it.toString())
+            printDefinition(it.definition)
+        }
+        source.styles.forEach {
             Log.info(it.toString())
             printDefinition(it.definition)
         }

@@ -16,20 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.model
+package dev.reqsmith.model.reqm
 
-const val FEATURE_RESOURCE = "Resource"
-const val FEATURE_TEMPLATE = "Template"
-const val FEATURE_STYLE = "Style"
-const val FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW = "templateView"
-const val REQM_GENERAL_ATTRIBUTE_EVENTS = "events"
-const val REQM_GENERAL_ATTRIBUTE_FEATURE_REFERENCE = "reference"
-const val REQM_GENERAL_ATTRIBUTE_GENERATOR = "generator"
-const val VIEW_ATTRIBUTE_LAYOUT = "layout"
-const val VIEW_LAYOUT_ELEMENT_CONTENT = "content"
-const val VIEW_LAYOUT_ELEMENT_STYLES = "styles"
-const val VIEW_SUBTYPE_TEMPLATE = "template"
-const val VIEW_SUBTYPE_WIDGET = "widget"
-const val FEATURE_RESOURCE_ATTRIBUTE_FILE = "file"
-
-
+class Style : ElementBase() {
+    var qid: QualifiedId? = null
+//    var parent: QualifiedId = QualifiedId.Undefined // TODO: is this needed?
+    var sourceRef: QualifiedId? = null  // TODO: is this needed?
+    var definition: Definition = Definition()
+    override fun toString(): String {
+        return "Style(qid=$qid, sourceRef=$sourceRef)"
+    }
+}

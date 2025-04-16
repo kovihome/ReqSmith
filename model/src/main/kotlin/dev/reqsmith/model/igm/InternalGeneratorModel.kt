@@ -24,6 +24,7 @@ class InternalGeneratorModel {
     val classes: MutableMap<String, IGMClass> = mutableMapOf()
     val enumerations: MutableMap<String, IGMEnumeration> = mutableMapOf()
     val views: MutableMap<String, IGMView> = mutableMapOf()
+    val styles: MutableMap<String, IGMStyle> = mutableMapOf()
     private val resources: MutableList<IGMResource> = mutableListOf()
 
     // container functions
@@ -39,11 +40,16 @@ class InternalGeneratorModel {
         return views.getOrPut(viewId) { IGMView(viewId) }
     }
 
+    fun getStyle(styleId: String): IGMStyle {
+        return styles.getOrPut(styleId) { IGMStyle(styleId) }
+    }
+
     fun print(): String {
         val sb = StringBuilder("package $rootPackage\n")
         classes.forEach { sb.append(it.value.print()).append("\n") }
         enumerations.forEach { sb.append(it.value.print()).append("\n") }
         views.forEach { sb.append(it.value.print()).append("\n") }
+        styles.forEach { sb.append(it.value.print()).append("\n") }
         resources.forEach { sb.append(it.print()).append("\n") }
         return sb.toString()
     }

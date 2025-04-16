@@ -30,7 +30,7 @@ import dev.reqsmith.model.reqm.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class Composer(/*private val project: Project, private val projectModel: ProjectModel, */private val appHome: String) {
+class Composer(private val appHome: String) {
 
     fun compose() : Boolean {
 
@@ -52,6 +52,7 @@ class Composer(/*private val project: Project, private val projectModel: Project
         if (WholeProject.projectModel.source.entities.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.entities.size} entities")
         if (WholeProject.projectModel.source.actions.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.actions.size} actions")
         if (WholeProject.projectModel.source.views.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.views.size} views")
+        if (WholeProject.projectModel.source.styles.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.styles.size} styles")
         if (WholeProject.projectModel.source.features.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.features.size} features")
         Log.info("==========================================")
 

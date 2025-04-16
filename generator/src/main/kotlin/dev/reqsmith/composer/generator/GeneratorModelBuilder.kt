@@ -31,6 +31,7 @@ import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMAction
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMStatement
+import dev.reqsmith.model.igm.IGMStyle
 import dev.reqsmith.model.reqm.*
 
 class GeneratorModelBuilder(private val resourcesFolderName: String) {
@@ -79,11 +80,35 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
 
         // create view descriptors
         WholeProject.projectModel.source.views.filter { view -> listOf(VIEW_SUBTYPE_TEMPLATE, VIEW_SUBTYPE_WIDGET).none { it == view.parent.id } }.forEach { createView(it, templateContext, codeBuilder!!) }
+        
+        // create style descriptors
+        WholeProject.projectModel.source.styles.forEach { createStyle(it) }
 
         // manage additional resources
         val reqmResourceFolder = "${WholeProject.project.projectFolder}/${WholeProject.project.buildSystem.resourceFolder}"
         codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName)
 
+    }
+
+    private fun createStyle(style: Style) {
+        // create entity class
+        val s = WholeProject.projectModel.igm.getStyle(style.qid.toString())
+        style.definition.properties.forEach {
+            s.attributes.add(createStyleAttribute(it))
+        }
+
+    }
+
+    private fun createStyleAttribute(sprop: Property): IGMStyle.IGMStyleAttribute {
+        return IGMStyle.IGMStyleAttribute(sprop.key!!).apply {
+            if (sprop.simpleAttributes.isNotEmpty()) {
+                sprop.simpleAttributes.forEach {
+                    attributes.add(createStyleAttribute(it))
+                }
+            } else if (!sprop.value.isNullOrBlank()) {
+                value = sprop.value
+            }
+        }
     }
 
     private fun createView(viewModel: View, templateContext: MutableMap<String, String>, builder: FrameworkBuilder) {

@@ -337,7 +337,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
     private fun collectViewLayoutDeps(properties: MutableList<Property>) {
         properties.forEach { prop ->
-            if (!listOf(VIEW_LAYOUT_ELEMENT_CONTENT, REQM_GENERAL_ATTRIBUTE_EVENTS).contains(prop.key)) {
+            if (!listOf(VIEW_LAYOUT_ELEMENT_CONTENT, VIEW_LAYOUT_ELEMENT_STYLES, REQM_GENERAL_ATTRIBUTE_EVENTS).contains(prop.key)) {
                 if (prop.type == StandardTypes.propertyList.name || prop.value == null) {
                     collectViewSources(QualifiedId(prop.key))
                     if (prop.type == StandardTypes.propertyList.name /*&& !StandardLayoutElements.contains(prop.key!!)*/) {

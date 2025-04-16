@@ -23,6 +23,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
 import dev.reqsmith.composer.parser.ReqMParserParser.ReqmContext
+import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_FEATURE_REFERENCE
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 import org.antlr.v4.runtime.CharStreams
@@ -89,10 +90,24 @@ class ReqMParser {
             parseAction(stat.action(), reqmSource)
             parseView(stat.view(), reqmSource)
             parseFeature(stat.feature(), reqmSource)
-            // TODO: parseStyle(stat.style(), reqmSource)
+            parseStyle(stat.style(), reqmSource)
         }
 
         return true
+    }
+
+    private fun parseStyle(style: ReqMParserParser.StyleContext?, reqmSource: ReqMSource) {
+        style?.let {
+            val st = Style().apply {
+                saveSourceInfo(this, style.start)
+                qid = parseQualifiedId(style.qualifiedId())
+//                parent = parseParent(style.parent())
+                sourceRef = parseSourceRef(style.sourceRef())
+                definition = parseTypelessDefinitionClosure(style.typelessDefinitionClosure())
+            }
+            reqmSource.styles.add(st)
+        }
+
     }
 
     private fun parseFeature(feature: ReqMParserParser.FeatureContext?, reqmSource: ReqMSource) {
@@ -476,9 +491,18 @@ class ReqMParser {
     private fun parseFeatureRef(featureRef: ReqMParserParser.FeatureRefContext): FeatureRef {
         return FeatureRef().apply {
             saveSourceInfo(this, featureRef.start)
-            qid = QualifiedId(featureRef.qualifiedId().text)
-            featureRef.property().forEach {
-                properties.add(parseProperty(it))
+            qid = QualifiedId(featureRef.qualifiedId()[0].text)
+            if (featureRef.qualifiedId().size > 1) {
+                // short form of feature reference
+                properties.add(Property().apply {
+                    key = REQM_GENERAL_ATTRIBUTE_FEATURE_REFERENCE
+                    value = featureRef.qualifiedId()[1].text
+                    type = StandardTypes.string.name
+                })
+            } else {
+                featureRef.property().forEach {
+                    properties.add(parseProperty(it))
+                }
             }
         }
     }

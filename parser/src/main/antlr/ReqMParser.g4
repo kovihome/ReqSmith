@@ -96,7 +96,7 @@ viewProperty:  simpleTypelessProperty |  compundViewProperty ;
 compundViewProperty: qualifiedId closureStart viewProperty*? closureEnd ;
 
 
-featureRef : '@' qualifiedId (closureStart property*? closureEnd)? ;
+featureRef : '@' qualifiedId ((closureStart property*? closureEnd) | (':' qualifiedId))? ;
 
 simpleTypelessProperty : qualifiedId (':' propertyValue)? ;
 

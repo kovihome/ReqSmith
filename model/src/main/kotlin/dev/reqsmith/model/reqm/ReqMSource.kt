@@ -33,5 +33,6 @@ class ReqMSource : ElementBase() {
     val entities: MutableList<Entity> = ArrayList()
     val actions: MutableList<Action> = ArrayList()
     val views: MutableList<View> = ArrayList()
+    val styles: MutableList<Style> = ArrayList()
     val features: MutableList<Feature> = ArrayList()
 }
