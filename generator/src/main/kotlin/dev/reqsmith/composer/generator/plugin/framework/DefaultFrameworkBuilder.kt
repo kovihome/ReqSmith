@@ -34,6 +34,8 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
 
     override fun getViewLanguage(): String = ""
 
+    override fun getStyleLanguage(): String = ""
+
     override fun getViewFolder(): String = ""
 
     override fun getArtFolder(): String = ""

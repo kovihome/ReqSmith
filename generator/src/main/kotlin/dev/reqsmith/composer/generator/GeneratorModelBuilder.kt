@@ -36,6 +36,7 @@ import dev.reqsmith.model.reqm.*
 
 class GeneratorModelBuilder(private val resourcesFolderName: String) {
     private val appRootPackage = WholeProject.projectModel.source.applications[0].qid?.domain ?: "com.sample.app"
+    var styleGeneratorName = ""
     var viewGeneratorName = ""
     var codeBuilder: FrameworkBuilder? = null
 
@@ -47,9 +48,12 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
 
         // determine view builder
         val viewLang = codeBuilder!!.getViewLanguage()
-
-        //
         viewGeneratorName = "$viewLang.${ConfigManager.defaults[viewLang]}"
+
+        // determine style language
+        val styleLang = codeBuilder!!.getStyleLanguage()
+//        styleGeneratorName = "$styleLang.${ConfigManager.defaults[styleLang]}"
+        styleGeneratorName = styleLang
     }
 
     fun build() {

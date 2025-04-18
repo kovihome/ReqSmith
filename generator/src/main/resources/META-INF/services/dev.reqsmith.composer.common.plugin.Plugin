@@ -25,3 +25,4 @@ dev.reqsmith.composer.generator.plugin.framework.WebFrameworkBuilder
 dev.reqsmith.composer.generator.plugin.framework.SpringFrameworkBuilder
 dev.reqsmith.composer.generator.plugin.template.HtmlTemplateBuilder
 dev.reqsmith.composer.generator.plugin.template.ThymeleafTemplateBuilder
+dev.reqsmith.composer.generator.plugin.language.CssBuilder

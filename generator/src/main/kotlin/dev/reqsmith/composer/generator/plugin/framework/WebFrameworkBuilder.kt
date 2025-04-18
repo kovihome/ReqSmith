@@ -39,11 +39,13 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
         return PluginDef("framework.web", PluginType.Framework)
     }
 
-    override fun getViewLanguage(): String = "html"
+    override fun getViewLanguage() = "html"
 
-    override fun getViewFolder(): String  = "html"
+    override fun getStyleLanguage() = "css"
 
-    override fun getArtFolder() : String = "html"
+    override fun getViewFolder()  = "html"
+
+    override fun getArtFolder() = "html"
 
     override fun buildView(view: View, templateContext: MutableMap<String, String>) {
         val resource = view.definition.featureRefs.find { it.qid.toString() == FEATURE_RESOURCE && it.properties.any { p -> p.key == "file" }}

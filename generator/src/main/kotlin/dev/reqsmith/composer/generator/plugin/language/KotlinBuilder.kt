@@ -267,6 +267,10 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         TODO("Not yet implemented")
     }
 
+    override fun createStyle(style: IGMStyle): String {
+        TODO("Not yet implemented")
+    }
+
     private fun addEnumValues(values: List<String>, indent: Int): Any {
         val pre = prefix(indent)
         val enums = values.joinToString (", ") { it }

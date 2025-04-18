@@ -44,6 +44,13 @@ interface FrameworkBuilder {
     fun getViewLanguage(): String
 
     /**
+     * Get the style language
+     * @return The style language plugin ID
+     */
+    fun getStyleLanguage(): String
+
+
+    /**
      * Get the folder name of view resources (web pages, etc.)
      * @return The view folder name, relative to resources folder
      */
@@ -56,7 +63,7 @@ interface FrameworkBuilder {
     fun getArtFolder(): String
 
     /**
-     * Returns build script elements (plugins, dependecies) belongs to this framework
+     * Returns build script elements (plugins, dependencies) belongs to this framework
      * @param buildScriptUpdates The elements of the build script
      */
     fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>)
@@ -70,8 +77,8 @@ interface FrameworkBuilder {
 
     /**
      * Apply a feature on an entity
-     * @param ent The entity on which the feature have to be applied
-     * @param feature The feature which have to be applied on the entity
+     * @param ent The entity on which the feature has to be applied
+     * @param feature The feature that has to be applied on the entity
      */
     fun applyFeatureOnEntity(ent: Entity, feature: Feature)
 }

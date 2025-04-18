@@ -25,6 +25,7 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.generator.plugin.template.HtmlTemplateBuilder
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
+import dev.reqsmith.model.igm.IGMStyle
 import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
@@ -176,5 +177,10 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
     override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
         TODO("Not yet implemented")
     }
+
+    override fun createStyle(style: IGMStyle): String {
+        TODO("Not yet implemented")
+    }
+
 
 }

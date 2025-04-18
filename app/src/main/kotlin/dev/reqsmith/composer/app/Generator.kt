@@ -26,6 +26,7 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.generator.CodeGenerator
 import dev.reqsmith.composer.generator.GeneratorModelBuilder
+import dev.reqsmith.composer.generator.StyleGenerator
 import dev.reqsmith.composer.generator.ViewGenerator
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
 import java.io.File
@@ -45,7 +46,7 @@ class Generator(
     private val srcPath = WholeProject.project.srcPath(lang)
 
     fun generate(): Boolean {
-        // create internal generator model
+        // create the internal generator model
         Log.debug("language plugin $lang is using in app.Generator.constructor().")
         Log.title("Build Internal Generator Model")
         Log.info("Generated source path: $srcPath")
@@ -66,6 +67,17 @@ class Generator(
         // generate the source code
         Log.title("Generate source code")
         val success = CodeGenerator(langBuilder).generate(getFileHeader())
+
+        // generate styles
+        var successStyles = true
+        if (WholeProject.projectModel.igm.styles.isNotEmpty()) {
+            Log.debug("style language plugin ${generatorModelBuilder.styleGeneratorName} is using in app.Generator.generate().")
+            val styleLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, generatorModelBuilder.styleGeneratorName)
+            val artResourceFolderName = "$resourcesFolderName/${generatorModelBuilder.codeBuilder!!.getArtFolder()}"
+            val viewGenerator = StyleGenerator(styleLangBuilder, artResourceFolderName)
+            successStyles = viewGenerator.generate()
+
+        }
 
         // generate views
         var successView = true
@@ -95,7 +107,7 @@ class Generator(
 
         generateBuildScripts(buildScriptUpdates)
 
-        return success.and(successView)
+        return success.and(successView).and(successStyles)
     }
 
     private fun copyResource(fileNameFrom: String, fileNameTo: String) {
