@@ -18,25 +18,15 @@
 
 package dev.reqsmith.model.enumeration
 
-enum class StandardLayoutElements(val attributes: List<String>) {
-    datatable(listOf("title", "data", "createForm")),
-    footer(listOf("linkGroup", "copyrightText", "facebookLink", "twitterLink", "linkedinLink", "youtubeLink", "githubLink")),
-    form(listOf("title", "data")),
-    `header`(listOf("title", "logo")),
-    linkButton(listOf("title", "to")),
-    linkGroup(listOf("title", "to")),
-    panel(listOf()),
-    spacer(listOf()),
-    text(listOf()),
-//  image(listOf("src", "alt", "width", "height")),
-//  input(listOf("name", "type", "placeholder", "value", "required", "readonly", "disabled", "autocomplete", "autofocus", "list", "maxlength", "minlength", "pattern", "size", "step", "min", "max")),
-//  label(listOf("for")),
-//  link(listOf("to", "text", "title", "target")),
+enum class StandardStyleElements(val attributes: List<String>) {
+
+    font(listOf())
     ;
 
     fun hasAttribute(a: String) = attributes.contains(a)
 
     companion object {
-        fun contains(s: String) = entries.map { it.name }.contains(s)
+        fun contains(s: String) = StandardStyleElements.entries.map { it.name }.contains(s)
     }
+
 }

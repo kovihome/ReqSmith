@@ -74,8 +74,8 @@ class Generator(
             Log.debug("style language plugin ${generatorModelBuilder.styleGeneratorName} is using in app.Generator.generate().")
             val styleLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, generatorModelBuilder.styleGeneratorName)
             val artResourceFolderName = "$resourcesFolderName/${generatorModelBuilder.codeBuilder!!.getArtFolder()}"
-            val viewGenerator = StyleGenerator(styleLangBuilder, artResourceFolderName)
-            successStyles = viewGenerator.generate()
+            val styleGenerator = StyleGenerator(styleLangBuilder, artResourceFolderName)
+            successStyles = styleGenerator.generate()
 
         }
 

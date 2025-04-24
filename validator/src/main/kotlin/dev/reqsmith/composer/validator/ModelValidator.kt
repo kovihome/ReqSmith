@@ -23,6 +23,9 @@ import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
 import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
+import dev.reqsmith.model.enumeration.StandardLayoutElements
+import dev.reqsmith.model.enumeration.StandardStyleAttributes
+import dev.reqsmith.model.enumeration.StandardStyleElements
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 
@@ -31,7 +34,7 @@ class ModelValidator {
     fun validateCompleteness(): Boolean {
         val model = WholeProject.projectModel.source
 
-        // Search for typeless properties, and assign default type to them
+        // Search for typeless properties, and assign a default type to them
         val defPropertyType = ConfigManager.defaults["propertyType"] ?: "String"
         model.applications.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, defPropertyType) }
         model.modules.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, defPropertyType) }
@@ -42,7 +45,7 @@ class ModelValidator {
         // find orphan actions
         model.actions.filter { it.owner == null }.forEach { Log.warning("Action ${it.qid} has no owner (application, module)") }
 
-        // search for missing view links
+        // validate view layout elements: search for missing view links, check style elements, event actions
         val missingLinks = mutableListOf<String>()
         model.views.forEach { view ->
             view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }?.let { layout ->
@@ -72,10 +75,24 @@ class ModelValidator {
             model.views.add(newView)
         }
 
+        // validate style elements
+        WholeProject.projectModel.source.styles.forEach {
+            validateStyleElements(it.definition.properties)
+        }
+
         // TODO search for missing reference in srcRef (applications and modules? excluded), property types, features
         // dependencies needed for this
 
         return true
+    }
+
+    private fun validateStyleElements(properties: List<Property>) {
+        properties.forEach {
+            val propertyName = it.key!!
+            if (!StandardStyleElements.contains(propertyName) && !StandardStyleAttributes.contains(propertyName) && !StandardLayoutElements.contains(propertyName)) {
+                Log.warning("Style property $propertyName is not style element, style attribute or layout element. (${it.coords()})")
+            }
+        }
     }
 
     private fun validateViewLayoutElement(property: Property, missingLinks: MutableList<String>) {
@@ -87,7 +104,19 @@ class ModelValidator {
                 Log.warning("Missing link ${link}; create new view for this link. (${property.coords()})")
                 missingLinks.add(link)
             }
+            return
         }
+
+        // check layout element style
+        if (property.key == "styles") {
+            property.simpleAttributes.forEach { attr ->
+                if (attr.simpleAttributes.isNotEmpty() || attr.value.isNullOrBlank() || !StandardStyleAttributes.contains(attr.key!!)) {
+                    Log.warning("Layout element's style property ${attr.key} is not a style attribute. (${attr.coords()})")
+                }
+            }
+            return
+        }
+
         // check view event action existence
         val events = property.simpleAttributes.find { it.key == REQM_GENERAL_ATTRIBUTE_EVENTS }
         val data = property.simpleAttributes.find { it.key == "data" }
@@ -108,6 +137,8 @@ class ModelValidator {
                 Log.warning("Data layout attribute '${data.value}' is not match any entity (${data.coords()})")
             }
         }
+
+        // recurse
         property.simpleAttributes.forEach {
             validateViewLayoutElement(it, missingLinks)
         }
@@ -150,7 +181,7 @@ class ModelValidator {
             }
         }
 
-        // TODO merge multiple defined other items (entities, classes, views, actors)
+        // TODO merge multiple defined other items (entities, classes, views, actors, styles)
 
         return true
     }
@@ -159,7 +190,7 @@ class ModelValidator {
      * Resolve implicit action ownership
      *
      * Scan event sources for event actions
-     * The remainder actions try to associate to its module
+     * The remainder actions try to associate with its module
      *
      * @return Error list (empty list = no errors found)
      */

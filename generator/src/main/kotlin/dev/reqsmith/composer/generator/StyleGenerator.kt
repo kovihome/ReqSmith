@@ -35,7 +35,7 @@ class StyleGenerator(private val langBuilder: LanguageBuilder, private val resou
         var hasErrors = false
         
         // generate view files
-        WholeProject.projectModel.igm.styles.forEach { hasErrors = buildStyle(it.value) || hasErrors }
+        WholeProject.projectModel.igm.styles.forEach { hasErrors = !buildStyle(it.value) || hasErrors }
 
         return !hasErrors
     }
@@ -48,15 +48,14 @@ class StyleGenerator(private val langBuilder: LanguageBuilder, private val resou
         sb.append(langBuilder.createStyle(style))
 
         // create the file path
-        val entPath = style.id.toPath()
-        val entFilePath = "$resourceFolderName/${langBuilder.language}/$entPath.${langBuilder.extension}"
-        Log.info("Generating style $entFilePath")
-        val success = Project.ensureFolderExists(File(entFilePath).parent, null)
+        val styleFilePath = "$resourceFolderName/${langBuilder.language}/${style.id.toPath()}.${langBuilder.extension}"
+        Log.info("Generating style $styleFilePath")
+        val success = Project.ensureFolderExists(File(styleFilePath).parent, null)
         if (!success) {
             return false
         }
 
-        FileWriter(entFilePath, StandardCharsets.UTF_8).use { it.write(sb.toString()) }
+        FileWriter(styleFilePath, StandardCharsets.UTF_8).use { it.write(sb.toString()) }
         return true
 
     }

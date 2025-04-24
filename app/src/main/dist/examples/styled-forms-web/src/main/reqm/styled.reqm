@@ -72,5 +72,7 @@ view header is widget {
 }
 
 style neonTextColor {
-    textcolor: pink
+    font {
+        color: pink
+    }
 }

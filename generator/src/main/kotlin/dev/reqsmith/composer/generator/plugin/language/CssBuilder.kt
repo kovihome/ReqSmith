@@ -21,6 +21,8 @@ package dev.reqsmith.composer.generator.plugin.language
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.model.enumeration.StandardLayoutElements
+import dev.reqsmith.model.enumeration.StandardStyleElements
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
 import dev.reqsmith.model.igm.IGMStyle
@@ -28,7 +30,8 @@ import dev.reqsmith.model.igm.IGMView
 
 class CssBuilder : LanguageBuilder, Plugin {
     private val cssAttributeMap = mapOf(
-        "textcolor" to "color"
+        "textcolor" to "color",
+        "font-color" to "color"
     )
     override val extension: String = "css"
     override val language: String = "css"
@@ -43,10 +46,17 @@ class CssBuilder : LanguageBuilder, Plugin {
         val sb = StringBuilder()
 
         val cssClassName = style.id.lowercase()
-        val rootAttributes = style.attributes.filter { it.attributes.isEmpty() }
+        val rootAttributes = style.attributes.filter { it.attributes.isEmpty() }.toMutableList()
+        style.attributes.filter { it.attributes.isNotEmpty() && StandardStyleElements.contains(it.key) }.forEach { se ->
+            se.attributes.forEach { a ->
+                rootAttributes.add(IGMStyle.IGMStyleAttribute("${se.key}-${a.key}").apply {
+                    value = a.value
+                })
+            }
+        }
         sb.append(addCssClass(cssClassName, rootAttributes)).append("\n")
 
-        style.attributes.filter { it.attributes.isNotEmpty() }.forEach {
+        style.attributes.filter { it.attributes.isNotEmpty() && StandardLayoutElements.contains(it.key) }.forEach {
             val className = cssName(cssClassName, it.key)
             sb.append(addCssClass(className, it.attributes)).append("\n")
         }
