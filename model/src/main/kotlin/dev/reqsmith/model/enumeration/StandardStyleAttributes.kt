@@ -18,10 +18,20 @@
 
 package dev.reqsmith.model.enumeration
 
+@Suppress("EnumEntryName")
 enum class StandardStyleAttributes {
 
+    @Suppress("EnumEntryName")
+    align,
     color,
-    background
+    face,
+    image,
+    margin,
+    outline,
+    padding,
+    size,
+    spacing,
+    style
     ;
 
     companion object {

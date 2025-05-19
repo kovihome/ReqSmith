@@ -55,6 +55,9 @@ class StyleGenerator(private val langBuilder: LanguageBuilder, private val resou
             return false
         }
 
+        // annotate the style file path back
+        style.url = "/${langBuilder.language}/${style.id.toPath()}.${langBuilder.extension}"
+
         FileWriter(styleFilePath, StandardCharsets.UTF_8).use { it.write(sb.toString()) }
         return true
 

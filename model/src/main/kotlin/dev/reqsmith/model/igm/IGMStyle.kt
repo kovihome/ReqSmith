@@ -20,6 +20,8 @@ package dev.reqsmith.model.igm
 
 class IGMStyle(val id: String) {
 
+    var inline: Boolean = false
+    var url: String? = null
     val attributes: MutableList<IGMStyleAttribute> = mutableListOf()
 
     class IGMStyleAttribute(val key: String) {
@@ -45,6 +47,9 @@ class IGMStyle(val id: String) {
     fun print(tabsize: Int = 0): String {
         val tab = " ".repeat(tabsize)
         val sb = StringBuilder("${tab}IGMStyle $id")
+        if (inline) {
+            sb.append(" (inline)")
+        }
         sb.append("\n")
         attributes.forEach { sb.append(it.print(tabsize+4)) }
         return sb.toString()

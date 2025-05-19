@@ -54,7 +54,7 @@ private const val SPRING_CLASS_MODEL = "org.springframework.ui.Model"
 /**
  * Spring Framework Builder
  *
- * It works as plugin for: frameworks.web, feature.persistence, feature.template
+ * It works as a plugin for: frameworks.web, feature.persistence, feature.template
  */
 open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     private var applicationName : String? = null
@@ -183,7 +183,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                     addStmt(IGMStatement.`return`, "'$className'")
                 }
 
-                // create action for create entity
+                // create action to create entity
                 val formAttribute = dataAttributes.find { it.first == StandardLayoutElements.form.name }
                 if (formAttribute != null) {
                     val dataClass = findIgmClass(formAttribute.second)
@@ -345,7 +345,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
     override fun applyFeatureOnEntity(ent: Entity, feature: Feature) {
         if (feature.qid.toString() == "Persistent") {
-            // add spring data plugins and dependencies to build system
+            // add spring data plugins and dependencies to the build system
             if (!springPlugins.contains(springDataPlugins[0])) {
                 springPlugins.addAll(springDataPlugins)
                 springDependencies.addAll(springDataDependencies)
@@ -355,7 +355,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                 springDependencies.addAll(h2.dependencies)
                 h2.properties.forEach { applicationProperties.setProperty(it.first, it.second) }
             }
-            applySpringDataPersistenceOnEntity(ent, WholeProject.projectModel.igm, feature)
+            applySpringDataPersistenceOnEntity(ent, feature)
         } else {
             TODO("Not implemented yet!")
         }
@@ -364,7 +364,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     class H2Configurator {
         val dependencies = listOf("rt:com.h2database:h2") // runtimeOnly
         val properties = listOf(
-            Pair("spring.datasource.url", "jdbc:h2:mem:testdb"),
+            Pair("spring.datasource.url", "jdbc:h2:mem:testdb;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE"),
             Pair("spring.datasource.driver-class-name", "org.h2.Driver"),
             Pair("spring.datasource.username", "sa"),
             Pair("spring.datasource.password", ""),
@@ -374,11 +374,11 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         )
     }
 
-    private fun applySpringDataPersistenceOnEntity(ent: Entity, igm: InternalGeneratorModel, feature: Feature) {
+    private fun applySpringDataPersistenceOnEntity(ent: Entity, feature: Feature) {
         val entityClassName = ent.qid!!.id!!
 
         // get IGM class
-        val igmClass = igm.getClass(ent.qid.toString())
+        val igmClass = WholeProject.projectModel.igm.getClass(ent.qid.toString())
 
         // get featureRef and merge properties
         val featureRef = ent.definition.featureRefs.find { it.qid.toString() == feature.qid.toString() }!!
@@ -403,6 +403,16 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             }
         }
 
+        // add member from persistent feature
+        persistentProperties.forEach { prop ->
+            if (!listOf(StandardTypes.valueList.name, StandardTypes.propertyList.name).contains(prop.type)) {
+                igmClass.getMember(prop.key!!).apply {
+                    optionality = Optionality.Optional.name
+                    type = prop.type ?: ConfigManager.defaults.getOrDefault("propertyType", "String")
+                }
+            }
+        }
+
         // add new class members from persistenceProperties
         igmClass.getMember(ID_FIELD_NAME).apply {
             type = ID_FIELD_TYPE
@@ -414,22 +424,12 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
             })
         }
 
-        // add member from persistent feature
-        persistentProperties.forEach { prop ->
-            if (!listOf(StandardTypes.valueList.name, StandardTypes.propertyList.name).contains(prop.type)) {
-                igmClass.getMember(prop.key!!).apply {
-                    optionality = Optionality.Optional.name
-                    type = prop.type ?: ConfigManager.defaults.getOrDefault("propertyType", "String")
-                }
-            }
-        }
-
         // annotate class members
         // no annotation needed yet
 
         // create repository interface for this entity
         val repoClassName = WholeProject.sourceArchitecture.repositoryName(igmClass.id)
-        igm.getClass(repoClassName).apply {
+        WholeProject.projectModel.igm.getClass(repoClassName).apply {
             interfaceType = true
             parent = addImport("org.springframework.data.jpa.repository.JpaRepository")
             parentClasses.addAll(listOf(addImport(igmClass.id), ID_FIELD_TYPE))
@@ -439,7 +439,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         // controller name: <base-package>/controller/<entity>Controller
         val serviceClassName = WholeProject.sourceArchitecture.serviceName(igmClass.id)
         val repo = repoClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }
-        igm.getClass(serviceClassName).apply {
+        WholeProject.projectModel.igm.getClass(serviceClassName).apply {
             annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Service")))
             ctorParams.add(IGMAction.IGMActionParam(repo, addImport(repoClassName)))
 

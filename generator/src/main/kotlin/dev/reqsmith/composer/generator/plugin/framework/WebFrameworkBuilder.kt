@@ -25,10 +25,13 @@ import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.model.FEATURE_RESOURCE
 import dev.reqsmith.model.FEATURE_RESOURCE_ATTRIBUTE_FILE
+import dev.reqsmith.model.FEATURE_STYLE
 import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
 import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
+import dev.reqsmith.model.VIEW_LAYOUT_ELEMENT_STYLES
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardTypes
+import dev.reqsmith.model.igm.IGMStyle
 import dev.reqsmith.model.igm.IGMView
 import dev.reqsmith.model.reqm.Property
 import dev.reqsmith.model.reqm.View
@@ -49,6 +52,7 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
     override fun buildView(view: View, templateContext: MutableMap<String, String>) {
         val resource = view.definition.featureRefs.find { it.qid.toString() == FEATURE_RESOURCE && it.properties.any { p -> p.key == "file" }}
+        val styleRef = view.definition.featureRefs.find { it.qid.toString() == FEATURE_STYLE}?.properties?.get(0)?.value
         val layout = view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }
         if (resource != null && layout != null) {
             throw IGMGenerationException("Both layout and @Resource file cannot be defined for a view.")
@@ -56,13 +60,14 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
         if (layout != null) {
             val igmView = WholeProject.projectModel.igm.getView(view.qid.toString())
-            igmView.layout = propertyToNode(layout, templateContext)
+            igmView.styleRef = styleRef
+            igmView.layout = propertyToNode(layout, igmView, templateContext)
         } else if (resource != null) {
             WholeProject.projectModel.igm.addResource("template", resource.properties.find { it.key == FEATURE_RESOURCE_ATTRIBUTE_FILE }?.value!!) // TODO: get template folder name
         }
     }
 
-    private fun propertyToNode(prop: Property, templateContext: Map<String, String>): IGMView.IGMNode {
+    private fun propertyToNode(prop: Property, igmView: IGMView, templateContext: Map<String, String>): IGMView.IGMNode {
         val node = IGMView.IGMNode().apply {
             name = prop.key!!
         }
@@ -74,13 +79,16 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
             // collect attributes of this node
             val attributeList = if (StandardLayoutElements.contains(prop.key!!)) StandardLayoutElements.valueOf(prop.key!!).attributes else listOf()
             prop.simpleAttributes.forEach { a ->
-                if (listOf(REQM_GENERAL_ATTRIBUTE_EVENTS).contains(a.key)) {
+                if (a.key == REQM_GENERAL_ATTRIBUTE_EVENTS) {
                     val eventNode = IGMView.IGMNode().apply {
                         name = REQM_GENERAL_ATTRIBUTE_EVENTS
                     }
                     a.simpleAttributes.forEach { event ->
                         var value = event.value ?: ""
-                        if ((value.startsWith('\'') && value.endsWith('\'')) || (value.startsWith('"') && value.endsWith('"'))) {
+                        if ((value.startsWith('\'') && value.endsWith('\'')) || (value.startsWith('"') && value.endsWith(
+                                '"'
+                            ))
+                        ) {
                             value = value.removeSurrounding("'").removeSurrounding("\"")
                             value = template.translate(localTemplateContext, value)
                         }
@@ -88,10 +96,26 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
                     }
                     node.children.add(eventNode)
 
+                } else if (a.key == VIEW_LAYOUT_ELEMENT_STYLES) {
+                    if (a.simpleAttributes.isNotEmpty()) {
+                        // inline style definition
+                        val inlineStyleId = "${igmView.id}_${node.name}"
+                        val inlineStyle = WholeProject.projectModel.igm.getStyle(inlineStyleId).apply { inline = true }
+                        a.simpleAttributes.forEach { attr ->
+                            inlineStyle.attributes.add(createStyleAttribute(attr))
+                        }
+                        node.styleRef = inlineStyleId
+
+                    } else if (!a.value.isNullOrBlank()) {
+                        // style reference
+                        node.styleRef = a.value
+                    }
+
                 } else if (a.type != StandardTypes.propertyList.name && attributeList.contains(a.key)) {
                     // real attribute
                     val value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
                     node.attributes.add(Pair(a.key!!, template.translate(localTemplateContext, value)))
+
                 } else {
                     // child node
                     if (a.type != StandardTypes.propertyList.name) {
@@ -99,8 +123,9 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
                         node.children.add(IGMView.IGMNode().apply {
                             name = a.key!!
                             if (a.value?.isNotBlank() == true) {
+                                val literal = a.value?.startsWith("\"") == true || a.value?.startsWith("'") == true
                                 var value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
-                                if (a.key in listOf("text")) {
+                                if (literal) {
                                     value = template.translate(localTemplateContext, value)
                                 }
                                 val elementAttributeList = if (StandardLayoutElements.contains(a.key!!)) StandardLayoutElements.valueOf(a.key!!).attributes else listOf()
@@ -110,14 +135,38 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
                         })
                     } else {
                         // compound child
-                        node.children.add(propertyToNode(a, localTemplateContext))
+                        node.children.add(propertyToNode(a, igmView, localTemplateContext))
                     }
                 }
             }
         } else if (prop.value?.isNotBlank() == true) {
             node.text = template.translate(templateContext, prop.value!!)
         }
+
+        // search for node level style reference
+        if (!igmView.styleRef.isNullOrBlank()) {
+            WholeProject.projectModel.igm.styles.keys.find { it == igmView.styleRef }?.let { styleName ->
+                WholeProject.projectModel.igm.styles[styleName]?.let { style ->
+                    if (style.attributes.any { it.key == node.name }) {
+                        node.styleRef = "${igmView.styleRef}_${node.name}"
+                    }
+                }
+            }
+        }
         return node
     }
+
+    private fun createStyleAttribute(sprop: Property): IGMStyle.IGMStyleAttribute {
+        return IGMStyle.IGMStyleAttribute(sprop.key!!).apply {
+            if (sprop.simpleAttributes.isNotEmpty()) {
+                sprop.simpleAttributes.forEach {
+                    attributes.add(createStyleAttribute(it))
+                }
+            } else if (!sprop.value.isNullOrBlank()) {
+                value = sprop.value
+            }
+        }
+    }
+
 
 }

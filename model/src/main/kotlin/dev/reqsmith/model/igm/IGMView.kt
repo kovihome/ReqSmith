@@ -19,12 +19,14 @@
 package dev.reqsmith.model.igm
 
 class IGMView(val id: String) {
+    var styleRef: String? = null
     var layout = IGMNode()
     val imports: MutableList<String> = ArrayList()
 
     class IGMNode {
         var name: String = ""
         var text: String = ""
+        var styleRef: String? = null
         val attributes: MutableList<Pair<String, String>> = ArrayList()
         val children: MutableList<IGMNode> = ArrayList()
 
@@ -35,6 +37,9 @@ class IGMView(val id: String) {
             var tab = " ".repeat(tabsize)
             sb.append("${tab}IGMNode $name\n")
             tab = " ".repeat(tabsize+4)
+            if (!styleRef.isNullOrBlank()) {
+                sb.append(" ".repeat(tabsize + 4)).append("styleRef: ").append(styleRef).append("\n")
+            }
             attributes.forEach {
                 sb.append("${tab}${it.first}: ")
                 if (it.second.contains(' ')) sb.append("\"${it.second}\"") else sb.append(it.second)
@@ -45,9 +50,30 @@ class IGMView(val id: String) {
             }
             return sb.toString()
         }
+
+        fun getAttr(attrName: String): String? {
+            val s = attributes.find { it.first == attrName }
+            if (s != null) {
+                return s.second
+            } else {
+                val c = children.find { child -> child.attributes.any { it.first == attrName }}
+                if (c != null) {
+                    return c.attributes.find { it.first == attrName }?.second
+                }
+            }
+            return null
+        }
     }
 
-    fun print(tabsize: Int = 0) = StringBuilder("IGMView $id\n").append(layout.print(tabsize + 4)).toString()
+    fun print(tabsize: Int = 0): String {
+        val sb =  StringBuilder("IGMView $id\n")
+        if (!styleRef.isNullOrBlank()) {
+            sb.append(" ".repeat(tabsize + 4)).append("styleRef: ").append(styleRef).append("\n")
+        }
+        sb.append(layout.print(tabsize + 4))
+        return sb.toString()
+
+    }
 
     override fun toString() = "IGMView $id"
 

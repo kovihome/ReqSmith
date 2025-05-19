@@ -56,7 +56,12 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun createHeader(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         return createHTML(true).header {
-            classes = setOf("bg-light", "py-3")
+            val classSet = mutableSetOf("bg-light", "py-3")
+            if (!node.styleRef.isNullOrBlank()) {
+                classSet.add(node.styleRef!!)
+            }
+            classes = classSet
+            // apply style
 
             div { classes = setOf("container", "d-flex", ALIGN_ITEMS_CENTER)
                 if (attr.contains("logo")) {
@@ -81,15 +86,20 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     }
 
     override fun createText(node: IGMView.IGMNode): String {
-        val attr = node.attributes.toMap()
         return createHTML(true).p {
+            // apply style
+            if (!node.styleRef.isNullOrBlank()) {
+                classes = setOf(node.styleRef!!)
+            }
             // write multiline text
-            val texts = (attr["default"]?:"").split("\\n")
-            text(texts[0])
-            if (texts.size > 1) {
-                texts.subList(1, texts.size).forEach {
-                    br()
-                    text(it)
+            node.getAttr("default")?.let { t ->
+                val texts = t.split("\\n")
+                text(texts[0])
+                if (texts.size > 1) {
+                    texts.subList(1, texts.size).forEach {
+                        br()
+                        text(it)
+                    }
                 }
             }
         }

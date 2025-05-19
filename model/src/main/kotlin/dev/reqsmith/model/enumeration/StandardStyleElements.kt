@@ -18,12 +18,31 @@
 
 package dev.reqsmith.model.enumeration
 
-enum class StandardStyleElements(val attributes: List<String>) {
+enum class StandardStyleElements(val attributes: List<StandardStyleAttributes> = listOf()) {
 
-    font(listOf())
+    font(listOf(
+        StandardStyleAttributes.face,
+        StandardStyleAttributes.color,
+        StandardStyleAttributes.size,
+        StandardStyleAttributes.style,
+        StandardStyleAttributes.align,
+        StandardStyleAttributes.spacing
+    )),
+    border(listOf(
+        StandardStyleAttributes.color,
+        StandardStyleAttributes.style,
+        StandardStyleAttributes.margin,
+        StandardStyleAttributes.padding,
+        StandardStyleAttributes.size,
+        StandardStyleAttributes.outline
+    )),
+    background(listOf(
+        StandardStyleAttributes.color,
+        StandardStyleAttributes.image
+    ))
     ;
 
-    fun hasAttribute(a: String) = attributes.contains(a)
+    fun hasAttribute(a: String) = StandardStyleAttributes.contains(a) && attributes.contains(StandardStyleAttributes.valueOf(a))
 
     companion object {
         fun contains(s: String) = StandardStyleElements.entries.map { it.name }.contains(s)

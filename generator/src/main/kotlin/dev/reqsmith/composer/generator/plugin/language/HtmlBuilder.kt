@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.generator.plugin.language
 
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginManager
@@ -45,6 +46,11 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
     override fun createView(view: IGMView): String {
         templateBuilder = PluginManager.getBest("html", PluginType.Template, "template")
 
+        // apply view level style
+        findStyles(view).forEach { style ->
+            view.imports.add(style.url!!)
+        }
+
         // build source code in string builder
         return createHTML().html {
             head {
@@ -67,11 +73,42 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
                 }
             }
             body {
+                if (!view.styleRef.isNullOrBlank()) {
+                    classes = setOf(view.styleRef!!)
+                }
                 unsafe {
                     raw(createNode(view.layout))
                 }
             }
         }
+    }
+
+    private fun findStyles(view: IGMView): List<IGMStyle> {
+        val styleRefs = mutableSetOf<String>()
+        if (!view.styleRef.isNullOrBlank()) {
+            styleRefs.add(view.styleRef!!)
+        }
+        styleRefs.addAll(findStyleRefsInNode(view.layout))
+
+        val styles = mutableListOf<IGMStyle>()
+        styleRefs.forEach { ref ->
+            val style = WholeProject.projectModel.igm.getStyle(ref)
+            if (!style.url.isNullOrBlank()) {
+                styles.add(style)
+            }
+        }
+        return styles
+    }
+
+    private fun findStyleRefsInNode(node: IGMView.IGMNode): Set<String> {
+        val styleRefs = mutableSetOf<String>()
+        if (!node.styleRef.isNullOrBlank()) {
+            styleRefs.add(node.styleRef!!)
+        }
+        node.children.forEach { child ->
+            styleRefs.addAll(findStyleRefsInNode(child))
+        }
+        return styleRefs
     }
 
     fun createNode(node: IGMView.IGMNode): String {
