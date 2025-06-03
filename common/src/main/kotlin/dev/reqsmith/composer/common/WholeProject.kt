@@ -20,8 +20,14 @@ package dev.reqsmith.composer.common
 
 import dev.reqsmith.model.ProjectModel
 
+class GeneratorData {
+    val availableStyleClasses = mutableListOf<String>()
+}
+
+
 object WholeProject {
     lateinit var project: Project
     var projectModel = ProjectModel()
     val sourceArchitecture = SourceArchitecture()
+    val generatorData = GeneratorData()
 }

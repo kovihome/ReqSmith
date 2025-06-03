@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.generator.plugin.language
 
+import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
@@ -46,27 +47,32 @@ class CssBuilder : LanguageBuilder, Plugin {
         val sb = StringBuilder()
 
         val cssClassName = style.id.lowercase()
-        val rootAttributes = style.attributes.filter { it.attributes.isEmpty() }.toMutableList()
-        style.attributes.filter { it.attributes.isNotEmpty() && StandardStyleElements.contains(it.key) }.forEach { se ->
+        sb.append(addCssClass(cssClassName, resolveStyleAttributes(style.attributes))).append("\n")
+
+        style.attributes.filter { it.attributes.isNotEmpty() && StandardLayoutElements.contains(it.key) }.forEach {
+            sb.append(addCssClass(cssName(cssClassName, it.key), resolveStyleAttributes(it.attributes))).append("\n")
+        }
+
+        return sb.toString()
+    }
+
+    private fun resolveStyleAttributes(attributes: List<IGMStyle.IGMStyleAttribute>): List<IGMStyle.IGMStyleAttribute> {
+        val rootAttributes = attributes.filter { it.attributes.isEmpty() }.toMutableList()
+        attributes.filter { it.attributes.isNotEmpty() && StandardStyleElements.contains(it.key) }.forEach { se ->
             se.attributes.forEach { a ->
                 rootAttributes.add(IGMStyle.IGMStyleAttribute("${se.key}-${a.key}").apply {
                     value = a.value
                 })
             }
         }
-        sb.append(addCssClass(cssClassName, rootAttributes)).append("\n")
-
-        style.attributes.filter { it.attributes.isNotEmpty() && StandardLayoutElements.contains(it.key) }.forEach {
-            val className = cssName(cssClassName, it.key)
-            sb.append(addCssClass(className, it.attributes)).append("\n")
-        }
-
-        return sb.toString()
+        return rootAttributes
     }
 
     private fun cssName(cssClassName: String, key: String) = "$cssClassName-${key.lowercase()}"
 
     private fun addCssClass(cssClassName: String, attributes: List<IGMStyle.IGMStyleAttribute>):String {
+        WholeProject.generatorData.availableStyleClasses.add(cssClassName)
+
         val sb = StringBuilder(".${cssClassName} {\n")
         attributes.forEach {
             sb.append(mapAttributeToCssProperty(it))

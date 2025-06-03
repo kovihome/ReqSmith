@@ -11,6 +11,8 @@ class string atomic
 
 class integer atomic
 
+class Long atomic
+
 class Date atomic
 
 entity dev.reqsmith.base.EntityBase

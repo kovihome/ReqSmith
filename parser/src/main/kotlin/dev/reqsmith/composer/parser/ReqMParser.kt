@@ -66,9 +66,9 @@ class ReqMParser {
     fun parseReqMTree(filePath: String, reqmSource: ReqMSource): Boolean {
 
         val tree = try {
-            parseCache.get(filePath) { _ ->
+            parseCache[filePath, { _ ->
                 loadReqMTree(filePath)
-            }
+            }]
         } catch (e: IOException) {
             Log.error("Parsing $filePath was failed - ${e.localizedMessage}")
             return false
@@ -103,11 +103,44 @@ class ReqMParser {
                 qid = parseQualifiedId(style.qualifiedId())
 //                parent = parseParent(style.parent())
                 sourceRef = parseSourceRef(style.sourceRef())
-                definition = parseTypelessDefinitionClosure(style.typelessDefinitionClosure())
+                definition = parseStyleDefinitionClosure(style.styleDefinitionClosure())
             }
             reqmSource.styles.add(st)
         }
 
+    }
+
+    private fun parseStyleDefinitionClosure(styleDefinitionClosure: ReqMParserParser.StyleDefinitionClosureContext) =
+        Definition().apply {
+            styleDefinitionClosure.featureRef().forEach {
+                featureRefs.add(parseFeatureRef(it))
+            }
+            styleDefinitionClosure.styleProperty().forEach {
+                properties.add(parseStyleProperty(it))
+            }
+        }
+
+    private fun parseStyleProperty(styleProperty: ReqMParserParser.StylePropertyContext): Property {
+        return when {
+            styleProperty.simpleTypelessProperty() != null -> {
+                parseSimpleTypelessProperty(styleProperty.simpleTypelessProperty())
+            }
+            styleProperty.compoundTypelessProperty() != null -> {
+                parseCompoundTypelessProperty(styleProperty.compoundTypelessProperty())
+            }
+            styleProperty.layoutStyleProperty() != null -> {
+                Property().apply {
+                    key = styleProperty.layoutStyleProperty().qualifiedId().text
+                    type = StandardTypes.propertyList.name
+                    styleProperty.layoutStyleProperty().compoundTypelessProperty().forEach {
+                        simpleAttributes.add(parseCompoundTypelessProperty(it))
+                    }
+                }
+            }
+            else -> {
+                Property.Undefined
+            }
+        }
     }
 
     private fun parseFeature(feature: ReqMParserParser.FeatureContext?, reqmSource: ReqMSource) {
@@ -153,11 +186,11 @@ class ReqMParser {
     private fun parseViewProperty(viewProperty: ReqMParserParser.ViewPropertyContext): Property {
         return if (viewProperty.simpleTypelessProperty() != null) {
             parseSimpleTypelessProperty(viewProperty.simpleTypelessProperty())
-        } else if (viewProperty.compundViewProperty() != null) {
+        } else if (viewProperty.compoundViewProperty() != null) {
             Property().apply {
-                key = viewProperty.compundViewProperty().qualifiedId().text
+                key = viewProperty.compoundViewProperty().qualifiedId().text
                 type = StandardTypes.propertyList.name
-                viewProperty.compundViewProperty().viewProperty().forEach {
+                viewProperty.compoundViewProperty().viewProperty().forEach {
                     simpleAttributes.add(parseViewProperty(it))
                 }
             }
@@ -189,21 +222,24 @@ class ReqMParser {
 
     private fun parseTypelessProperty(property: ReqMParserParser.TypelessPropertyContext): Property {
         return if (property.simpleTypelessProperty() != null) {
-            return parseSimpleTypelessProperty(property.simpleTypelessProperty())
+            parseSimpleTypelessProperty(property.simpleTypelessProperty())
         } else if (property.compoundTypelessProperty() != null) {
-            Property().apply {
-                saveSourceInfo(this, property.start)
-                type = StandardTypes.propertyList.name
-                key = property.compoundTypelessProperty().qualifiedId().text
-                property.compoundTypelessProperty().simpleTypelessProperty().forEach {
-                    val p = parseSimpleTypelessProperty(it)
-                    simpleAttributes.add(p)
-                }
-            }
+            parseCompoundTypelessProperty(property.compoundTypelessProperty())
         } else {
             Property.Undefined
         }
     }
+
+    private fun parseCompoundTypelessProperty(property: ReqMParserParser.CompoundTypelessPropertyContext): Property = Property().apply {
+        saveSourceInfo(this, property.start)
+        type = StandardTypes.propertyList.name
+        key = property.qualifiedId().text
+        property.simpleTypelessProperty().forEach {
+            val p = parseSimpleTypelessProperty(it)
+            simpleAttributes.add(p)
+        }
+    }
+
 
     private fun parseAction(action: ReqMParserParser.ActionContext?, reqmSource: ReqMSource) {
         action?.let {
@@ -405,17 +441,9 @@ class ReqMParser {
 
     private fun parseApplicationProperty(property: ReqMParserParser.ApplicationPropertyContext): Property {
         return if (property.simpleApplicationProperty() != null) {
-            return parseSimpleApplicationProperty(property.simpleApplicationProperty())
+            parseSimpleApplicationProperty(property.simpleApplicationProperty())
         } else if (property.compoundTypelessProperty() != null) {
-            Property().apply {
-                saveSourceInfo(this, property.start)
-                type = StandardTypes.propertyList.name
-                key = property.compoundTypelessProperty().qualifiedId().text
-                property.compoundTypelessProperty().simpleTypelessProperty().forEach {
-                    val p = parseSimpleTypelessProperty(it)
-                    simpleAttributes.add(p)
-                }
-            }
+            parseCompoundTypelessProperty(property.compoundTypelessProperty())
         } else {
             Property.Undefined
         }

@@ -36,7 +36,7 @@ view WelcomePage {
             logo: 'reqsmith-logo.png'
             title: 'Welcome to ReqSmith Forms Webapp'
             styles {
-                background: light_green
+                background: lightgreen
             }
         }
         panel {
@@ -73,6 +73,11 @@ view header is widget {
 
 style neonTextColor {
     font {
-        color: pink
+        color: indigo
+    }
+    text {
+        font {
+            color: hotpink
+        }
     }
 }

@@ -25,12 +25,8 @@ reqm : topStat*? EOF ;
 
 topStat : application | module | actor | entity | view | feature | class | style | action ;
 
-//application : 'application' qualifiedId sourceRef? typelessDefinitionClosure? ;
 application : 'application' qualifiedId sourceRef? applicationDefinitionClosure? ;
 
-// domain : 'domain' qualifiedId sourceRef? definitionClosure? ;
-
-//module : 'module' qualifiedId sourceRef? typelessDefinitionClosure? ;
 module : 'module' qualifiedId sourceRef? applicationDefinitionClosure? ;
 
 actor : 'actor' qualifiedId sourceRef? typelessDefinitionClosure? ;
@@ -41,16 +37,14 @@ class : 'class' qualifiedId (KWATOMIC | (KWENUMERATION enumDefinitionClosure) | 
 
 entity : 'entity' qualifiedId parent? sourceRef? definitionClosure? ;
 
-//view : 'view' qualifiedId parent? sourceRef? typelessDefinitionClosure? ;
 view : 'view' qualifiedId parent? sourceRef? viewDefinitionClosure? ;
 
 feature : 'feature' qualifiedId sourceRef? definitionClosure? ;
 
-style : 'style' qualifiedId sourceRef? typelessDefinitionClosure? ;
+style : 'style' qualifiedId sourceRef? styleDefinitionClosure? ;
 
 // building blocks of the top elements
 
-//sourceRef : 'from' qualifiedSourceId ;
 sourceRef : 'from' qualifiedId ;
 
 parent : 'is' qualifiedId ;
@@ -91,9 +85,16 @@ simpleApplicationProperty: qualifiedId (':' applicationPropertyValue)? ;
 // NEW: view definition closure
 viewDefinitionClosure : closureStart featureRef*? viewProperty*? closureEnd ;
 
-viewProperty:  simpleTypelessProperty |  compundViewProperty ;
+viewProperty :  simpleTypelessProperty |  compoundViewProperty ;
 
-compundViewProperty: qualifiedId closureStart viewProperty*? closureEnd ;
+compoundViewProperty : qualifiedId closureStart viewProperty*? closureEnd ;
+
+// NEW style definition closure
+styleDefinitionClosure : closureStart featureRef*? styleProperty*? closureEnd ;
+
+styleProperty : simpleTypelessProperty | compoundTypelessProperty | layoutStyleProperty ;
+
+layoutStyleProperty : qualifiedId closureStart compoundTypelessProperty*? closureEnd ;
 
 
 featureRef : '@' qualifiedId ((closureStart property*? closureEnd) | (':' qualifiedId))? ;
@@ -120,12 +121,7 @@ optionality : KWOPTIONAL | KWMANDATORY ;
 
 simpleId : ID ;
 
-//domainId : (simpleId DOT)* simpleId ;
-
-//qualifiedId : (domainId DOT)? simpleId ;
 qualifiedId : (simpleId DOT)* simpleId ;
-
-//qualifiedSourceId: domainId | qualifiedId ;
 
 // others
 closureStart : LCURLY ; // NL* ;

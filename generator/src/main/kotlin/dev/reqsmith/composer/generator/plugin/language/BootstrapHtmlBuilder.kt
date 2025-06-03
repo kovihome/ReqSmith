@@ -23,6 +23,7 @@ import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.model.enumeration.StandardEvents
+import dev.reqsmith.model.enumeration.StandardStyleElements
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
@@ -37,6 +38,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
     private val nf = NameFormatter()
 
+    private var currentViewStyleRef: String? = null
+
     override fun definition() = PluginDef("html.bootstrap", PluginType.Language)
 
     override fun createView(view: IGMView): String {
@@ -50,18 +53,31 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 //            "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"
         ))
 
+        currentViewStyleRef = view.styleRef
+
         return super.createView(view)
+    }
+
+    private fun calculateBackgroundColor(styleRef: String?, defaultBackgroundClass: String): String {
+        if (!styleRef.isNullOrBlank()) {
+            // check if the background attribute exists in style class
+            WholeProject.projectModel.igm.styles[styleRef]?.let { style ->
+                if (style.attributes.any { it.key == StandardStyleElements.background.name}) {
+                    return styleRef.lowercase()
+                }
+            }
+        }
+        return defaultBackgroundClass
     }
 
     override fun createHeader(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         return createHTML(true).header {
-            val classSet = mutableSetOf("bg-light", "py-3")
-            if (!node.styleRef.isNullOrBlank()) {
-                classSet.add(node.styleRef!!)
-            }
-            classes = classSet
             // apply style
+            classes = mutableSetOf("py-3").apply {
+                add(calculateBackgroundColor(node.styleRef, "bg-light"))
+                addAll(collectViewLayoutElementStyles(node))
+            }
 
             div { classes = setOf("container", "d-flex", ALIGN_ITEMS_CENTER)
                 if (attr.contains("logo")) {
@@ -88,9 +104,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun createText(node: IGMView.IGMNode): String {
         return createHTML(true).p {
             // apply style
-            if (!node.styleRef.isNullOrBlank()) {
-                classes = setOf(node.styleRef!!)
-            }
+            classes = collectViewLayoutElementStyles(node)
+
             // write multiline text
             node.getAttr("default")?.let { t ->
                 val texts = t.split("\\n")
@@ -103,6 +118,25 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 }
             }
         }
+    }
+
+    private fun collectViewLayoutElementStyles(node: IGMView.IGMNode): MutableSet<String> {
+        val allStyleClasses = mutableSetOf<String>()
+        if (!node.styleRef.isNullOrBlank()) {
+            allStyleClasses.add(node.styleRef!!.lowercase())
+        }
+        val cvsr = if (!node.styleRef.isNullOrBlank()) node.styleRef!!.lowercase() else currentViewStyleRef?.lowercase()
+        if (cvsr != null) {
+            findViewLayoutElementStyle(cvsr, node.name.lowercase())?.let {
+                allStyleClasses.add(it)
+            }
+        }
+        return allStyleClasses
+    }
+
+    private fun findViewLayoutElementStyle(viewStyleRef: String, elementName: String): String? {
+        val elementStyleClass = "$viewStyleRef-$elementName"
+        return if (WholeProject.generatorData.availableStyleClasses.contains(elementStyleClass)) elementStyleClass else null
     }
 
     private fun checkLink(link: String?): String {
@@ -164,7 +198,10 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun createFooter(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         return createHTML(true).footer {
-            classes = setOf("bg-dark", "text-white", "py-4", "mt-5", "fixed-bottom")
+            classes = mutableSetOf("text-white", "py-4", "mt-5", "fixed-bottom").apply {
+                add(calculateBackgroundColor(node.styleRef, "bg-dark"))
+                addAll(collectViewLayoutElementStyles(node))
+            }
 
             div { classes = setOf("container")
                 div { classes = setOf("row")
@@ -222,7 +259,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         val entity = getEntity(entityName)
 
         return createHTML(true).div {
-            classes = setOf("container-sm", ALIGN_ITEMS_CENTER, FORM_COLUMN_SIZE_CLS)
+            classes = mutableSetOf("container-sm", ALIGN_ITEMS_CENTER, FORM_COLUMN_SIZE_CLS).apply {
+                addAll(collectViewLayoutElementStyles(node))
+            }
 
             h5 { classes = setOf("mb-3"); text(title) }
             form {
@@ -328,7 +367,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         // collect entity members
         val entity = getEntity(entityName)
         return createHTML(true).div {
-            classes = setOf("container-sm", ALIGN_ITEMS_CENTER)
+            classes = mutableSetOf("container-sm", ALIGN_ITEMS_CENTER).apply {
+                addAll(collectViewLayoutElementStyles(node))
+            }
             div {
                 classes = setOf("row", "mb-2")
                 div { classes = setOf(FORM_COLUMN_SIZE_CLS, "h4"); text(title) }

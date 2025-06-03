@@ -110,8 +110,19 @@ class ModelValidator {
         // check layout element style
         if (property.key == "styles") {
             property.simpleAttributes.forEach { attr ->
-                if (attr.simpleAttributes.isNotEmpty() || attr.value.isNullOrBlank() || !StandardStyleAttributes.contains(attr.key!!)) {
-                    Log.warning("Layout element's style property ${attr.key} is not a style attribute. (${attr.coords()})")
+                if (StandardStyleElements.contains(attr.key!!)) {
+                    if (attr.simpleAttributes.isNotEmpty()) {
+                        attr.simpleAttributes.forEach { sattr ->
+                            if (!StandardStyleAttributes.contains(sattr.key!!)) {
+                                Log.warning("Layout element's style property ${attr.key} is not a valid style attribute. (${attr.coords()})")
+                            }
+                        }
+                    }
+                } else if (!StandardStyleAttributes.contains(attr.key!!)) {
+                    if (attr.simpleAttributes.isNotEmpty())
+                        Log.warning("Layout element's style property ${attr.key} is not a valid style element. (${attr.coords()})")
+                    else
+                        Log.warning("Layout element's style property ${attr.key} is not a valid style attribute. (${attr.coords()})")
                 }
             }
             return
