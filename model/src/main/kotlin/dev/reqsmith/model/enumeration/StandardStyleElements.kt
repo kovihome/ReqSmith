@@ -22,19 +22,19 @@ enum class StandardStyleElements(val attributes: List<StandardStyleAttributes> =
 
     font(listOf(
         StandardStyleAttributes.face,
-        StandardStyleAttributes.color,
         StandardStyleAttributes.size,
-        StandardStyleAttributes.style,
-        StandardStyleAttributes.align,
-        StandardStyleAttributes.spacing
+    )),
+    text(listOf(
+        StandardStyleAttributes.color,
+        StandardStyleAttributes.format,
+        StandardStyleAttributes.align
     )),
     border(listOf(
         StandardStyleAttributes.color,
-        StandardStyleAttributes.style,
+        StandardStyleAttributes.format,
         StandardStyleAttributes.margin,
         StandardStyleAttributes.padding,
-        StandardStyleAttributes.size,
-        StandardStyleAttributes.outline
+        StandardStyleAttributes.size
     )),
     background(listOf(
         StandardStyleAttributes.color,

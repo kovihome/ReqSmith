@@ -79,63 +79,70 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
             // collect attributes of this node
             val attributeList = if (StandardLayoutElements.contains(prop.key!!)) StandardLayoutElements.valueOf(prop.key!!).attributes else listOf()
             prop.simpleAttributes.forEach { a ->
-                if (a.key == REQM_GENERAL_ATTRIBUTE_EVENTS) {
-                    val eventNode = IGMView.IGMNode().apply {
-                        name = REQM_GENERAL_ATTRIBUTE_EVENTS
-                    }
-                    a.simpleAttributes.forEach { event ->
-                        var value = event.value ?: ""
-                        if ((value.startsWith('\'') && value.endsWith('\'')) || (value.startsWith('"') && value.endsWith(
-                                '"'
-                            ))
-                        ) {
-                            value = value.removeSurrounding("'").removeSurrounding("\"")
-                            value = template.translate(localTemplateContext, value)
+                when {
+                    a.key == REQM_GENERAL_ATTRIBUTE_EVENTS -> {
+                        val eventNode = IGMView.IGMNode().apply {
+                            name = REQM_GENERAL_ATTRIBUTE_EVENTS
                         }
-                        eventNode.attributes.add(Pair(event.key!!, value))
-                    }
-                    node.children.add(eventNode)
-
-                } else if (a.key == VIEW_LAYOUT_ELEMENT_STYLES) {
-                    if (a.simpleAttributes.isNotEmpty()) {
-                        // inline style definition
-                        val inlineStyleId = "${igmView.id}_${node.name}"
-                        val inlineStyle = WholeProject.projectModel.igm.getStyle(inlineStyleId).apply { inline = true }
-                        a.simpleAttributes.forEach { attr ->
-                            inlineStyle.attributes.add(createStyleAttribute(attr))
-                        }
-                        node.styleRef = inlineStyleId
-
-                    } else if (!a.value.isNullOrBlank()) {
-                        // style reference
-                        node.styleRef = a.value
-                    }
-
-                } else if (a.type != StandardTypes.propertyList.name && attributeList.contains(a.key)) {
-                    // real attribute
-                    val value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
-                    node.attributes.add(Pair(a.key!!, template.translate(localTemplateContext, value)))
-
-                } else {
-                    // child node
-                    if (a.type != StandardTypes.propertyList.name) {
-                        // simple child
-                        node.children.add(IGMView.IGMNode().apply {
-                            name = a.key!!
-                            if (a.value?.isNotBlank() == true) {
-                                val literal = a.value?.startsWith("\"") == true || a.value?.startsWith("'") == true
-                                var value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
-                                if (literal) {
-                                    value = template.translate(localTemplateContext, value)
-                                }
-                                val elementAttributeList = if (StandardLayoutElements.contains(a.key!!)) StandardLayoutElements.valueOf(a.key!!).attributes else listOf()
-                                val defaultAttributeName = elementAttributeList.getOrElse(0) { "default" }
-                                attributes.add(Pair(defaultAttributeName, value))
+                        a.simpleAttributes.forEach { event ->
+                            var value = event.value ?: ""
+                            if ((value.startsWith('\'') && value.endsWith('\'')) || (value.startsWith('"') && value.endsWith(
+                                    '"'
+                                ))
+                            ) {
+                                value = value.removeSurrounding("'").removeSurrounding("\"")
+                                value = template.translate(localTemplateContext, value)
                             }
-                        })
-                    } else {
-                        // compound child
-                        node.children.add(propertyToNode(a, igmView, localTemplateContext))
+                            eventNode.attributes.add(Pair(event.key!!, value))
+                        }
+                        node.children.add(eventNode)
+
+                    }
+                    a.key == VIEW_LAYOUT_ELEMENT_STYLES -> {
+                        if (a.simpleAttributes.isNotEmpty()) {
+                            // inline style definition
+                            val inlineStyleId = igmView.id
+                            val inlineStyle = WholeProject.projectModel.igm.getStyle(inlineStyleId).apply { inline = true }
+                            val leNode = IGMStyle.IGMStyleAttribute(node.name)
+                            inlineStyle.attributes.add(leNode)
+                            a.simpleAttributes.forEach { attr ->
+                                leNode.attributes.add(createStyleAttribute(attr))
+                            }
+                            node.styleRef = inlineStyleId
+
+                        } else if (!a.value.isNullOrBlank()) {
+                            // style reference
+                            node.styleRef = a.value
+                        }
+
+                    }
+                    a.type != StandardTypes.propertyList.name && attributeList.contains(a.key) -> {
+                        // real attribute
+                        val value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                        node.attributes.add(Pair(a.key!!, template.translate(localTemplateContext, value)))
+
+                    }
+                    else -> {
+                        // child node
+                        if (a.type != StandardTypes.propertyList.name) {
+                            // simple child
+                            node.children.add(IGMView.IGMNode().apply {
+                                name = a.key!!
+                                if (a.value?.isNotBlank() == true) {
+                                    val literal = a.value?.startsWith("\"") == true || a.value?.startsWith("'") == true
+                                    var value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                                    if (literal) {
+                                        value = template.translate(localTemplateContext, value)
+                                    }
+                                    val elementAttributeList = if (StandardLayoutElements.contains(a.key!!)) StandardLayoutElements.valueOf(a.key!!).attributes else listOf()
+                                    val defaultAttributeName = elementAttributeList.getOrElse(0) { "default" }
+                                    attributes.add(Pair(defaultAttributeName, value))
+                                }
+                            })
+                        } else {
+                            // compound child
+                            node.children.add(propertyToNode(a, igmView, localTemplateContext))
+                        }
                     }
                 }
             }
@@ -158,12 +165,18 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
 
     private fun createStyleAttribute(sprop: Property): IGMStyle.IGMStyleAttribute {
         return IGMStyle.IGMStyleAttribute(sprop.key!!).apply {
-            if (sprop.simpleAttributes.isNotEmpty()) {
-                sprop.simpleAttributes.forEach {
-                    attributes.add(createStyleAttribute(it))
+            when {
+                sprop.simpleAttributes.isNotEmpty() -> {
+                    sprop.simpleAttributes.forEach {
+                        attributes.add(createStyleAttribute(it))
+                    }
                 }
-            } else if (!sprop.value.isNullOrBlank()) {
-                value = sprop.value
+                sprop.valueList.isNotEmpty() -> {
+                    valueList.addAll(sprop.valueList)
+                }
+                !sprop.value.isNullOrBlank() -> {
+                    value = sprop.value
+                }
             }
         }
     }

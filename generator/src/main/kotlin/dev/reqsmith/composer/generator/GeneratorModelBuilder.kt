@@ -110,7 +110,11 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
                     attributes.add(createStyleAttribute(it))
                 }
             } else if (!sprop.value.isNullOrBlank()) {
-                value = sprop.value
+                if (sprop.valueList.isNotEmpty()) {
+                    valueList.addAll(sprop.valueList)
+                } else {
+                    value = sprop.value
+                }
             }
         }
     }

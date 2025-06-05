@@ -56,10 +56,10 @@ definitionClosure : closureStart featureRef*? property*? closureEnd;
 simpleDefinitionClosure : closureStart property*? closureEnd;
 
 // enum definition closure rules
-enumDefinitionClosure : closureStart enumList closureEnd;
+enumDefinitionClosure : closureStart idList closureEnd;
 
 // TODO: azt is meg kellene engedni, hogy a lista elemei külön sorokban szerepeljenek
-enumList : (ID ',')*? ID ;
+idList : (ID ',')*? ID ;
 
 // action definition closure rules
 actionDefinitionClosure : closureStart actionCall*? closureEnd ;
@@ -99,7 +99,7 @@ layoutStyleProperty : qualifiedId closureStart compoundTypelessProperty*? closur
 
 featureRef : '@' qualifiedId ((closureStart property*? closureEnd) | (':' qualifiedId))? ;
 
-simpleTypelessProperty : qualifiedId (':' propertyValue)? ;
+simpleTypelessProperty : qualifiedId (':' (propertyValue | idList))? ;
 
 compoundTypelessProperty : qualifiedId closureStart simpleTypelessProperty*? closureEnd ;
 

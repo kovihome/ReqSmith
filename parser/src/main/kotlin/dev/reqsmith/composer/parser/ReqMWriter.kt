@@ -207,35 +207,45 @@ class ReqMWriter {
     private fun writeProperty(prop: Property, outs: OutputStreamWriter, tc: Int) {
         outs.write(tabs(tc))
         outs.write(prop.key!!)
-        if (prop.type == StandardTypes.valueList.name) {
-            outs.write(" {\n")
-            prop.valueList.forEach {
-                outs.write(tabs(tc+1))
-                outs.write("${it}\n")
-            }
-            outs.write(tabs(tc))
-            outs.write("}")
-        } else if (prop.type == StandardTypes.propertyList.name) {
-            outs.write(" {\n")
-            prop.simpleAttributes.forEach {
-                writeProperty(it, outs, tc+1)
-            }
-            outs.write(tabs(tc))
-            outs.write("}")
-        } else {
-            if (prop.value != null) {
-                outs.write(": ${prop.value}")
-            } else if (prop.optionality != null || prop.type != null) {
-                outs.write(": ")
-                if (prop.optionality != null) {
-                    outs.write(prop.optionality!!)
-                    outs.write(" ")
+        when (prop.type) {
+            StandardTypes.valueList.name -> {
+                outs.write(" {\n")
+                prop.valueList.forEach {
+                    outs.write(tabs(tc+1))
+                    outs.write("${it}\n")
                 }
-                if (prop.type != null) {
-                    if (prop.listOf) {
-                        outs.write("listOf ")
+                outs.write(tabs(tc))
+                outs.write("}")
+            }
+            StandardTypes.propertyList.name -> {
+                outs.write(" {\n")
+                prop.simpleAttributes.forEach {
+                    writeProperty(it, outs, tc+1)
+                }
+                outs.write(tabs(tc))
+                outs.write("}")
+            }
+            else -> {
+                when {
+                    prop.valueList.isNotEmpty() -> {
+                        outs.write(": ${prop.valueList.joinToString(", ")}")
                     }
-                    outs.write(prop.type!!)
+                    prop.value != null -> {
+                        outs.write(": ${prop.value}")
+                    }
+                    prop.optionality != null || prop.type != null -> {
+                        outs.write(": ")
+                        if (prop.optionality != null) {
+                            outs.write(prop.optionality!!)
+                            outs.write(" ")
+                        }
+                        if (prop.type != null) {
+                            if (prop.listOf) {
+                                outs.write("listOf ")
+                            }
+                            outs.write(prop.type!!)
+                        }
+                    }
                 }
             }
         }

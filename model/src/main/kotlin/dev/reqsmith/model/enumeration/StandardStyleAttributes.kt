@@ -31,7 +31,7 @@ enum class StandardStyleAttributes {
     padding,
     size,
     spacing,
-    style
+    format
     ;
 
     companion object {

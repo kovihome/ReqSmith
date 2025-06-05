@@ -216,7 +216,13 @@ class ReqMParser {
         return Property().apply {
             saveSourceInfo(this, property.start)
             key = property.qualifiedId().text
-            value = property.propertyValue()?.text
+            if (property.idList() == null || property.idList().isEmpty) {
+                value = property.propertyValue()?.text
+            } else {
+                property.idList().ID().forEach { id ->
+                    valueList.add(id.text)
+                }
+            }
         }
     }
 
@@ -330,7 +336,7 @@ class ReqMParser {
 
         // handle lexer and parser errors
         if (lexerErrorListener.errors.isNotEmpty() || reqmErrorListener.errors.isNotEmpty()) {
-            throw ReqMParsingException("${reqmErrorListener.errors.size + lexerErrorListener.errors.size} error(s) has occured").apply {
+            throw ReqMParsingException("${reqmErrorListener.errors.size + lexerErrorListener.errors.size} error(s) has occurred").apply {
                 parserErrors.addAll(lexerErrorListener.errors)
                 parserErrors.addAll(reqmErrorListener.errors)
             }
@@ -388,8 +394,7 @@ class ReqMParser {
         val definition = Definition()
         enumDefinitionClosure?.let {
             saveSourceInfo(definition, enumDefinitionClosure.start)
-            val enumList = enumDefinitionClosure.enumList().ID()
-            enumList.forEach { value ->
+            enumDefinitionClosure.idList().ID().forEach { value ->
                 val property = Property()
                 property.key = value.text
                 property.type = "enum"

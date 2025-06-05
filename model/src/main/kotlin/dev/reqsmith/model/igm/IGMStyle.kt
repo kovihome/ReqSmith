@@ -26,6 +26,7 @@ class IGMStyle(val id: String) {
 
     class IGMStyleAttribute(val key: String) {
         var value: String? = null
+        val valueList = mutableListOf<String>()
         val attributes: MutableList<IGMStyleAttribute> = mutableListOf()
 
         fun print(tabsize: Int): String {
@@ -36,6 +37,8 @@ class IGMStyle(val id: String) {
                 attributes.forEach {
                     sb.append(it.print(tabsize+4))
                 }
+            } else if (valueList.isNotEmpty()) {
+                sb.append("${tab}$key: ${valueList.joinToString(", ")}\n")
             } else {
                 sb.append("${tab}$key: $value\n")
             }
