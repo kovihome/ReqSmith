@@ -77,7 +77,7 @@ We welcome any type of community contributions, including:
 - Create more realistic examples
 - Write application code, especially plugins
 
-If you want to help ReqSmith development, please visit [Contribution page](https://github.com/kovihome/ReqSmith/wiki/Contribution) for details.
+If you want to help ReqSmith development, please visit [Contribution page](https://github.com/kovihome/ReqSmith/wiki/Contributing) for details.
 
 ## Support This Project
 
