@@ -1,0 +1,16 @@
+/*
+ * Hello World application
+ */
+
+// Application descriptor
+application HelloWorld from applications.CommandLineApplication {
+    description: 'Hello World application'
+    version: 1.0.0
+}
+
+/*
+ * Default action (when application starts): print 'Hello World!' to the terminal
+ */
+action startApplication {
+    print 'Hello World!'
+}

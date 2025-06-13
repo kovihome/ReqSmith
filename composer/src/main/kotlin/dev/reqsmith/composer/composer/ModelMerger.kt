@@ -35,7 +35,7 @@ import dev.reqsmith.model.reqm.*
 const val TEMPLATE_NAME_TO_AVOID_DEFAULT = "avoidDefault"
 
 /**
- * Merge missing requirement elements and collect dependencies from repository into project model
+ * Merge missing requirement elements and collect dependencies from the repository into the project model
  * @param finder Repository finder
  */
 class ModelMerger(private val finder: RepositoryFinder) {
@@ -586,6 +586,8 @@ class ModelMerger(private val finder: RepositoryFinder) {
         refApps.forEach {
             if (app.sourceRef != QualifiedId.Undefined && app.sourceRef?.id == it.qid?.id && app.sourceRef?.domain.isNullOrBlank() && !it.qid?.domain.isNullOrBlank()) {
                 app.sourceRef?.domain = it.qid?.domain
+            } else if (app.sourceRef == QualifiedId.Undefined && it.sourceRef != QualifiedId.Undefined) {
+                app.sourceRef = it.sourceRef
             }
             if (app.definition == Definition.Undefined && it.definition != Definition.Undefined) {
                 app.definition = Definition()
@@ -616,5 +618,21 @@ class ModelMerger(private val finder: RepositoryFinder) {
             }
         }
     }
+
+    fun mergeMultipleModelElementInstances() {
+        // TODO if multiple application items exist, merge them
+        // error conditions:
+        // - multiple srcRefs exist
+        // - attributes and features with different values, types
+        if (WholeProject.projectModel.source.applications.size > 1) {
+            val pivot = WholeProject.projectModel.source.applications[0]
+            val mergables = WholeProject.projectModel.source.applications.subList(1, WholeProject.projectModel.source.applications.size).toList()
+            mergeApplicationRef(pivot, mergables)
+            WholeProject.projectModel.source.applications.removeAll(mergables)
+        }
+
+
+    }
+
 
 }

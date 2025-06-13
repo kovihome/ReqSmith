@@ -23,6 +23,7 @@ import org.antlr.v4.runtime.CommonTokenStream
 import org.junit.jupiter.api.Test
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
 import dev.reqsmith.model.reqm.Definition
+import dev.reqsmith.model.reqm.QualifiedId
 import dev.reqsmith.model.reqm.ReqMSource
 import org.junit.jupiter.api.assertDoesNotThrow
 
@@ -62,20 +63,81 @@ class ReqMParserParserTest {
         assert(s.actors[0].qid?.id.equals("User"))
     }
 
+    @Test
+    fun testLoadApplication() {
+        val s = loadReqMFile("src/test/resources/application.reqm")
+        assert(s.applications.isNotEmpty())
+        assert(s.applications.size == 1)
+
+//      application dev.reqsmith.test.Sample from applications.CommandLineApplication
+        val app = s.applications[0]
+        assert(app.qid!!.id == "Sample")
+        assert(app.qid!!.domain == "dev.reqsmith.test")
+        assert(app.sourceRef != null && s.applications[0].sourceRef != QualifiedId.Undefined)
+        assert(app.sourceRef!!.id == "CommandLineApplication")
+        assert(app.sourceRef!!.domain == "applications")
+        val p = app.definition.properties
+        assert(p.isNotEmpty())
+
+//      title: "TestApplication"
+        val title = p.find { it.key == "title" }
+        assert(title!!.value!!.isNotBlank())
+//      description: 'Sample application for test'
+        val desc = p.find { it.key == "description" }
+        assert(desc!!.value!!.isNotBlank())
+//      version: 1.0.0
+        val ver = p.find { it.key == "version" }
+        assert(ver!!.value!!.isNotBlank())
+//      events {
+//              applicationStart: start
+//      }
+        val ev = p.find { it.key == "events" }
+        assert(ev!!.simpleAttributes.isNotEmpty())
+        assert(ev.simpleAttributes.size == 1)
+        val sa = ev.simpleAttributes[0]
+        assert(sa.key == "applicationStart")
+        assert(sa.value == "start")
+//        options {
+//            simpleOption {
+//                short: s
+//                type: boolean
+//                description: "Simple"
+//            }
+//            argument {
+//                type: filename
+//                description: "Description for the argument"
+//                multiple: true
+//            }
+//            command {
+//                type: command
+//                description: "Description for this command"
+//                action: commandAction
+//            }
+        val op = p.find { it.key == "options" }
+        assert(op!!.simpleAttributes.isNotEmpty())
+        val opa = op.simpleAttributes
+        assert(opa.find { it.key == "simpleOption" }!!.simpleAttributes.size == 3)
+        assert(opa.find { it.key == "argument" }!!.simpleAttributes.size == 3)
+        assert(opa.find { it.key == "command" }!!.simpleAttributes.size == 3)
+    }
+
     @Test fun testLoadEntities() {
-        val parser = ReqMParser()
-        val s = ReqMSource()
-        parser.parseReqMTree("src/test/resources/entities.reqm", s)
+        val s = loadReqMFile("src/test/resources/entities.reqm")
         assert(s.classes.isNotEmpty())
         assert(s.classes[0].qid?.id.equals("AtomicType"))
         assert(s.entities.isNotEmpty())
         assert(s.entities[0].qid?.id.equals("EmptyEntity"))
     }
 
-    @Test fun testLoadViews() {
+    private fun loadReqMFile(filename: String): ReqMSource {
         val parser = ReqMParser()
         val s = ReqMSource()
-        parser.parseReqMTree("src/test/resources/view.reqm", s)
+        parser.parseReqMTree(filename, s)
+        return s
+    }
+
+    @Test fun testLoadViews() {
+        val s = loadReqMFile("src/test/resources/view.reqm")
         assert(s.views.isNotEmpty())
         assert(s.views[0].qid?.id.equals("SimplePage"))
     }

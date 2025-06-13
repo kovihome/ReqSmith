@@ -1,0 +1,30 @@
+/*
+ * Sample application Requirement Model: the basics
+ */
+
+// application descriptor
+application dev.reqsmith.test.Sample from applications.CommandLineApplication {
+    title: "TestApplication"
+	description: 'Sample application for test'
+	version: 1.0.0
+	events {
+	    applicationStart: start
+	}
+	options {
+        simpleOption {
+            short: s
+            type: boolean
+            description: "Simple"
+        }
+        argument {
+            type: filename
+            description: "Description for the argument"
+            multiple: true
+        }
+        command {
+            type: command
+            description: "Description for this command"
+            action: commandAction
+        }
+	}
+}

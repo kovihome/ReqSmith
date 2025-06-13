@@ -1,0 +1,14 @@
+/*
+ * Hello World application
+ */
+
+// Application descriptor
+application HelloWorld {
+    options {
+        echo {
+            type: string
+            short: e
+            description: "The application will echo this parameter."
+        }
+    }
+}

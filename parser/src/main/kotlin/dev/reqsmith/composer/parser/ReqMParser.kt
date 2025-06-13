@@ -130,7 +130,7 @@ class ReqMParser {
             }
             styleProperty.layoutStyleProperty() != null -> {
                 Property().apply {
-                    key = styleProperty.layoutStyleProperty().qualifiedId().text
+                    key = styleProperty.layoutStyleProperty().simpleId().text
                     type = StandardTypes.propertyList.name
                     styleProperty.layoutStyleProperty().compoundTypelessProperty().forEach {
                         simpleAttributes.add(parseCompoundTypelessProperty(it))
@@ -188,7 +188,7 @@ class ReqMParser {
             parseSimpleTypelessProperty(viewProperty.simpleTypelessProperty())
         } else if (viewProperty.compoundViewProperty() != null) {
             Property().apply {
-                key = viewProperty.compoundViewProperty().qualifiedId().text
+                key = viewProperty.compoundViewProperty().simpleId().text
                 type = StandardTypes.propertyList.name
                 viewProperty.compoundViewProperty().viewProperty().forEach {
                     simpleAttributes.add(parseViewProperty(it))
@@ -215,12 +215,16 @@ class ReqMParser {
     private fun parseSimpleTypelessProperty(property: ReqMParserParser.SimpleTypelessPropertyContext): Property {
         return Property().apply {
             saveSourceInfo(this, property.start)
-            key = property.qualifiedId().text
-            if (property.idList() == null || property.idList().isEmpty) {
-                value = property.propertyValue()?.text
+            if (property.qualifiedId() != null) {
+                key = property.qualifiedId().text
             } else {
-                property.idList().ID().forEach { id ->
-                    valueList.add(id.text)
+                key = property.simpleId().text
+                if (property.idList() == null || property.idList().isEmpty) {
+                    value = property.propertyValue()?.text
+                } else {
+                    property.idList().ID().forEach { id ->
+                        valueList.add(id.text)
+                    }
                 }
             }
         }
@@ -239,7 +243,7 @@ class ReqMParser {
     private fun parseCompoundTypelessProperty(property: ReqMParserParser.CompoundTypelessPropertyContext): Property = Property().apply {
         saveSourceInfo(this, property.start)
         type = StandardTypes.propertyList.name
-        key = property.qualifiedId().text
+        key = property.simpleId().text
         property.simpleTypelessProperty().forEach {
             val p = parseSimpleTypelessProperty(it)
             simpleAttributes.add(p)
@@ -445,19 +449,32 @@ class ReqMParser {
     }
 
     private fun parseApplicationProperty(property: ReqMParserParser.ApplicationPropertyContext): Property {
-        return if (property.simpleApplicationProperty() != null) {
-            parseSimpleApplicationProperty(property.simpleApplicationProperty())
-        } else if (property.compoundTypelessProperty() != null) {
-            parseCompoundTypelessProperty(property.compoundTypelessProperty())
-        } else {
-            Property.Undefined
+        return when {
+            property.simpleApplicationProperty() != null -> {
+                parseSimpleApplicationProperty(property.simpleApplicationProperty())
+            }
+            property.compoundTypelessProperty() != null -> {
+                parseCompoundTypelessProperty(property.compoundTypelessProperty())
+            }
+            property.applicationTwoLevelProperty() != null -> {
+                Property().apply {
+                    key = property.applicationTwoLevelProperty().simpleId().text
+                    type = StandardTypes.propertyList.name
+                    property.applicationTwoLevelProperty().compoundTypelessProperty().forEach {
+                        simpleAttributes.add(parseCompoundTypelessProperty(it))
+                    }
+                }
+            }
+            else -> {
+                Property.Undefined
+            }
         }
     }
 
     private fun parseSimpleApplicationProperty(property: ReqMParserParser.SimpleApplicationPropertyContext): Property {
         return Property().apply {
             saveSourceInfo(this, property.start)
-            key = property.qualifiedId().text
+            key = property.simpleId().text
             if (property.applicationPropertyValue() != null) {
                 when {
                     property.applicationPropertyValue().StringLiteral() != null -> {
@@ -543,7 +560,7 @@ class ReqMParser {
     private fun parseProperty(property: ReqMParserParser.PropertyContext): Property {
         return Property().apply {
             saveSourceInfo(this, property.start)
-            key = property.qualifiedId().text
+            key = property.simpleId().text
             if (property.propertyValue() != null) {
                 property.optionality()?.let {
                     optionality = it.text

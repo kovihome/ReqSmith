@@ -25,21 +25,21 @@ reqm : topStat*? EOF ;
 
 topStat : application | module | actor | entity | view | feature | class | style | action ;
 
-application : 'application' qualifiedId sourceRef? applicationDefinitionClosure? ;
+application : KWAPPLICATION qualifiedId sourceRef? applicationDefinitionClosure? ;
 
-module : 'module' qualifiedId sourceRef? applicationDefinitionClosure? ;
+module : KWMODULE qualifiedId sourceRef? applicationDefinitionClosure? ;
 
-actor : 'actor' qualifiedId sourceRef? typelessDefinitionClosure? ;
+actor : KWACTOR qualifiedId sourceRef? typelessDefinitionClosure? ;
 
-action : 'action' qualifiedId actionDefinitionClosure? ;
+action : KWACTION qualifiedId actionDefinitionClosure? ;
 
 class : 'class' qualifiedId (KWATOMIC | (KWENUMERATION enumDefinitionClosure) | (parent? sourceRef? simpleDefinitionClosure?)) ;
 
-entity : 'entity' qualifiedId parent? sourceRef? definitionClosure? ;
+entity : KWENTITY qualifiedId parent? sourceRef? definitionClosure? ;
 
-view : 'view' qualifiedId parent? sourceRef? viewDefinitionClosure? ;
+view : KWVIEW qualifiedId parent? sourceRef? viewDefinitionClosure? ;
 
-feature : 'feature' qualifiedId sourceRef? definitionClosure? ;
+feature : KWFEATURE qualifiedId sourceRef? definitionClosure? ;
 
 style : 'style' qualifiedId sourceRef? styleDefinitionClosure? ;
 
@@ -78,32 +78,35 @@ typelessProperty : simpleTypelessProperty | compoundTypelessProperty ;
 // NEW: application definition closure rules
 applicationDefinitionClosure : closureStart featureRef*? applicationProperty*? closureEnd ;
 
-applicationProperty : simpleApplicationProperty | compoundTypelessProperty ;
+applicationProperty : simpleApplicationProperty | compoundTypelessProperty | applicationTwoLevelProperty ;
 
-simpleApplicationProperty: qualifiedId (':' applicationPropertyValue)? ;
+simpleApplicationProperty: simpleId (':' applicationPropertyValue)? ;
+
+applicationTwoLevelProperty : simpleId closureStart compoundTypelessProperty*? closureEnd ;
 
 // NEW: view definition closure
 viewDefinitionClosure : closureStart featureRef*? viewProperty*? closureEnd ;
 
 viewProperty :  simpleTypelessProperty |  compoundViewProperty ;
 
-compoundViewProperty : qualifiedId closureStart viewProperty*? closureEnd ;
+compoundViewProperty : simpleId closureStart viewProperty*? closureEnd ;
 
 // NEW style definition closure
 styleDefinitionClosure : closureStart featureRef*? styleProperty*? closureEnd ;
 
 styleProperty : simpleTypelessProperty | compoundTypelessProperty | layoutStyleProperty ;
 
-layoutStyleProperty : qualifiedId closureStart compoundTypelessProperty*? closureEnd ;
+layoutStyleProperty : simpleId closureStart compoundTypelessProperty*? closureEnd ;
 
 
 featureRef : '@' qualifiedId ((closureStart property*? closureEnd) | (':' qualifiedId))? ;
 
-simpleTypelessProperty : qualifiedId (':' (propertyValue | idList))? ;
+//simpleTypelessProperty : qualifiedId (':' (propertyValue | idList))? ;
+simpleTypelessProperty : qualifiedId | (simpleId ':' (propertyValue | idList)) ;
 
-compoundTypelessProperty : qualifiedId closureStart simpleTypelessProperty*? closureEnd ;
+compoundTypelessProperty : simpleId closureStart simpleTypelessProperty*? closureEnd ;
 
-property : qualifiedId (propertyClosure | (':' optionality? propertyValue))? ;
+property : simpleId (propertyClosure | (':' optionality? propertyValue))? ;
 
 propertyClosure : closureStart propertyAttribute*? closureEnd ;
 
@@ -115,12 +118,8 @@ applicationPropertyValue: INT | StringLiteral | SemanticVersionNumber | qualifie
 
 optionality : KWOPTIONAL | KWMANDATORY ;
 
-
-
 // ID definitions
-
-simpleId : ID ;
-
+simpleId : KWACTION | KWSTYLE | ID ;
 qualifiedId : (simpleId DOT)* simpleId ;
 
 // others
@@ -130,6 +129,23 @@ closureEnd : RCURLY ; // NL* ;
 propertyType : KWLISTOF? ID ; // | 'string' | 'numeric' ;
 StringLiteral : '"' StringElement* '"' | '\'' StringElement* '\'' ;
 SemanticVersionNumber : MAJOR '.' MINOR '.' PATCH ( '-' PRERELEASE )? ( '+' BUILD )? ;
+
+// keywords
+KWAPPLICATION: 'application' ;
+KWMODULE: 'module' ;
+KWACTOR: 'actor' ;
+KWENTITY: 'entity' ;
+KWACTION: 'action' ;
+// KWTYPE: 'type' ;
+KWVIEW: 'view' ;
+KWSTYLE: 'style' ;
+KWFEATURE: 'feature' ;
+
+KWATOMIC : 'atomic' ;
+KWENUMERATION : 'enumeration' ;
+KWOPTIONAL : 'optional' ;
+KWMANDATORY : 'mandatory' ;
+KWLISTOF : 'listOf' ;
 
 // **** Fragments ****
 fragment StringElement : '\u0020' | '\u0021' | '\u0023' .. '\u007F' ; // | CharEscapeSeq
@@ -156,18 +172,6 @@ RPAREN : ')' ;
 LCURLY : '{' ;
 RCURLY : '}' ;
 DOT : '.' ;
-// keywords
-KWATOMIC : 'atomic' ;
-KWENUMERATION : 'enumeration' ;
-KWOPTIONAL : 'optional' ;
-KWMANDATORY : 'mandatory' ;
-KWLISTOF : 'listOf' ;
-//APPLICATION_ : 'application' ;
-//MODULE_ : 'module' ;
-//ACTOR_ : 'actor' ;
-//ENTITY_ : 'entity' ;
-//EXTENSION_ : 'extension' ;
-
 INT : [0-9]+ ;
 ID : [a-zA-Z_][a-zA-Z_0-9]* ;
 TEXT : [a-zA-Z_0-9@,.] ;

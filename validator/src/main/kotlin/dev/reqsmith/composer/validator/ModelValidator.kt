@@ -170,11 +170,6 @@ class ModelValidator {
     fun resolveInconsistencies(): Boolean {
         val model = WholeProject.projectModel.source
 
-        // TODO if multiple application items exist, merge them
-        // error conditions:
-        // - multiple srcRefs exist
-        // - attributes and features with different values, types
-
         // check the application item
         if (model.applications.isNotEmpty()) {
             val app = model.applications[0]
@@ -281,15 +276,20 @@ class ModelValidator {
 
     private fun searchActionOwnerInModel(reqmsrc: ReqMSource, actionName: String?, qid: QualifiedId, sourceFileName: String?): String? {
         return reqmsrc.getAction(actionName!!, sourceFileName)?.let {
-            if (it.owner == null) {
-                it.owner = qid.toString()
-                Log.debug("action ${it.qid} owner is application $qid")
-                "OK"
-            } else if (it.owner != qid.toString()) {
-                "action ${it.qid} has multiple owners: ${it.owner} and $qid"
-            } else {
-                "action ${it.qid} owner ${it.owner} referenced twice to it"
+            when {
+                it.owner == null -> {
+                    it.owner = qid.toString()
+                    Log.debug("action ${it.qid} owner is application $qid")
+                    "OK"
+                }
+                it.owner != qid.toString() -> {
+                    "action ${it.qid} has multiple owners: ${it.owner} and $qid"
+                }
+                else -> {
+                    "action ${it.qid} owner ${it.owner} referenced twice to it"
+                }
             }
         }
     }
+
 }

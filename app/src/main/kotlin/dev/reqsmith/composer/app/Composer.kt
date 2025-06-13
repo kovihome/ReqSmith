@@ -56,18 +56,23 @@ class Composer(private val appHome: String) {
         if (WholeProject.projectModel.source.features.isNotEmpty()) Log.info("  ${WholeProject.projectModel.source.features.size} features")
         Log.info("==========================================")
 
-        // consolidate reqm source - inconsistencies, merge multiple element instances
+        // consolidate reqm source - merge multiple element instances
+        Log.title("Cumulate same ReqM source elements")
+        val finder = RepositoryFinder()
+        val merger = ModelMerger(finder)
+        merger.mergeMultipleModelElementInstances()
+
+        // consolidate reqm source - inconsistencies
         Log.title("Consolidate ReqM")
         val validator = ModelValidator()
         val isConsistent = validator.resolveInconsistencies()
         if (!isConsistent) {
-            // TODO: Failure Point #2 - inconsistencies in reqm model
+            // Failure Point #2 - inconsistencies in reqm model
             return false
         }
 
         // search repository for reqm source elements
         Log.title("Search for ReqM Repositories")
-        val finder = RepositoryFinder()
         val ok : Boolean = finder.connect(appHome)
         if (!ok) {
             Log.error("Repository access problem; see previous errors for details")
@@ -76,7 +81,7 @@ class Composer(private val appHome: String) {
 
         // compose fully defined reqm from reqm source and repository search result
         Log.title("Merge model with identified references")
-        ModelMerger(finder).merge()
+        merger.merge()
 
         // resolve ownership of actions
         Log.info("Resolve actions' ownership")
@@ -93,7 +98,7 @@ class Composer(private val appHome: String) {
         Log.title("Validate model completeness")
         val isComplete = validator.validateCompleteness()
         if (!isComplete) {
-            // TODO: Failure Point #3 - merged model is not complete
+            // Failure Point #3 - merged model is not complete
             return false
         }
 
