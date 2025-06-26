@@ -116,6 +116,8 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
             "header" -> createHeader(node)
             "footer" -> createFooter(node)
             "panel" -> createPanel(node)
+            "navigation" -> createNavigation(node)
+            "menu" -> createMenu(node)
             "text" -> createText(node)
             "linkGroup" -> createLinkGroup(node)
             "linkButton" -> createLinkButton(node)
@@ -134,6 +136,18 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
                     createHTML(true).p { text("Unknown node: ${node.name}") }
                 }
             }
+        }
+    }
+
+    open fun createMenu(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
+        }
+    }
+
+    open fun createNavigation(node: IGMView.IGMNode): String {
+        return createHTML(true).nav {
+
         }
     }
 

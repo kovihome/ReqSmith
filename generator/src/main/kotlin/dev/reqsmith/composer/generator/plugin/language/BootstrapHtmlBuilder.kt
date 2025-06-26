@@ -23,7 +23,11 @@ import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.model.enumeration.StandardEvents
+import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardStyleElements
+import dev.reqsmith.model.enumeration.VIEW_LAYOUT_ELEMENT_ATTR_DATA
+import dev.reqsmith.model.enumeration.VIEW_LAYOUT_ELEMENT_ATTR_TITLE
+import dev.reqsmith.model.enumeration.VIEW_LAYOUT_ELEMENT_ATTR_TO
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
@@ -56,6 +60,95 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         currentViewStyleRef = view.styleRef
 
         return super.createView(view)
+    }
+
+    override fun createMenu(node: IGMView.IGMNode): String {
+        val attr = node.attributes.toMap()
+        return createHTML(true).div {
+            text("menu spaceholder")
+        }
+    }
+
+    override fun createNavigation(node: IGMView.IGMNode): String {
+        val attr = node.attributes.toMap()
+        return createHTML(true).nav {
+            classes = mutableSetOf("navbar", "navbar-expand-md").apply {
+                add(calculateBackgroundColor(node.styleRef, "bg-secondary-subtle"))
+                addAll(collectViewLayoutElementStyles(node))
+            }
+            attributes["data-bs-theme"] = "light" // TODO: összhangba kell hozni a bg colorral
+            div {
+                classes = mutableSetOf("container")
+                // title
+                val navTitle = attr["title"]
+                if (!navTitle.isNullOrBlank()) {
+                    a { classes = setOf("navbar-brand"); href = "#"; text(navTitle) }
+                }
+                // home
+                // breadcrumb
+                // menu
+                node.children.find { it.name == "menu" }?.let { menu ->
+                    val menuTitle = menu.attributes.find { it.first == VIEW_LAYOUT_ELEMENT_ATTR_TITLE }?.second
+                    if (navTitle.isNullOrBlank() && !menuTitle.isNullOrBlank()) {
+                        a { classes = setOf("navbar-brand"); href = "#"; text(menuTitle) }
+                    }
+//                    button {
+//                        classes = setOf("navbar-toggler")
+//                        type = ButtonType.button
+//                        attributes["data-bs-toggle"] = "collapse"
+//                        attributes["data-bs-target"] = "#navbarNav"
+//                        attributes["aria-expanded"] = "false"
+//                        attributes["aria-label"] = "Toggle navigation"
+//                        span { classes = setOf("navbar-toggler-icon") }
+//                    }
+                    div {
+                        classes = setOf("collapse", "navbar-collapse")
+//                        id = "navbarNav"
+                        ul {
+                            classes = setOf("navbar-nav")
+                            menu.children.filter { !StandardLayoutElements.menu.attributes.contains(it.name) }.forEach { menuItem ->
+                                if (menuItem.children.isEmpty()) {
+                                    li {
+                                        classes = setOf("nav-item")
+                                        val link = if (menuItem.text.isNotBlank()) menuItem.text else menuItem.attributes.find { c -> c.first == "default" }?.second ?: "#"
+                                        val linkText = menuItem.name.replace("_", " ")
+                                        a { href = checkLink(link); classes = setOf("nav-link"); text(linkText) }
+                                    }
+                                } else {
+                                    li {
+                                        classes = setOf("nav-item", "dropdown")
+                                        val linkText = menuItem.name.replace("_", " ")
+                                        a {
+                                            href = "#"
+                                            classes = setOf("nav-link", "dropdown-toggle")
+                                            role = "button"
+                                            attributes["data-bs-toggle"] = "dropdown"
+                                            attributes["aria-expanded"] = "false"
+                                            text(linkText)
+                                        }
+                                        ul {
+                                            classes = setOf("dropdown-menu")
+                                            menuItem.children.forEach { subitem ->
+                                                li {
+                                                    classes = setOf("dropdown-item")
+                                                    val link = if (subitem.text.isNotBlank()) subitem.text else subitem.attributes.find { c -> c.first == "default" }?.second ?: "#"
+                                                    val linkText = subitem.name.replace("_", " ")
+                                                    a { href = checkLink(link); classes = setOf("nav-link"); text(linkText) }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+                // search
+                // select
+                // cta
+            }
+        }
     }
 
     private fun calculateBackgroundColor(styleRef: String?, defaultBackgroundClass: String): String {
@@ -156,7 +249,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
             h5 { text(groupTitle) }
             ul { classes = setOf("list-unstyled")
-                node.attributes.filter { it.first == "to" }.forEach { link ->
+                node.attributes.filter { it.first == VIEW_LAYOUT_ELEMENT_ATTR_TO }.forEach { link ->
                     val linkText = link.second.replace("_", " ")
                     li {
                         a { href = checkLink(link.second); classes = setOf("text-white", "text-decoration-none"); text(linkText) }
@@ -170,7 +263,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         return createHTML(true).a {
             classes = setOf("btn", "btn-primary")
             role = "button"
-            href = checkLink(node.attributes.find { it.first == "to" }?.second)
+            href = checkLink(node.attributes.find { it.first == VIEW_LAYOUT_ELEMENT_ATTR_TO }?.second)
             text(node.attributes.find { it.first == "title" }?.second ?: "LinkButton")
         }
     }
@@ -251,7 +344,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
     override fun createForm(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
-        val entityName = attr["data"] ?: ""
+        val entityName = attr[VIEW_LAYOUT_ELEMENT_ATTR_DATA] ?: ""
         val entityVar = entityName.replaceFirstChar { it.lowercase() }
         val title = attr["title"] ?: "Add new $entityName"
 
@@ -362,7 +455,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         // get node attributes
         val attr = node.attributes.toMap()
         val title = attr["title"] ?: "Data Table"
-        val entityName = attr["data"] ?: ""
+        val entityName = attr[VIEW_LAYOUT_ELEMENT_ATTR_DATA] ?: ""
         val createForm = attr["createForm"] ?: "${entityName}Form.html"
         // collect entity members
         val entity = getEntity(entityName)

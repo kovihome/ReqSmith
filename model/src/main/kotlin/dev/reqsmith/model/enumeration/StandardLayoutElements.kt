@@ -18,16 +18,22 @@
 
 package dev.reqsmith.model.enumeration
 
+const val VIEW_LAYOUT_ELEMENT_ATTR_TITLE = "title"
+const val VIEW_LAYOUT_ELEMENT_ATTR_DATA = "data"
+const val VIEW_LAYOUT_ELEMENT_ATTR_TO = "to"
+
 enum class StandardLayoutElements(val attributes: List<String>) {
-    datatable(listOf("title", "data", "createForm")),
+    datatable(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, VIEW_LAYOUT_ELEMENT_ATTR_DATA, "createForm")),
     footer(listOf("linkGroup", "copyrightText", "facebookLink", "twitterLink", "linkedinLink", "youtubeLink", "githubLink")),
-    form(listOf("title", "data")),
-    `header`(listOf("title", "logo")),
-    linkButton(listOf("title", "to")),
-    linkGroup(listOf("title", "to")),
+    form(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, VIEW_LAYOUT_ELEMENT_ATTR_DATA)),
+    `header`(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, "logo")),
+    linkButton(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, VIEW_LAYOUT_ELEMENT_ATTR_TO)),
+    linkGroup(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, VIEW_LAYOUT_ELEMENT_ATTR_TO)),
     panel(listOf()),
     spacer(listOf()),
     text(listOf()),
+    navigation(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, "position", "side", "home", "menu", "breadcrumb", "search", "cta", "select")),
+    menu(listOf("type", VIEW_LAYOUT_ELEMENT_ATTR_TITLE, VIEW_LAYOUT_ELEMENT_ATTR_TO)),
 //  image(listOf("src", "alt", "width", "height")),
 //  input(listOf("name", "type", "placeholder", "value", "required", "readonly", "disabled", "autocomplete", "autofocus", "list", "maxlength", "minlength", "pattern", "size", "step", "min", "max")),
 //  label(listOf("for")),

@@ -96,7 +96,7 @@ class CssBuilder : LanguageBuilder, Plugin {
                 addCssAttrToList(attributeList, listOf("bold", "bolder", "lighter"), "font-weight", cssAttributes)
                 addCssAttrToList(attributeList, listOf("ultra-condensed", "extra-condensed", "condensed", "semi-condensed", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded"), "font-stretch", cssAttributes)
                 addCssAttrToList(attributeList, listOf("small-caps", "all-small-caps", "petite-caps", "all-petite-caps", "unicase", "titling-caps"), "font-variant-caps", cssAttributes)
-                addCssAttrToList(attributeList, listOf("line-through", "underline"), "font-decoration", cssAttributes)
+                addCssAttrToList(attributeList, listOf("line-through", "underline"), "text-decoration", cssAttributes)
                 cssAttributes
             }
             "text-align" -> { listOf("text-align", attribute.value!!) } // left | right | center | justify

@@ -51,3 +51,18 @@ view linkButton is widget {
     title: 'Link Button'
     to: '#'
 }
+
+view navigation is widget {
+    title
+    menu
+    breadcrumb
+    search
+    select
+    cta
+}
+
+view menu is widget {
+    type: horizontal
+    title
+    to
+}

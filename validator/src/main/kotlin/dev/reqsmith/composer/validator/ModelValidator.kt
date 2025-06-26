@@ -27,6 +27,7 @@ import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardStyleAttributes
 import dev.reqsmith.model.enumeration.StandardStyleElements
 import dev.reqsmith.model.enumeration.StandardTypes
+import dev.reqsmith.model.enumeration.VIEW_LAYOUT_ELEMENT_ATTR_DATA
 import dev.reqsmith.model.reqm.*
 
 class ModelValidator {
@@ -130,7 +131,7 @@ class ModelValidator {
 
         // check view event action existence
         val events = property.simpleAttributes.find { it.key == REQM_GENERAL_ATTRIBUTE_EVENTS }
-        val data = property.simpleAttributes.find { it.key == "data" }
+        val data = property.simpleAttributes.find { it.key == VIEW_LAYOUT_ELEMENT_ATTR_DATA }
         if (events != null && data != null) {
             val entity = WholeProject.projectModel.source.entities.find { it.qid?.id == data.value }
             if (entity != null) {

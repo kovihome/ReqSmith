@@ -39,6 +39,15 @@ view WelcomePage {
                 background: lightgreen
             }
         }
+        navigation {
+            menu {
+                title: "Cat-a-List"
+                Manage {
+                    New_Cat: CatForm
+                }
+                About: About
+            }
+        }
         panel {
             datatable {
                 title: 'My Cats'
@@ -50,7 +59,7 @@ view WelcomePage {
                 styles {
                     text {
                         format: bold, underline, italic
-                        color: cyan
+                        color: blue
                     }
                 }
             }
