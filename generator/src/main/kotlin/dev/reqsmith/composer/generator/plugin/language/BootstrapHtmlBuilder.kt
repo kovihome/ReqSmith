@@ -33,6 +33,8 @@ import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
 import kotlin.math.max
+import kotlin.text.isNullOrBlank
+import kotlin.text.startsWith
 
 private const val FORM_COLUMN_SIZE_CLS = "col-md-6"
 
@@ -110,9 +112,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                 if (menuItem.children.isEmpty()) {
                                     li {
                                         classes = setOf("nav-item")
-                                        val link = if (menuItem.text.isNotBlank()) menuItem.text else menuItem.attributes.find { c -> c.first == "default" }?.second ?: "#"
+                                        val link = menuItem.text.ifBlank { menuItem.attributes.find { c -> c.first == "default" }?.second ?: "#" }
                                         val linkText = menuItem.name.replace("_", " ")
-                                        a { href = checkLink(link); classes = setOf("nav-link"); text(linkText) }
+                                        a { href = checkFormLink(link); classes = setOf("nav-link"); text(linkText) }
                                     }
                                 } else {
                                     li {
@@ -131,9 +133,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                             menuItem.children.forEach { subitem ->
                                                 li {
                                                     classes = setOf("dropdown-item")
-                                                    val link = if (subitem.text.isNotBlank()) subitem.text else subitem.attributes.find { c -> c.first == "default" }?.second ?: "#"
+                                                    val link = subitem.text.ifBlank { subitem.attributes.find { c -> c.first == "default" }?.second ?: "#" }
                                                     val linkText = subitem.name.replace("_", " ")
-                                                    a { href = checkLink(link); classes = setOf("nav-link"); text(linkText) }
+                                                    a { href = checkFormLink(link); classes = setOf("nav-link"); text(linkText) }
                                                 }
                                             }
                                         }
@@ -230,6 +232,11 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     private fun findViewLayoutElementStyle(viewStyleRef: String, elementName: String): String? {
         val elementStyleClass = "$viewStyleRef-$elementName"
         return if (WholeProject.generatorData.availableStyleClasses.contains(elementStyleClass)) elementStyleClass else null
+    }
+
+    private fun checkFormLink(link: String?): String {
+        val checkedLink = checkLink(link)
+        return if (link != null && isFormView(link)) "$checkedLink?id=0" else checkedLink
     }
 
     private fun checkLink(link: String?): String {
@@ -467,7 +474,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 classes = setOf("row", "mb-2")
                 div { classes = setOf(FORM_COLUMN_SIZE_CLS, "h4"); text(title) }
                 div { classes = setOf(FORM_COLUMN_SIZE_CLS, "align-items-end", "d-flex", "flex-row-reverse")
-                    a { href = "${checkLink(createForm)}?id=0"; classes = setOf("btn", "btn-primary", "btn-sm"); text("Add $entityName") }
+                    a { href = checkFormLink(createForm); classes = setOf("btn", "btn-primary", "btn-sm"); text("Add $entityName") }
                 }
             }
             table {
@@ -547,6 +554,19 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
     private fun existingView(viewName: String): Boolean {
         return WholeProject.projectModel.igm.views.keys.any { it.endsWith(viewName) }
+    }
+
+    private fun isFormLayoutNode(node: IGMView.IGMNode): Boolean {
+        if (node.name == StandardLayoutElements.form.name) return true
+        node.children.forEach { childNode ->
+            if (isFormLayoutNode(childNode)) return true
+        }
+        return false
+    }
+
+    private fun isFormView(link: String): Boolean {
+        val view = WholeProject.projectModel.igm.views[link]
+        return isFormLayoutNode(view!!.layout)
     }
 
 }
