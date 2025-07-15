@@ -18,9 +18,11 @@
 
 package dev.reqsmith.composer.validator
 
+import StandardColors
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
+import dev.reqsmith.model.FEATURE_STYLE
 import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
 import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
 import dev.reqsmith.model.enumeration.StandardLayoutElements
@@ -46,13 +48,51 @@ class ModelValidator {
         // find orphan actions
         model.actions.filter { it.owner == null }.forEach { Log.warning("Action ${it.qid} has no owner (application, module)") }
 
-        // validate view layout elements: search for missing view links, check style elements, event actions
+        // validate view elements: search for missing view links, check style elements, event actions
         val missingLinks = mutableListOf<String>()
         model.views.forEach { view ->
             view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }?.let { layout ->
                 validateViewLayoutElement(layout, missingLinks)
             }
+            validateViewStyleRef(view)
         }
+        generateMissingViews(missingLinks, model)
+
+        // validate style elements
+        WholeProject.projectModel.source.styles.forEach {
+            validateStyleElements(it.definition.properties)
+        }
+
+        // TODO search for missing reference in srcRef (applications and modules? excluded), property types, features
+        // dependencies needed for this
+
+        return true
+    }
+
+    /**
+     * Validate view's style references, create new Style, if it is missing
+     * @param view The view to validate
+     */
+    private fun validateViewStyleRef(view: View) {
+        view.definition.featureRefs.filter { it.qid.toString() == FEATURE_STYLE }.forEach { styleRef ->
+            styleRef.properties.find { it.key == "reference" }?.value.let { styleRefName ->
+                if (WholeProject.projectModel.source.styles.find { it.qid?.id == styleRefName } == null &&
+                    WholeProject.projectModel.dependencies.styles.find { it.qid?.id == styleRefName } == null) {
+                    val newStyle = Style().apply {
+                        qid = QualifiedId(styleRefName)
+                        definition = Definition()
+                    }
+                    WholeProject.projectModel.source.styles.add(newStyle)
+                    Log.warning("Missing style for style reference ${styleRefName}; create new style with this name. (${styleRef.coords()})")
+                }
+            }
+        }
+    }
+
+    /**
+     * Generate
+     */
+    private fun generateMissingViews(missingLinks: MutableList<String>, model: ReqMSource) {
         missingLinks.forEach { link ->
             val newView = View().apply {
                 qid = QualifiedId(link)
@@ -75,16 +115,10 @@ class ModelValidator {
             }
             model.views.add(newView)
         }
+    }
 
-        // validate style elements
-        WholeProject.projectModel.source.styles.forEach {
-            validateStyleElements(it.definition.properties)
-        }
-
-        // TODO search for missing reference in srcRef (applications and modules? excluded), property types, features
-        // dependencies needed for this
-
-        return true
+    private fun isSizeAttibuteValue(value: String): Boolean {
+        return value.toIntOrNull() != null
     }
 
     private fun validateStyleElements(properties: List<Property>) {
@@ -92,6 +126,26 @@ class ModelValidator {
             val propertyName = it.key!!
             if (!StandardStyleElements.contains(propertyName) && !StandardStyleAttributes.contains(propertyName) && !StandardLayoutElements.contains(propertyName)) {
                 Log.warning("Style property $propertyName is not style element, style attribute or layout element. (${it.coords()})")
+            } else if (StandardStyleAttributes.contains(propertyName)) {
+                if (it.value.isNullOrBlank()) {
+                    Log.warning("Style attribute $propertyName has no value. (${it.coords()})")
+                } else {
+                    when (propertyName) {
+                        StandardStyleAttributes.color.name -> {
+                            if (!StandardColors.has(it.value!!)) {
+                                Log.warning("Color style attribute has invalid value '${it.value}' (${it.coords()})")
+                            }
+                        }
+                        StandardStyleAttributes.size.name,
+                        StandardStyleAttributes.padding.name,
+                        StandardStyleAttributes.margin.name,
+                        StandardStyleAttributes.spacing.name -> {
+                            if (isSizeAttibuteValue(it.value!!)) {
+                                Log.warning("Value of the style attribute '$propertyName' is not a size. (${it.coords()})")
+                            }
+                        }
+                    }
+                }
             }
         }
     }
