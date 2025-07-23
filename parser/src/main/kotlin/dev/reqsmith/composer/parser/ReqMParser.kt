@@ -130,6 +130,7 @@ class ReqMParser {
             }
             styleProperty.layoutStyleProperty() != null -> {
                 Property().apply {
+                    saveSourceInfo(this, styleProperty.start)
                     key = styleProperty.layoutStyleProperty().simpleId().text
                     type = StandardTypes.propertyList.name
                     styleProperty.layoutStyleProperty().compoundTypelessProperty().forEach {
@@ -188,6 +189,7 @@ class ReqMParser {
             parseSimpleTypelessProperty(viewProperty.simpleTypelessProperty())
         } else if (viewProperty.compoundViewProperty() != null) {
             Property().apply {
+                saveSourceInfo(this, viewProperty.start)
                 key = viewProperty.compoundViewProperty().simpleId().text
                 type = StandardTypes.propertyList.name
                 viewProperty.compoundViewProperty().viewProperty().forEach {
@@ -666,6 +668,7 @@ class ReqMParser {
         return if (qualifiedId != null && qualifiedId.simpleId().isNotEmpty()) {
             val ids = qualifiedId.simpleId().size
             QualifiedId(qualifiedId.simpleId()[ids-1].ID().text).apply {
+                saveSourceInfo(this, qualifiedId.start)
                 if (ids > 1) {
                     domain = qualifiedId.simpleId().subList(0, ids-1).joinToString(".") {  it.ID().text }
                 }

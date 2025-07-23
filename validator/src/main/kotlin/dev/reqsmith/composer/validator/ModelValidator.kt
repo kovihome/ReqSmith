@@ -23,13 +23,16 @@ import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.model.FEATURE_STYLE
+import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_ACTIONS
 import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
 import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
+import dev.reqsmith.model.VIEW_LAYOUT_ELEMENT_STYLES
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardStyleAttributes
 import dev.reqsmith.model.enumeration.StandardStyleElements
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.enumeration.VIEW_LAYOUT_ELEMENT_ATTR_DATA
+import dev.reqsmith.model.enumeration.VIEW_LAYOUT_ELEMENT_ATTR_TO
 import dev.reqsmith.model.reqm.*
 
 class ModelValidator {
@@ -46,9 +49,9 @@ class ModelValidator {
         model.entities.forEach {  item -> resolveTypelessProperties(item.qid!!, item.definition, defPropertyType) }
 
         // find orphan actions
-        model.actions.filter { it.owner == null }.forEach { Log.warning("Action ${it.qid} has no owner (application, module)") }
+        model.actions.filter { it.owner == null }.forEach { Log.warning("Action ${it.qid} has no owner (application, module). (${it.coords()})") }
 
-        // validate view elements: search for missing view links, check style elements, event actions
+        // validate view elements: search for missing view links, check style elements, event actions, style references
         val missingLinks = mutableListOf<String>()
         model.views.forEach { view ->
             view.definition.properties.find { it.key == VIEW_ATTRIBUTE_LAYOUT }?.let { layout ->
@@ -76,8 +79,8 @@ class ModelValidator {
     private fun validateViewStyleRef(view: View) {
         view.definition.featureRefs.filter { it.qid.toString() == FEATURE_STYLE }.forEach { styleRef ->
             styleRef.properties.find { it.key == "reference" }?.value.let { styleRefName ->
-                if (WholeProject.projectModel.source.styles.find { it.qid?.id == styleRefName } == null &&
-                    WholeProject.projectModel.dependencies.styles.find { it.qid?.id == styleRefName } == null) {
+                if (WholeProject.projectModel.source.styles.none { it.qid?.id == styleRefName } &&
+                    WholeProject.projectModel.dependencies.styles.none { it.qid?.id == styleRefName }) {
                     val newStyle = Style().apply {
                         qid = QualifiedId(styleRefName)
                         definition = Definition()
@@ -92,7 +95,7 @@ class ModelValidator {
     /**
      * Generate
      */
-    private fun generateMissingViews(missingLinks: MutableList<String>, model: ReqMSource) {
+    private fun generateMissingViews(missingLinks: List<String>, model: ReqMSource) {
         missingLinks.forEach { link ->
             val newView = View().apply {
                 qid = QualifiedId(link)
@@ -117,42 +120,82 @@ class ModelValidator {
         }
     }
 
-    private fun isSizeAttibuteValue(value: String): Boolean {
+    private fun isSizeAttributeValue(value: String): Boolean {
         return value.toIntOrNull() != null
+    }
+
+    private fun isAlignAttributeValue(align: String): Boolean {
+        return listOf("left", "right", "center", "justify").contains(align)
     }
 
     private fun validateStyleElements(properties: List<Property>) {
         properties.forEach {
-            val propertyName = it.key!!
-            if (!StandardStyleElements.contains(propertyName) && !StandardStyleAttributes.contains(propertyName) && !StandardLayoutElements.contains(propertyName)) {
-                Log.warning("Style property $propertyName is not style element, style attribute or layout element. (${it.coords()})")
-            } else if (StandardStyleAttributes.contains(propertyName)) {
-                if (it.value.isNullOrBlank()) {
-                    Log.warning("Style attribute $propertyName has no value. (${it.coords()})")
-                } else {
-                    when (propertyName) {
-                        StandardStyleAttributes.color.name -> {
-                            if (!StandardColors.has(it.value!!)) {
-                                Log.warning("Color style attribute has invalid value '${it.value}' (${it.coords()})")
-                            }
-                        }
-                        StandardStyleAttributes.size.name,
-                        StandardStyleAttributes.padding.name,
-                        StandardStyleAttributes.margin.name,
-                        StandardStyleAttributes.spacing.name -> {
-                            if (isSizeAttibuteValue(it.value!!)) {
-                                Log.warning("Value of the style attribute '$propertyName' is not a size. (${it.coords()})")
-                            }
-                        }
+            when {
+                StandardLayoutElements.contains(it.key!!) -> validateStyleLayoutElement(it)
+                StandardStyleElements.contains(it.key!!) -> validateStyleElement(it)
+                StandardStyleAttributes.contains(it.key!!) -> validateStyleAttribute(it)
+                else -> Log.warning("Style property ${it.key} is not style element, style attribute or layout element. (${it.coords()})")
+            }
+        }
+    }
+
+    private fun validateStyleLayoutElement(property: Property) {
+        property.simpleAttributes.forEach { p ->
+            when {
+                StandardStyleElements.contains(p.key!!) -> validateStyleElement(p)
+                StandardStyleAttributes.contains(p.key!!) -> validateStyleAttribute(p)
+                else -> Log.warning("Style property ${p.key} is not style element or style attribute. (${p.coords()})")
+            }
+        }
+    }
+
+    private fun validateStyleElement(p: Property) {
+        p.simpleAttributes.forEach {
+            when {
+                StandardStyleAttributes.contains(it.key!!) -> validateStyleAttribute(it)
+                else -> Log.warning("Style property ${it.key} is not style attribute. (${it.coords()})")
+            }
+        }
+    }
+
+    private fun validateStyleAttribute(property: Property) {
+        val propertyName = property.key!!
+        if (property.value.isNullOrBlank()) {
+            Log.warning("Style attribute $propertyName has no value. (${property.coords()})")
+        } else {
+            when (propertyName) {
+                StandardStyleAttributes.color.name -> {
+                    if (!StandardColors.has(property.value!!)) {
+                        Log.warning("Color style attribute has invalid value '${property.value}' (${property.coords()})")
                     }
                 }
+
+                StandardStyleAttributes.size.name,
+                StandardStyleAttributes.padding.name,
+                StandardStyleAttributes.margin.name,
+                StandardStyleAttributes.spacing.name -> {
+                    if (!isSizeAttributeValue(property.value!!)) {
+                        Log.warning("Value of the style attribute '$propertyName' is not a size. (${property.coords()})")
+                    }
+                }
+
+                StandardStyleAttributes.image.name -> {}
+                StandardStyleAttributes.outline.name -> {}
+                StandardStyleAttributes.align.name -> {
+                    if (!isAlignAttributeValue(property.value!!)) {
+                        Log.warning("Value of the style attribute '$propertyName' is not an align type. (${property.coords()})")
+                    }
+                }
+
+                StandardStyleAttributes.face.name -> {}
+                StandardStyleAttributes.format.name -> {}
             }
         }
     }
 
     private fun validateViewLayoutElement(property: Property, missingLinks: MutableList<String>) {
         // resolve missing links
-        if (property.key == "to") {
+        if (property.key == VIEW_LAYOUT_ELEMENT_ATTR_TO) {
             val link = property.value
             if (link != null && !link.startsWith("http:") && !link.startsWith("https:")
                 && WholeProject.projectModel.source.views.none { it.qid.toString() == link } && !missingLinks.contains(link)) {
@@ -163,7 +206,7 @@ class ModelValidator {
         }
 
         // check layout element style
-        if (property.key == "styles") {
+        if (property.key == VIEW_LAYOUT_ELEMENT_STYLES) {
             property.simpleAttributes.forEach { attr ->
                 if (StandardStyleElements.contains(attr.key!!)) {
                     if (attr.simpleAttributes.isNotEmpty()) {
@@ -189,7 +232,7 @@ class ModelValidator {
         if (events != null && data != null) {
             val entity = WholeProject.projectModel.source.entities.find { it.qid?.id == data.value }
             if (entity != null) {
-                val entityActions = entity.definition.properties.find { it.key == "actions" }
+                val entityActions = entity.definition.properties.find { it.key == REQM_GENERAL_ATTRIBUTE_ACTIONS }
                 if (entityActions != null) {
                     events.simpleAttributes.forEach { event ->
                         if (entityActions.valueList.none { it == event.value }) {
@@ -213,7 +256,7 @@ class ModelValidator {
     private fun resolveTypelessProperties(qid: QualifiedId, definition: Definition, default: String) {
         definition.properties.forEach {
             if (it.type == null) {
-                Log.warning("Property ${qid}.${it.key} has no type; default type will be assigned to it")
+                Log.warning("Property ${qid}.${it.key} has no type; default type will be assigned to it. (${it.coords()})")
                 it.type = default
             }
         }
@@ -229,15 +272,15 @@ class ModelValidator {
         if (model.applications.isNotEmpty()) {
             val app = model.applications[0]
             if (app.qid?.id?.get(0)?.isLowerCase() == true) {
-                Log.warning("application name ${app.qid?.id} starts with lower case letter; converted to upper case letter")
+                Log.warning("application name ${app.qid?.id} starts with lower case letter; converted to upper case letter. (${app.qid?.coords()})")
                 app.qid!!.id = app.qid!!.id!!.replaceFirstChar { it.uppercaseChar() }
             }
             if (app.qid?.domain.isNullOrBlank()) {
-                Log.warning("application ${app.qid} has no domain name; set the default domain name ${ConfigManager.defaults["domainName"]} to it.")
+                Log.warning("application ${app.qid} has no domain name; set the default domain name ${ConfigManager.defaults["domainName"]} to it. (${app.qid?.coords()})")
                 app.qid?.domain = ConfigManager.defaults["domainName"]
             }
             if (app.sourceRef == null || app.sourceRef == QualifiedId.Undefined) {
-                Log.warning("application ${app.qid} has no application type; set the default application type ${ConfigManager.defaults["applicationType"]}")
+                Log.warning("application ${app.qid} has no application type; set the default application type ${ConfigManager.defaults["applicationType"]}. (${app.qid?.coords()})")
                 app.sourceRef = QualifiedId.fromString(ConfigManager.defaults["applicationType"] ?: "QualifiedId.Undefined")
             }
         }
