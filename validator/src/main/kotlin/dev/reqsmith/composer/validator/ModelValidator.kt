@@ -23,6 +23,7 @@ import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.model.FEATURE_STYLE
+import dev.reqsmith.model.FEATURE_STYLE_ATTRIBUTE_STYLE
 import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_ACTIONS
 import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
 import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
@@ -78,7 +79,7 @@ class ModelValidator {
      */
     private fun validateViewStyleRef(view: View) {
         view.definition.featureRefs.filter { it.qid.toString() == FEATURE_STYLE }.forEach { styleRef ->
-            styleRef.properties.find { it.key == "reference" }?.value.let { styleRefName ->
+            styleRef.properties.find { it.key == FEATURE_STYLE_ATTRIBUTE_STYLE }?.value.let { styleRefName ->
                 if (WholeProject.projectModel.source.styles.none { it.qid?.id == styleRefName } &&
                     WholeProject.projectModel.dependencies.styles.none { it.qid?.id == styleRefName }) {
                     val newStyle = Style().apply {

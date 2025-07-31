@@ -25,6 +25,8 @@ import org.yaml.snakeyaml.constructor.Constructor
 import org.yaml.snakeyaml.nodes.Tag
 import org.yaml.snakeyaml.representer.Representer
 import dev.reqsmith.composer.common.Log
+import dev.reqsmith.model.FEATURE_TEMPLATE_ATTRIBUTE_DEFAULT_STYLE
+import dev.reqsmith.model.FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW
 import java.io.FileInputStream
 import java.io.FileWriter
 import java.nio.file.Files
@@ -38,7 +40,8 @@ object ConfigManager {
         "domainName" to "dev.reqsmith.sample",
         "applicationType" to "applications.CommandLineApplication",
         "propertyType" to "String",
-        "templateView" to "DefaultTemplate",
+        FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW to "DefaultTemplate",
+        FEATURE_TEMPLATE_ATTRIBUTE_DEFAULT_STYLE to "DefaultStyle",
 
         "framework.base" to "",
         "framework.web" to "spring",
@@ -92,14 +95,14 @@ object ConfigManager {
             FileInputStream(externalDefaultsFilePath).use {
                 defaults = yaml.load(it)
             }
-            // insert new values from saved map
+            // insert new values from the saved map
             val residualKeys = savedDefaults.keys.minus(defaults.keys)
             if (residualKeys.isNotEmpty()) {
                 Log.debug("Some items were missing from default file $externalDefaultsFilePath, update it")
                 residualKeys.forEach {
                     defaults[it] = savedDefaults[it]!!
                 }
-                // save modified default set
+                // save the modified default set
                 writeDefaultsFile(externalDefaultsFilePath)
             }
 

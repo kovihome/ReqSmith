@@ -190,6 +190,9 @@ class ReqMWriter {
         writeQualifiedId(featureRef.qid, outs)
         if (featureRef.properties.isNotEmpty()) {
             if (featureRef.properties[0].key == REQM_GENERAL_ATTRIBUTE_FEATURE_REFERENCE) {
+                // TODO: az effective modellben már nincs "reference", a feature első property-jére lett lecserélve
+                //  ha csak egy property van, és az megegyezik a feature első property-jével,
+                //  akkor kell ezt a kiiratási formát választani
                 outs.write(": ${featureRef.properties[0].value}\n")
             } else {
                 outs.write(" {\n")

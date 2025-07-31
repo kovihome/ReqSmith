@@ -1,12 +1,12 @@
 /*
  * Style feature
  *
- * theme - the name of the referred style
+ * style - the name of the referred style
  * generator - generator plugin ID
  */
 
 feature Style {
-    theme
+    style
     generator: 'feature.style'
 }
 

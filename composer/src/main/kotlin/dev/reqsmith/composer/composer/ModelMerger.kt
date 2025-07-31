@@ -125,19 +125,85 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
         // merge views
         val defaultViewTemplate = getDefaultViewTemplate()
+        val defaultStyle = getDefaultStyle()
         WholeProject.projectModel.source.views.forEach { view ->
             collectViewDependencies(view)
             applyDefaultViewTemplate(view, defaultViewTemplate)
+            applyDefaultStyleOnView(view, defaultStyle)
             resolveViewTemplates(view)
             resolveViewPropertiesInLayout(view)
         }
 
         // TODO: merge styles
+//        WholeProject.projectModel.source.styles.forEach { style ->
+//            collectStyleDependencies(style)
+//        }
+
+        // update default feature references
+        updateFeatureRefDefaultProperties()
 
         // throw errors
         if (errors.isNotEmpty()) {
             throw ReqMMergeException("Merge failed.", errors)
         }
+    }
+
+    /**
+     * Search short form feature refs in entities, views and styles,
+     * and substitute default property name 'reference' to feature's first property name
+     */
+    private fun updateFeatureRefDefaultProperties() {
+        WholeProject.projectModel.source.views.forEach { updateFeatureRefDefault(it.definition.featureRefs) }
+        WholeProject.projectModel.source.styles.forEach { updateFeatureRefDefault(it.definition.featureRefs) }
+        WholeProject.projectModel.source.entities.forEach { updateFeatureRefDefault(it.definition.featureRefs) }
+    }
+
+    private fun updateFeatureRefDefault(featureRefs: List<FeatureRef>) {
+        featureRefs.forEach { ft ->
+            val featureName = ft.qid.toString()
+            ft.properties.forEach { ftprop ->
+                if (ftprop.key == REQM_GENERAL_ATTRIBUTE_FEATURE_REFERENCE) {
+                    var feature = WholeProject.projectModel.source.features.find { it.qid.toString() == featureName }
+                    if (feature == null) {
+                        feature = WholeProject.projectModel.dependencies.features.find { it.qid.toString() == featureName }
+                    }
+                    if (feature != null) {
+                        val defaultProperty = feature.definition.properties.getOrNull(0)
+                        if (defaultProperty != null && defaultProperty.key != "generator") {
+                            ftprop.key = defaultProperty.key
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun applyDefaultStyleOnView(view: View, defaultStyle: Style?) {
+        if (defaultStyle != null) {
+            val noTemplateFeature = view.definition.featureRefs.none { it.qid.toString() == FEATURE_STYLE }
+            if (view.parent == QualifiedId.Undefined && noTemplateFeature) {
+                view.definition.featureRefs.add(FeatureRef().apply {
+                    qid = QualifiedId(FEATURE_STYLE)
+                    properties.add(Property().apply {
+                        key = FEATURE_STYLE_ATTRIBUTE_STYLE
+                        type = defaultStyle.qid.toString()
+                    })
+                })
+            }
+        }
+    }
+
+    private fun getDefaultStyle(): Style? {
+        val defaultStyleName = ConfigManager.defaults[FEATURE_TEMPLATE_ATTRIBUTE_DEFAULT_STYLE]
+        return if (defaultStyleName != null) {
+            WholeProject.projectModel.source.styles.find { it.qid.toString() == defaultStyleName }
+        } else {
+            null
+        }
+    }
+
+    private fun collectStyleDependencies(style: Style) {
+        TODO("Not yet implemented")
     }
 
     private fun applyDefaultViewTemplate(view: View, defaultViewTemplate: View?) {
