@@ -28,7 +28,7 @@ import dev.reqsmith.model.FEATURE_RESOURCE_ATTRIBUTE_FILE
 import dev.reqsmith.model.FEATURE_STYLE
 import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
 import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
-import dev.reqsmith.model.VIEW_LAYOUT_ELEMENT_STYLES
+import dev.reqsmith.model.VIEW_LAYOUT_ELEMENT_STYLE
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.IGMStyle
@@ -98,7 +98,7 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
                         node.children.add(eventNode)
 
                     }
-                    a.key == VIEW_LAYOUT_ELEMENT_STYLES -> {
+                    a.key == VIEW_LAYOUT_ELEMENT_STYLE -> {
                         if (a.simpleAttributes.isNotEmpty()) {
                             // inline style definition
                             val inlineStyleId = igmView.id

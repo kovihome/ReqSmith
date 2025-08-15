@@ -27,7 +27,7 @@ import dev.reqsmith.model.FEATURE_STYLE_ATTRIBUTE_STYLE
 import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_ACTIONS
 import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
 import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
-import dev.reqsmith.model.VIEW_LAYOUT_ELEMENT_STYLES
+import dev.reqsmith.model.VIEW_LAYOUT_ELEMENT_STYLE
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardStyleAttributes
 import dev.reqsmith.model.enumeration.StandardStyleElements
@@ -207,7 +207,7 @@ class ModelValidator {
         }
 
         // check layout element style
-        if (property.key == VIEW_LAYOUT_ELEMENT_STYLES) {
+        if (property.key == VIEW_LAYOUT_ELEMENT_STYLE) {
             property.simpleAttributes.forEach { attr ->
                 if (StandardStyleElements.contains(attr.key!!)) {
                     if (attr.simpleAttributes.isNotEmpty()) {

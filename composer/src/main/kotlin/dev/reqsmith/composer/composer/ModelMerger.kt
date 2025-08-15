@@ -134,10 +134,19 @@ class ModelMerger(private val finder: RepositoryFinder) {
             resolveViewPropertiesInLayout(view)
         }
 
-        // TODO: merge styles
-//        WholeProject.projectModel.source.styles.forEach { style ->
-//            collectStyleDependencies(style)
-//        }
+        // merge styles
+        WholeProject.projectModel.source.styles.forEach { style ->
+            if (style.sourceRef != null && style.sourceRef != QualifiedId.Undefined) {
+                val st = collectStyleSources(style.sourceRef!!)
+                if (st.isNotEmpty()) {
+                    WholeProject.projectModel.dependencies.styles.addAll(st)
+                    // TODO: sort the list by score
+                    mergeStyleRef(style, st)
+                } else {
+                    errors.add("Source reference ${style.sourceRef} is not found for class ${style.qid} (${style.coords()}). (${style.coords()})")
+                }
+            }
+        }
 
         // update default feature references
         updateFeatureRefDefaultProperties()
@@ -146,6 +155,32 @@ class ModelMerger(private val finder: RepositoryFinder) {
         if (errors.isNotEmpty()) {
             throw ReqMMergeException("Merge failed.", errors)
         }
+    }
+
+    private fun mergeStyleRef(style: Style, refStyles: Collection<Style>) {
+        refStyles.forEach {
+            mergeProperties(style.definition.properties, it.definition.properties)
+        }
+    }
+
+    private fun collectStyleSources(ref: QualifiedId): Collection<Style> {
+        val styles : MutableList<Style> = ArrayList()
+        val ic = finder.find(Ref.Type.sty, ref.id!!, ref.domain)
+        var ix = 0
+        while (ix < ic.items.size) {
+            val item = ic.items[ix]
+            Log.debug("${item.itemType} ${item.name} in ${item.filename}")
+            val reqmSource = parseFile(item.filename!!)
+            val st = reqmSource.styles.find { item.name == it.qid.toString() }
+            if (st != null) {
+                st.increaseRefCount()
+                styles.add(st)
+                addDependencyToList(st.sourceRef, Ref.Type.sty, ic)
+            }
+            ix++
+        }
+        return styles
+
     }
 
     /**
@@ -403,7 +438,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
     private fun collectViewLayoutDeps(properties: MutableList<Property>) {
         properties.forEach { prop ->
-            if (!listOf(VIEW_LAYOUT_ELEMENT_CONTENT, VIEW_LAYOUT_ELEMENT_STYLES, REQM_GENERAL_ATTRIBUTE_EVENTS).contains(prop.key)) {
+            if (!listOf(VIEW_LAYOUT_ELEMENT_CONTENT, VIEW_LAYOUT_ELEMENT_STYLE, REQM_GENERAL_ATTRIBUTE_EVENTS).contains(prop.key)) {
                 if (prop.type == StandardTypes.propertyList.name || prop.value == null) {
                     collectViewSources(QualifiedId(prop.key), true)
                     if (prop.type == StandardTypes.propertyList.name /*&& !StandardLayoutElements.contains(prop.key!!)*/) {
