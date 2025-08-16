@@ -22,18 +22,11 @@ import StandardColors
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
-import dev.reqsmith.model.FEATURE_STYLE
-import dev.reqsmith.model.FEATURE_STYLE_ATTRIBUTE_STYLE
-import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_ACTIONS
-import dev.reqsmith.model.REQM_GENERAL_ATTRIBUTE_EVENTS
-import dev.reqsmith.model.VIEW_ATTRIBUTE_LAYOUT
-import dev.reqsmith.model.VIEW_LAYOUT_ELEMENT_STYLE
-import dev.reqsmith.model.enumeration.StandardLayoutElements
-import dev.reqsmith.model.enumeration.StandardStyleAttributes
-import dev.reqsmith.model.enumeration.StandardStyleElements
-import dev.reqsmith.model.enumeration.StandardTypes
-import dev.reqsmith.model.enumeration.VIEW_LAYOUT_ELEMENT_ATTR_DATA
-import dev.reqsmith.model.enumeration.VIEW_LAYOUT_ELEMENT_ATTR_TO
+import dev.reqsmith.composer.common.formatter.NameFormatter
+import dev.reqsmith.composer.common.resource.ResourceManager
+import dev.reqsmith.composer.common.resource.ResourceType
+import dev.reqsmith.model.*
+import dev.reqsmith.model.enumeration.*
 import dev.reqsmith.model.reqm.*
 
 class ModelValidator {
@@ -59,11 +52,13 @@ class ModelValidator {
                 validateViewLayoutElement(layout, missingLinks)
             }
             validateViewStyleRef(view)
+            validateFeatureResources(view.definition.featureRefs)
         }
         generateMissingViews(missingLinks, model)
 
         // validate style elements
         WholeProject.projectModel.source.styles.forEach {
+            validateFeatureResources(it.definition.featureRefs)
             validateStyleElements(it.definition.properties)
         }
 
@@ -71,6 +66,19 @@ class ModelValidator {
         // dependencies needed for this
 
         return true
+    }
+
+    private fun validateFeatureResources(featureRefs: List<FeatureRef>) {
+        featureRefs.forEach { ref ->
+            if (listOf(FEATURE_RESOURCE).contains(ref.qid.toString())) {
+                ref.properties.getOrNull(0)?.let { resourceName ->
+                    if (!ResourceManager.exists(NameFormatter.deliterateText(resourceName.value ?: ""))) {
+                        Log.warning("Resource ${resourceName.value} is not exists. (${ref.coords()})")
+                        // TODO: copy default resource file with the name of 'resourceName' into the resource folder
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -170,7 +178,6 @@ class ModelValidator {
                         Log.warning("Color style attribute has invalid value '${property.value}' (${property.coords()})")
                     }
                 }
-
                 StandardStyleAttributes.size.name,
                 StandardStyleAttributes.padding.name,
                 StandardStyleAttributes.margin.name,
@@ -179,15 +186,18 @@ class ModelValidator {
                         Log.warning("Value of the style attribute '$propertyName' is not a size. (${property.coords()})")
                     }
                 }
-
-                StandardStyleAttributes.image.name -> {}
+                StandardStyleAttributes.image.name -> {
+                    if (!ResourceManager.exists(property.value ?: "")) {
+                        Log.warning("Resource ${property.value} is not exists; use default resource of this king will be used.")
+                        property.value = ResourceManager.getDefault(ResourceType.image)
+                    }
+                }
                 StandardStyleAttributes.outline.name -> {}
                 StandardStyleAttributes.align.name -> {
                     if (!isAlignAttributeValue(property.value!!)) {
                         Log.warning("Value of the style attribute '$propertyName' is not an align type. (${property.coords()})")
                     }
                 }
-
                 StandardStyleAttributes.face.name -> {}
                 StandardStyleAttributes.format.name -> {}
             }

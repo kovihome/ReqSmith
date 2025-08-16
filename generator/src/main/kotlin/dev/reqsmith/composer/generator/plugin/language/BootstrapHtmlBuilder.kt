@@ -42,8 +42,6 @@ private const val ALIGN_ITEMS_CENTER = "align-items-center"
 
 class BootstrapHtmlBuilder: HtmlBuilder() {
 
-    private val nf = NameFormatter()
-
     private var currentViewStyleRef: String? = null
 
     override fun definition() = PluginDef("html.bootstrap", PluginType.Language)
@@ -65,7 +63,6 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     }
 
     override fun createMenu(node: IGMView.IGMNode): String {
-        val attr = node.attributes.toMap()
         return createHTML(true).div {
             text("menu spaceholder")
         }
@@ -390,7 +387,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     }
 
                     div { classes = setOf("row", "mb-3")
-                        label { htmlFor = member.memberId; classes = setOf(FORM_COLUMN_SIZE_CLS, "col-form-label"); text("${nf.toDisplayText(member.memberId)}:") }
+                        label { htmlFor = member.memberId; classes = setOf(FORM_COLUMN_SIZE_CLS, "col-form-label"); text("${NameFormatter.toDisplayText(member.memberId)}:") }
                         when (controlType) {
                             "text" -> {
                                 div {
@@ -413,7 +410,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                         }
                                         option { value = ""; selected = true; text("Select...")  }
                                         enumList.forEach {
-                                            option { value = it; text(nf.toDisplayText(it)) }
+                                            option { value = it; text(NameFormatter.toDisplayText(it)) }
                                         }
                                     }
                                 }
@@ -484,7 +481,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         entity.members.filter { it.memberId != "id" }.forEach { member ->
                             th {
                                 scope = ThScope.col
-                                text(nf.toDisplayText(member.memberId))
+                                text(NameFormatter.toDisplayText(member.memberId))
                             }
                         }
                         th {

@@ -20,6 +20,7 @@ package dev.reqsmith.composer.generator.plugin.framework
 
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.exceptions.IGMGenerationException
+import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
@@ -86,12 +87,8 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
                         }
                         a.simpleAttributes.forEach { event ->
                             var value = event.value ?: ""
-                            if ((value.startsWith('\'') && value.endsWith('\'')) || (value.startsWith('"') && value.endsWith(
-                                    '"'
-                                ))
-                            ) {
-                                value = value.removeSurrounding("'").removeSurrounding("\"")
-                                value = template.translate(localTemplateContext, value)
+                            if ((value.startsWith('\'') && value.endsWith('\'')) || (value.startsWith('"') && value.endsWith('"'))) {
+                                value = template.translate(localTemplateContext, NameFormatter.deliterateText(value))
                             }
                             eventNode.attributes.add(Pair(event.key!!, value))
                         }
@@ -118,7 +115,7 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
                     }
                     a.type != StandardTypes.propertyList.name && attributeList.contains(a.key) -> {
                         // real attribute
-                        val value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                        val value = NameFormatter.deliterateText(a.value ?: "")
                         node.attributes.add(Pair(a.key!!, template.translate(localTemplateContext, value)))
 
                     }
@@ -130,7 +127,7 @@ open class WebFrameworkBuilder : BaseFrameworkBuilder() {
                                 name = a.key!!
                                 if (a.value?.isNotBlank() == true) {
                                     val literal = a.value?.startsWith("\"") == true || a.value?.startsWith("'") == true
-                                    var value = a.value?.removeSurrounding("'")?.removeSurrounding("\"") ?: ""
+                                    var value = NameFormatter.deliterateText(a.value ?: "")
                                     if (literal) {
                                         value = template.translate(localTemplateContext, value)
                                     }

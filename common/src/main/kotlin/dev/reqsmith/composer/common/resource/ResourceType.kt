@@ -16,23 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.composer.common.formatter
+package dev.reqsmith.composer.common.resource
 
-import kotlin.text.removeSurrounding
-
-/**
- * General name formatter
- */
-object NameFormatter {
-
-    /**
-     * Convert an identifier to displayable name
-     * @param id The identifier
-     * @return Displayable name
-     */
-    fun toDisplayText(id: String): String {
-        return id.replace(Regex("(?<=.)([A-Z])"), " $1").replaceFirstChar { it.uppercase() }
-    }
-
-    fun deliterateText(s: String): String = s.removeSurrounding("'").removeSurrounding("\"")
+enum class ResourceType {
+    image
 }

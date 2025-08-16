@@ -21,6 +21,7 @@ package dev.reqsmith.composer.generator
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
+import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.templating.Template
@@ -178,8 +179,8 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
 
             val feature = WholeProject.projectModel.source.features.find { it.qid.toString() ==  featureRef.qid.toString()}
             if (feature != null) {
-                val generatorId = feature.definition.properties.find { it.key == "generator" }?.value?.removeSurrounding("'")?.removeSurrounding("\"")
-                if (generatorId != null) {
+                val generatorId = NameFormatter.deliterateText(feature.definition.properties.find { it.key == "generator" }?.value ?: "")
+                if (generatorId.isBlank()) {
                     val featurePlugin = PluginManager.getBest<FrameworkBuilder>("", PluginType.Framework, generatorId)
                     featurePlugin.applyFeatureOnEntity(ent, feature)
                 } else {

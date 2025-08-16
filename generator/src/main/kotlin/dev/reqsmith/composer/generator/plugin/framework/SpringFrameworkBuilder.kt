@@ -21,6 +21,7 @@ package dev.reqsmith.composer.generator.plugin.framework
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
+import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
@@ -87,7 +88,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
     private fun findIgmClass(className: String): IGMClass {
         val dataClassFullName = WholeProject.projectModel.igm.classes.keys.find { it.substringAfterLast('.') == className }
-        return WholeProject.projectModel.igm.classes[dataClassFullName]!!
+        return WholeProject.projectModel.igm.classes.getOrDefault(dataClassFullName, IGMClass(className))
     }
 
     // TODO: move it another class
@@ -299,7 +300,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         addSpringApplicationProperties()
         propFile.bufferedWriter().use { writer ->
             writer.write("# Spring application properties for $applicationName\n\n")
-            applicationProperties.forEach { k, v -> writer.write("$k=$v\n") }
+            applicationProperties.forEach { (k, v) -> writer.write("$k=$v\n") }
         }
 
         // generate index.html page
@@ -320,7 +321,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         WholeProject.projectModel.source.views.forEach { view ->
             view.definition.featureRefs.find { it.qid.toString() == FEATURE_RESOURCE }?.let { fr ->
                 fr.properties.find { it.key == FEATURE_RESOURCE_ATTRIBUTE_FILE }?.value?.let { fileName ->
-                    val fp = fileName.removeSurrounding("'").removeSurrounding("\"")
+                    val fp = NameFormatter.deliterateText(fileName)
                     val fn = fp.substringAfterLast('/').substringAfterLast("\\")
                     val destFileName = "$buildResourcesFolderName/${getViewFolder()}/$fn"
                     WholeProject.projectModel.resources.add(Pair("$reqmResourcesFolderName/$fp", destFileName))

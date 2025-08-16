@@ -21,6 +21,7 @@ package dev.reqsmith.composer.generator
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.WholeProject
+import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
 import dev.reqsmith.model.igm.IGMView
 import java.io.File
@@ -70,7 +71,7 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val viewRe
         Project.ensureFolderExists(copyTo, null)
 
         langBuilder.viewArts.forEach {
-            val resourceFileName = it.removeSurrounding("'").removeSurrounding("\"")
+            val resourceFileName = NameFormatter.deliterateText(it)
             WholeProject.projectModel.resources.add(Pair("$copyFrom/$resourceFileName", "$copyTo/$resourceFileName"))
         }
         return true
