@@ -26,7 +26,7 @@ plugins {
 
 val buildNumber = providers.exec {
     commandLine("git rev-list --count HEAD".split(" "))
-}.standardOutput.asText.get().toString().replace(Regex("[^0-9]"), "")
+}.standardOutput.asText.get().replace(Regex("[^0-9]"), "")
 
 allprojects {
     group = "dev.reqsmith.composer"
@@ -36,19 +36,22 @@ allprojects {
     extensions.add("email", "kovihome86@gmail.com")
     extensions.add("buildNumber", buildNumber)
 
-    // Configure the manifest for all subprojects
     tasks.withType<Jar> {
         archiveBaseName = "reqsmith-${project.name}"
+
+        // Configure the manifest for all subprojects
         manifest {
             attributes (
-                "Implementation-Title" to project.description,
-                "Implementation-Version" to "${project.version}.${project.extensions["buildNumber"]}",
-                "Implementation-Vendor" to project.extensions["vendor"],
-                "Build-Timestamp" to LocalDateTime.now().toString().substringBefore('.'),
-                "Built-By" to "${System.getProperty("user.name")} <${project.extensions["email"]}>",
-                "Gradle-Version" to gradle.gradleVersion,
-                "Java-Version" to JavaVersion.current().toString(),
-//                "Class-Path" to configurations.runtimeClasspath.get().joinToString(" ") { it.name }
+                mapOf(
+                    "Implementation-Title" to project.description,
+                    "Implementation-Version" to "${project.version}.${project.extensions["buildNumber"]}",
+                    "Implementation-Vendor" to project.extensions["vendor"],
+                    "Build-Timestamp" to LocalDateTime.now().toString().substringBefore('.'),
+                    "Built-By" to "${System.getProperty("user.name")} <${project.extensions["email"]}>",
+                    "Gradle-Version" to gradle.gradleVersion,
+                    "Java-Version" to JavaVersion.current().toString(),
+//                  "Class-Path" to configurations.runtimeClasspath.get().joinToString(" ") { it.name }
+                )
             )
         }
     }
