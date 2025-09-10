@@ -1,7 +1,7 @@
 [versions]
 kotlin-cli = "0.3.6"
 kotlin = "2.0.21"
-snakeyaml = "2.4"
+snakeyaml = "2.5"
 antlr = "4.3.4"
 slf4j = "2.0.17"
 commons-io = "2.20.0"
