@@ -31,6 +31,8 @@ dependencies {
     implementation(project(":generator"))
     implementation(project(":repository-finder"))
 
+    runtimeOnly(project(":plugin-css"))
+
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.cli)
     implementation(libs.commons.text)

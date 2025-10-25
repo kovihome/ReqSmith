@@ -25,6 +25,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.notExists
 
+const val ART_FOLDER_NAME = "art"
+
 /**
  * Manage project structure
  *
@@ -35,11 +37,10 @@ import kotlin.io.path.notExists
  * -- build/src/main/reqm : output reqm and index files
  * -- build/src/main/<lang> : generated source code folder
  */
-//class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
 class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
     var inputFolder: String? = null
     var outputFolder: String? = null
-    var artFolder: String = "${buildSystem.resourceFolder}/art"
+    var artFolder: String = "${buildSystem.resourceFolder}/$ART_FOLDER_NAME"
     var buildFolder: String = ""
     private val reqmFolderName = "reqm"
     private val errors: MutableList<String> = ArrayList()

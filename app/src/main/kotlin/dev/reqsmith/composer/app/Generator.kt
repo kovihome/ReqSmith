@@ -28,7 +28,7 @@ import dev.reqsmith.composer.generator.CodeGenerator
 import dev.reqsmith.composer.generator.GeneratorModelBuilder
 import dev.reqsmith.composer.generator.StyleGenerator
 import dev.reqsmith.composer.generator.ViewGenerator
-import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
+import dev.reqsmith.composer.common.plugin.language.LanguageBuilder
 import java.io.File
 import java.io.FileWriter
 import java.util.*

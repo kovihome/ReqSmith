@@ -21,6 +21,7 @@ package dev.reqsmith.composer.generator.plugin.language
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.composer.common.plugin.language.LanguageBuilder
 import dev.reqsmith.composer.parser.enumeration.Optionality
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.*

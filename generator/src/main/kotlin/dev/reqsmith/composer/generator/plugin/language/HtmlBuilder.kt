@@ -23,6 +23,7 @@ import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginManager
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.composer.common.plugin.language.LanguageBuilder
 import dev.reqsmith.composer.generator.plugin.template.HtmlTemplateBuilder
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
@@ -113,17 +114,19 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
 
     fun createNode(node: IGMView.IGMNode): String {
         return when (node.name) {
-            "header" -> createHeader(node)
-            "footer" -> createFooter(node)
-            "panel" -> createPanel(node)
-            "navigation" -> createNavigation(node)
-            "menu" -> createMenu(node)
-            "text" -> createText(node)
-            "linkGroup" -> createLinkGroup(node)
-            "linkButton" -> createLinkButton(node)
-            "spacer" -> createSpacer(node)
-            "form" -> createForm(node)
+            "button" -> createButton(node)
             "datatable" -> createDatatable(node)
+            "footer" -> createFooter(node)
+            "form" -> createForm(node)
+            "header" -> createHeader(node)
+            "image" -> createImage(node)
+            "linkButton" -> createLinkButton(node)
+            "linkGroup" -> createLinkGroup(node)
+            "menu" -> createMenu(node)
+            "navigation" -> createNavigation(node)
+            "panel" -> createPanel(node)
+            "spacer" -> createSpacer(node)
+            "text" -> createText(node)
             else -> {
                 if (node.children.isNotEmpty()) {
                     createHTML().div {
@@ -136,6 +139,34 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
                     createHTML(true).p { text("Unknown node: ${node.name}") }
                 }
             }
+        }
+    }
+
+    /**
+     * Creates an image layout element
+     *
+     * Valid attributes are:
+     * - src: resource name (file name, link or framework resource name)
+     * - alt: alternative text
+     * - size: image size in a size style notation
+     */
+    open fun createImage(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
+        }
+    }
+
+    /**
+     * Creates a button layout element
+     *
+     * Valid attributes are:
+     * - title: button title
+     * - to: action or view
+     * - icon: image resource name for button icon
+     */
+    open fun createButton(node: IGMView.IGMNode): String {
+        return createHTML(true).div {
+
         }
     }
 
@@ -157,6 +188,13 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
         }
     }
 
+    /**
+     * Creates a form for an entity
+     *
+     * Valid attributes are:
+     * - title: form title
+     * - data: the entity which is managed by this form
+     */
     open fun createForm(node: IGMView.IGMNode): String {
         return createHTML(true).div {
 
@@ -193,6 +231,14 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
         }
     }
 
+    /**
+     * Creates a link button layout element
+     *
+     * Valid attributes are:
+     * - title: button title
+     * - to: action or view
+     * - icon: image resource name for button icon
+     */
     open fun createLinkButton(node: IGMView.IGMNode): String {
         return createHTML(true).div {
 

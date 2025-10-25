@@ -21,6 +21,7 @@ package dev.reqsmith.composer.app
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ApplicationInfo
+import dev.reqsmith.composer.common.resource.ResourceManager
 import dev.reqsmith.composer.common.templating.Template
 import dev.reqsmith.composer.composer.ModelMerger
 import dev.reqsmith.composer.parser.ReqMParser
@@ -101,6 +102,9 @@ class Composer(private val appHome: String) {
             // Failure Point #3 - merged model is not complete
             return false
         }
+
+        // process input resources
+        ResourceManager.processInputResources()
 
         // save composed reqm and dependencies
         val projectName = WholeProject.projectModel.source.applications[0].qid!!.id!!

@@ -9,6 +9,7 @@ commons-text = "1.14.0"
 jupiter = "6.0.0"
 versions = "0.52.0"
 kotlin-html = "0.12.0"
+ph-css = "7.0.4"
 
 [libraries]
 kotlin-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli-jvm", version.ref = "kotlin-cli"}
@@ -21,6 +22,7 @@ snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml"}
 antlr = { module = "org.antlr:ST4", version.ref = "antlr"}
 slf4j = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" } # thymeleaf logging provider
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jupiter" }
+cssparser = { module = "com.helger:ph-css", version.ref = "ph-css"}
 
 [bundles]
 kotlin-html = ["kotlin-html", "kotlin-html-jvm"]

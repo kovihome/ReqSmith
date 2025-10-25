@@ -6,7 +6,9 @@ module frameworks.Web {
     generator: framework.web
 }
 
-view image is widget
+view image is widget {
+    src
+}
 
 view text is widget
 
@@ -49,6 +51,12 @@ view datatable is widget {
 
 view linkButton is widget {
     title: 'Link Button'
+    image
+    to: '#'
+}
+
+view linkGroup is widget {
+    title: 'Link Group'
     to: '#'
 }
 
@@ -65,4 +73,10 @@ view menu is widget {
     type: horizontal
     title
     to
+}
+
+view button is widget {
+    title: 'Button'
+    image
+    to: '#'
 }

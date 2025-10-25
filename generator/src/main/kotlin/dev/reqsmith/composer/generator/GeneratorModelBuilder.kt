@@ -180,7 +180,7 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
             val feature = WholeProject.projectModel.source.features.find { it.qid.toString() ==  featureRef.qid.toString()}
             if (feature != null) {
                 val generatorId = NameFormatter.deliterateText(feature.definition.properties.find { it.key == "generator" }?.value ?: "")
-                if (generatorId.isBlank()) {
+                if (generatorId.isNotBlank()) {
                     val featurePlugin = PluginManager.getBest<FrameworkBuilder>("", PluginType.Framework, generatorId)
                     featurePlugin.applyFeatureOnEntity(ent, feature)
                 } else {

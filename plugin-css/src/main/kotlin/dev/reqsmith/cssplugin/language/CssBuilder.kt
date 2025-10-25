@@ -16,12 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.composer.generator.plugin.language
+package dev.reqsmith.cssplugin.language
 
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.plugin.Plugin
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.composer.common.plugin.language.LanguageBuilder
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardStyleElements
 import dev.reqsmith.model.igm.IGMClass
@@ -128,7 +129,7 @@ class CssBuilder : LanguageBuilder, Plugin {
     }
 
     private fun addCssAttrToList(attributeList: List<String>, availableAttributes: List<String>, cssAttrName: String, cssAttributes: MutableList<String>) {
-        val a = attributeList.intersect(availableAttributes)
+        val a = attributeList.intersect(availableAttributes.toSet())
         if (a.isNotEmpty()) cssAttributes.add(cssa(cssAttrName, a.joinToString(" ")))
     }
 

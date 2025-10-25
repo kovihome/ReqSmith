@@ -22,7 +22,7 @@ import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.formatter.NameFormatter
-import dev.reqsmith.composer.generator.plugin.language.LanguageBuilder
+import dev.reqsmith.composer.common.plugin.language.LanguageBuilder
 import dev.reqsmith.model.igm.IGMView
 import java.io.File
 import java.io.FileWriter
@@ -33,7 +33,6 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val viewRe
     private fun String.toPath():String = this.replace('.', '/')
 
     fun generate(): Boolean {
-        langBuilder.artPathPrefix = "art"
 
         // generate view files
         WholeProject.projectModel.igm.views.forEach { buildView(it.value) }

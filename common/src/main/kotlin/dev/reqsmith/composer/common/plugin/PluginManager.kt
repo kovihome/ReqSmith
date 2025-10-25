@@ -27,7 +27,8 @@ object PluginManager {
         PluginType.BuildSystem to mutableMapOf(),
         PluginType.Language to mutableMapOf(),
         PluginType.Framework to mutableMapOf(),
-        PluginType.Template to mutableMapOf()
+        PluginType.Template to mutableMapOf(),
+        PluginType.Resource to mutableMapOf()
     )
 
     /**

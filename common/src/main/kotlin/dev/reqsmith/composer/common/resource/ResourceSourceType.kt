@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,10 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-plugins {
-    // Apply the foojay-resolver plugin to allow automatic download of JDKs
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
+package dev.reqsmith.composer.common.resource
 
-rootProject.name = "reqsmith"
-include("app", "parser", "validator", "composer", "repository-finder", "generator", "common", "model", "plugin-css")
+enum class ResourceSourceType {
+    PROJECT, EXTERNAL, FRAMEWORK
+}

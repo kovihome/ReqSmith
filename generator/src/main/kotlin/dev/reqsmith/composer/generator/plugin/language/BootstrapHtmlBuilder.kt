@@ -18,10 +18,14 @@
 
 package dev.reqsmith.composer.generator.plugin.language
 
+import dev.reqsmith.composer.common.ART_FOLDER_NAME
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
+import dev.reqsmith.composer.common.resource.Resource
+import dev.reqsmith.composer.common.resource.ResourceManager
+import dev.reqsmith.composer.common.resource.ResourceSourceType
 import dev.reqsmith.model.enumeration.StandardEvents
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardStyleElements
@@ -62,9 +66,132 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         return super.createView(view)
     }
 
-    override fun createMenu(node: IGMView.IGMNode): String {
+    fun getBootstrapImageResource(resourceName: String): String {
+        return resourceName
+    }
+
+    override fun createImage(node: IGMView.IGMNode): String {
+        val attr = node.attributes.toMap()
         return createHTML(true).div {
-            text("menu spaceholder")
+            val image: Resource = ResourceManager.getImageResource(attr["src"] ?: "") { getBootstrapImageResource(it) }
+            img {
+                src = image.name
+                attr["alt"]?.let { alt = it }
+                if (attr.containsKey("size")) {
+                    parseSize(attr["size"]!!)?.let {
+                        if (it.width > 0) {
+                            width = "${it.width}${it.unit}"
+                        }
+                        if (it.height > 0) {
+                            height = "${it.height}${it.unit}"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    data class Size(val width: Int, val height: Int, val unit: String)
+
+    /**
+     * Parse size notation
+     *
+     * The acceptable formats are:
+     * - 999[unit]
+     * - 999x888[unit]
+     * - h999[unit]
+     * - w999[unit]
+     * -h999[unit],w888[unit]
+     *
+     * TODO: move this function along with Size class into a general helper class
+     */
+    fun parseSize(input: String): Size? {
+        val trimmed = input.trim().lowercase()
+
+        // Csak egy szám (pl. "16")
+        val singleNumber = Regex("""^(\d+)$""")
+        singleNumber.matchEntire(trimmed)?.let {
+            val n = it.groupValues[1].toInt()
+            return Size(n, n, "px")
+        }
+
+        // Egy szám "px"-szel (pl. "16px")
+        val singlePx = Regex("""^(\d+)px$""")
+        singlePx.matchEntire(trimmed)?.let {
+            val n = it.groupValues[1].toInt()
+            return Size(n, n, "px")
+        }
+
+        // Két szám "x"-szel (pl. "16x16", "16x16px")
+        val double = Regex("""^(\d+)[x×](\d+)(px)?$""")
+        double.matchEntire(trimmed)?.let {
+            val w = it.groupValues[1].toInt()
+            val h = it.groupValues[2].toInt()
+            return Size(w, h, "px")
+        }
+
+        // Csak szélesség (pl. "w=100" vagy "w=100px")
+        val widthOnly = Regex("""^w\s*\s*(\d+)(px)?$""")
+        widthOnly.matchEntire(trimmed)?.let {
+            val w = it.groupValues[1].toInt()
+            return Size(w, 0, "px")
+        }
+
+        // Csak magasság (pl. "h=200" vagy "h=200px")
+        val heightOnly = Regex("""^h\s*\s*(\d+)(px)?$""")
+        heightOnly.matchEntire(trimmed)?.let {
+            val h = it.groupValues[1].toInt()
+            return Size(0, h, "px")
+        }
+
+        // Mindkettő (pl. "w=100,h=200" vagy "w=100px,h=200px")
+        val both = Regex("""^w\s*\s*(\d+)(px)?\s*,\s*h\s*\s*(\d+)(px)?$""")
+        both.matchEntire(trimmed)?.let {
+            val w = it.groupValues[1].toInt()
+            val h = it.groupValues[3].toInt()
+            return Size(w, h, "px")
+        }
+
+        return null
+    }
+
+    private fun addIconResource(resourceName: String): String {
+        val iconResource = ResourceManager.getImageResource(resourceName) { getBootstrapImageResource(it) }
+        return when (iconResource.source) {
+            ResourceSourceType.FRAMEWORK -> {
+                createHTML(true).i {
+                    classes = setOf("bi", "bi-${iconResource.name}", "me-2")
+                }
+            }
+            else -> {
+                createHTML(true).img { src = iconResource.name }
+            }
+        }
+    }
+
+    override fun createButton(node: IGMView.IGMNode): String {
+        val attr = node.attributes.toMap()
+        return createHTML(true).a {
+            href = checkLink(attr[VIEW_LAYOUT_ELEMENT_ATTR_TO])
+            button {
+                type = ButtonType.button
+                classes = mutableSetOf("btn", "btn-primary").apply {
+                    // calculate color class
+                    // add(calculateTextColor(node.styleRef, "btn-primary"))
+                    addAll(collectViewLayoutElementStyles(node))
+                }
+                if (attr.contains("icon")) {
+                    unsafe { raw(addIconResource(attr["icon"] ?: "")) }
+                }
+                text(attr["title"] ?: "Button")
+            }
+        }
+    }
+
+    override fun createMenu(node: IGMView.IGMNode): String {
+        val attr = node.attributes.toMap()
+        return createHTML(true).div {
+            text("[menu spaceholder]")
         }
     }
 
@@ -173,9 +300,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
             div { classes = setOf("container", "d-flex", ALIGN_ITEMS_CENTER)
                 if (attr.contains("logo")) {
-                    img { src = "$artPathPrefix/${attr["logo"]}"; alt = "logo"; classes = setOf("me-3"); style = "height: 128px;"
+                    img { src = "$ART_FOLDER_NAME/${attr["logo"]}"; alt = "logo"; classes = setOf("me-3"); style = "height: 128px;"
                         viewArts.add(attr["logo"] ?: "")
-                        WholeProject.projectModel.igm.addResource("static/$artPathPrefix", "$artPathPrefix/${attr["logo"]}") // TODO static
+                        WholeProject.projectModel.igm.addResource("static/$ART_FOLDER_NAME", "$ART_FOLDER_NAME/${attr["logo"]}") // TODO static
                     }
                 }
                 if (attr.contains("title")) {
@@ -264,11 +391,18 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     }
 
     override fun createLinkButton(node: IGMView.IGMNode): String {
+        val attr = node.attributes.toMap()
         return createHTML(true).a {
-            classes = setOf("btn", "btn-primary")
+            classes = mutableSetOf("btn").apply {
+                // calculate color class
+                // add(calculateTextColor(node.styleRef, "btn-primary"))
+                add("btn-primary")
+                addAll(collectViewLayoutElementStyles(node))
+            }
             role = "button"
-            href = checkLink(node.attributes.find { it.first == VIEW_LAYOUT_ELEMENT_ATTR_TO }?.second)
-            text(node.attributes.find { it.first == "title" }?.second ?: "LinkButton")
+            href = checkLink(attr[VIEW_LAYOUT_ELEMENT_ATTR_TO])
+            unsafe { raw(addIconResource(attr["icon"] ?: "")) }
+            text(attr["title"] ?: "LinkButton")
         }
     }
 
@@ -284,8 +418,13 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     }
 
     override fun createPanel(node: IGMView.IGMNode): String {
+        val attr = node.attributes.toMap()
         return createHTML(true).div {
-            classes = setOf("container", "mt-4")
+            classes = mutableSetOf("container", "mt-4").apply {
+                attr["align"]?.let {
+                    add("text-$it")
+                }
+            }
             node.children.forEach {
                 unsafe { raw(createNode(it)) }
             }
