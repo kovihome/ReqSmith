@@ -18,10 +18,10 @@
 
 package dev.reqsmith.cssplugin.resource
 
-import com.helger.css.ECSSVersion
 import com.helger.css.decl.CSSSelectorSimpleMember
 import com.helger.css.decl.CSSStyleRule
 import com.helger.css.reader.CSSReader
+import com.helger.css.reader.CSSReaderSettings
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.plugin.Plugin
@@ -60,7 +60,8 @@ class CssResourceParser : ResourceParser, Plugin {
 
     override fun parseResourceFile(qid: QualifiedId?, resourceType: String, resourceFileName: String): List<Style> {
         Log.info("Parsing css resource file $resourceFileName")
-        val css = CSSReader.readFromFile(File(resourceFileName), Charsets.UTF_8, ECSSVersion.CSS30)
+        val cssSettings = CSSReaderSettings().setFallbackCharset(Charsets.UTF_8).setUseSourceLocation(false)
+        val css = CSSReader.readFromFile(File(resourceFileName), cssSettings)
         val additionalStyleElements = mutableListOf<Style>()
         css?.allRules?.forEach { rule ->
             if (rule is CSSStyleRule) {
