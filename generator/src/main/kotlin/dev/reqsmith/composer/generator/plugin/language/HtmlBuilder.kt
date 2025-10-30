@@ -93,8 +93,8 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
 
         val styles = mutableListOf<IGMStyle>()
         styleRefs.forEach { ref ->
-            val style = WholeProject.projectModel.igm.getStyle(ref)
-            if (!style.url.isNullOrBlank()) {
+            val style = WholeProject.projectModel.igm.findStyle(ref)
+            if (!style?.url.isNullOrBlank()) {
                 styles.add(style)
             }
         }
@@ -105,6 +105,7 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
         val styleRefs = mutableSetOf<String>()
         if (!node.styleRef.isNullOrBlank()) {
             styleRefs.add(node.styleRef!!)
+            styleRefs.add("${node.styleRef}-${node.name}")
         }
         node.children.forEach { child ->
             styleRefs.addAll(findStyleRefsInNode(child))

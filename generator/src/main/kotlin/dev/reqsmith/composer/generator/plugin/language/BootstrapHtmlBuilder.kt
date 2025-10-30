@@ -78,7 +78,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 src = image.name
                 attr["alt"]?.let { alt = it }
                 if (attr.containsKey("size")) {
-                    parseSize(attr["size"]!!)?.let {
+                    parseSize(attr["size"] ?: "")?.let {
                         if (it.width > 0) {
                             width = "${it.width}${it.unit}"
                         }
@@ -106,6 +106,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
      * TODO: move this function along with Size class into a general helper class
      */
     fun parseSize(input: String): Size? {
+        if (input.isNullOrBlank()) return null
+
         val trimmed = input.trim().lowercase()
 
         // Csak egy szám (pl. "16")
@@ -323,10 +325,10 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun createText(node: IGMView.IGMNode): String {
         return createHTML(true).p {
             // apply style
-            classes = collectViewLayoutElementStyles(node)
+            collectViewLayoutElementStyles(node).takeIf { it.isNotEmpty() }?.let { classes = it }
 
             // write multiline text
-            node.getAttr("default")?.let { t ->
+            node.getAttr("label")?.let { t ->
                 val texts = t.split("\\n")
                 text(texts[0])
                 if (texts.size > 1) {

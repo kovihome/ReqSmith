@@ -33,7 +33,7 @@ enum class StandardLayoutElements(val attributes: List<String>) {
     navigation(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, "position", "side", "home", "menu", "breadcrumb", "search", "cta", "select")),
     panel(listOf("align")),
     spacer(listOf()),
-    text(listOf()),
+    text(listOf("label")),
 //  accordion,
 //  alert,
 //  badge,

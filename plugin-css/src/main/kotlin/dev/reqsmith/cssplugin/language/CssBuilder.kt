@@ -24,6 +24,7 @@ import dev.reqsmith.composer.common.plugin.PluginDef
 import dev.reqsmith.composer.common.plugin.PluginType
 import dev.reqsmith.composer.common.plugin.language.LanguageBuilder
 import dev.reqsmith.model.enumeration.StandardLayoutElements
+import dev.reqsmith.model.enumeration.StandardStyleAttributes
 import dev.reqsmith.model.enumeration.StandardStyleElements
 import dev.reqsmith.model.igm.IGMClass
 import dev.reqsmith.model.igm.IGMEnumeration
@@ -49,9 +50,13 @@ class CssBuilder : LanguageBuilder, Plugin {
         val sb = StringBuilder()
         val cssClassName = style.id.lowercase()
 
-        sb.append(addCssClass(cssClassName, resolveStyleAttributes(style.attributes.filter { it.attributes.isEmpty() }))).append("\n")
+        val attributes = resolveStyleAttributes(style.attributes.filter { it.attributes.isEmpty() }).toMutableList()
+        style.attributes.filter { it.attributes.isNotEmpty() && StandardStyleElements.contains(it.key) && it.attributes.all { subitem -> StandardStyleAttributes.contains(subitem.key) } }.forEach {
+            attributes.addAll(resolveStyleAttributes(it.attributes))
+        }
+        sb.append(addCssClass(cssClassName, attributes)).append("\n")
 
-        style.attributes.filter { it.attributes.isNotEmpty() && StandardLayoutElements.contains(it.key) }.forEach {
+        style.attributes.filter { it.attributes.isNotEmpty() && StandardLayoutElements.contains(it.key) && it.attributes.any { subitem -> StandardStyleElements.contains(subitem.key) }}.forEach {
             sb.append(addCssClass(cssName(cssClassName, it.key), resolveStyleAttributes(it.attributes))).append("\n")
         }
 

@@ -44,6 +44,12 @@ class InternalGeneratorModel {
         return styles.getOrPut(styleId) { IGMStyle(styleId) }
     }
 
+    fun findStyle(styleId: String): IGMStyle? {
+        return if (styles.containsKey(styleId)) styles[styleId]
+        else if (styles.containsKey(styleId.lowercase())) styles[styleId.lowercase()]
+        else null
+    }
+
     fun print(): String {
         val sb = StringBuilder("package $rootPackage\n")
         classes.forEach { sb.append(it.value.print()).append("\n") }

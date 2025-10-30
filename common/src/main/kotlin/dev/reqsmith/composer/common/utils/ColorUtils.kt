@@ -55,6 +55,13 @@ object ColorUtils {
         return LabColor(L, a, b)
     }
 
+    /**
+     * Calculate distance of two RGB colors using CIEDE2000 standard
+     *
+     * @param c1rgb First RGB color
+     * @param c2rgb Second RGB color
+     * @return The CIEDE2000 distance of the two
+     */
     fun ciede2000(c1rgb: RGBColor, c2rgb: RGBColor): Double {
         val c1 = rgbToLab(c1rgb)
         val c2 = rgbToLab(c2rgb)
@@ -111,6 +118,13 @@ object ColorUtils {
         )
     }
 
+    /**
+     * Calculate simple metric distance of two RGB colors
+     *
+     * @param c1rgb First RGB color
+     * @param c2rgb Second RGB color
+     * @return The metric distance of the two
+     */
     fun metric(c1: RGBColor, c2: RGBColor): Double {
         return sqrt(
             ((c1.r - c2.r) * (c1.r - c2.r) +
@@ -119,6 +133,12 @@ object ColorUtils {
         )
     }
 
+    /**
+     * Convert css color string to RGB
+     *
+     * @param color css color string
+     * @return RGB color
+     */
     fun cssToRGB(color: String): RGBColor? {
         val hex = color.trim().lowercase()
 
