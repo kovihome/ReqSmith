@@ -29,7 +29,7 @@ dependencies {
 
 //    implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
     implementation(libs.snakeyaml)
-    implementation(libs.antlr)
+    implementation(libs.antlr.st4)
 
     runtimeOnly(libs.slf4j) // thymeleaf logging provider
 }

@@ -94,7 +94,11 @@ view About {
         panel {
             align: center
             image: 'reqsmith-logo.png' // local resource
-            text: 'About ReqSmith sample application'
+            text {
+                style: neonTextColor
+                label: 'About ReqSmith sample application'
+            }
+            text: "Cat Manager"
             button {
                 title: 'Back to Home'
                 to: WelcomePage

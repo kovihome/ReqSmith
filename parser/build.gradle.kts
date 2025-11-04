@@ -24,8 +24,8 @@ plugins {
 dependencies {
     implementation(project(":model"))
     implementation(project(":common"))
-    antlr("org.antlr:antlr4:4.13.2") // use ANTLR version 4
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+    antlr(libs.antlr) // use ANTLR version 4
+    implementation(libs.caffeine) // caching
 }
 
 tasks.generateGrammarSource {

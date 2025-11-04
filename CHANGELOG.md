@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - New ReqM element definition: style
 - StdRepo: Style feature
-- Generate style artifact (.css file)
+- Generating style artifact (.css file)
 - Apply style on view or view elements
-- New view layout elements: navigation, menu
+- Default style
+- Parsing style from .css file
+- New view layout elements: navigation, menu, button, image
+- Icon in layout elements (button, linkButton)
 
 ### Modified
 
