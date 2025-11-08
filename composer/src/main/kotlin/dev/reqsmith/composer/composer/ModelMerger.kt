@@ -29,6 +29,7 @@ import dev.reqsmith.composer.repository.api.RepositoryFinder
 import dev.reqsmith.composer.repository.api.entities.ItemCollection
 import dev.reqsmith.composer.repository.api.entities.RepositoryIndex
 import dev.reqsmith.model.*
+import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.reqm.*
 
@@ -436,13 +437,14 @@ class ModelMerger(private val finder: RepositoryFinder) {
         return actReqmSource
     }
 
-    private fun collectViewLayoutDeps(properties: MutableList<Property>) {
+    private fun collectViewLayoutDeps(properties: MutableList<Property>, inStdLayoutElement: Boolean = false) {
         properties.forEach { prop ->
             if (!listOf(VIEW_LAYOUT_ELEMENT_CONTENT, VIEW_LAYOUT_ELEMENT_STYLE, REQM_GENERAL_ATTRIBUTE_EVENTS).contains(prop.key)) {
                 if (prop.type == StandardTypes.propertyList.name || prop.value == null) {
+                    val isStdLayoutElement = StandardLayoutElements.contains(prop.key!!)
                     collectViewSources(QualifiedId(prop.key), true)
                     if (prop.type == StandardTypes.propertyList.name /*&& !StandardLayoutElements.contains(prop.key!!)*/) {
-                        collectViewLayoutDeps(prop.simpleAttributes)
+                        collectViewLayoutDeps(prop.simpleAttributes, inStdLayoutElement || isStdLayoutElement)
                     }
                     var depView = WholeProject.projectModel.source.views.find { dep -> dep.qid.toString() == prop.key }
                     if (depView == null) {
@@ -459,8 +461,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                                 }
                             }
                         }
-                    } else {
-                        // TODO: esetleg a StandardLayoutElements enumban is lehetne keresni
+                    } else if (!isStdLayoutElement && !inStdLayoutElement) {
                         Log.warning("View layout element ${prop.key} is undefined (${prop.coords()})")
                     }
 
