@@ -19,8 +19,19 @@
 package dev.reqsmith.composer.common.plugin.buildsys
 
 interface BuildSystem {
+    /**
+     * The build folder path relative to the project root
+     */
     val buildFolder: String
+
+    /**
+     * The source folder path relative to the project root or build folder
+     */
     val sourceFolder: String
+
+    /**
+     * The resource folder path relative to the project root or build folder
+     */
     val resourceFolder: String
 
     /**
@@ -46,7 +57,7 @@ interface BuildSystem {
 
     /**
      * Formats the dependencies in build script format
-     * @param dependencies List of the build system dependecies
+     * @param dependencies List of the build system dependencies
      * @return The formatted dependencies block
      */
     fun formatDependenciesBlock(dependencies: List<String>): String

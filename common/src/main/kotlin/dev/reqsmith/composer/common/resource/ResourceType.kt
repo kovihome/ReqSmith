@@ -19,5 +19,7 @@
 package dev.reqsmith.composer.common.resource
 
 enum class ResourceType {
-    image
+    image,
+    view,
+    style;
 }

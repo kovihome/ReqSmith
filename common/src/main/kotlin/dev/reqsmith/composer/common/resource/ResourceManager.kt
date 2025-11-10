@@ -74,10 +74,10 @@ object ResourceManager {
                     resourceType = resourceFileName.substringAfterLast(".") // file extension
                 }
 
-                // check resource file exitence, download internet resource
-                if (!ResourceManager.exists(resourceFileName)) {
+                // check resource file existence, download internet resource
+                if (!exists(resourceFileName)) {
                     Log.warning("Resource $resourceFileName is not exists. (${it.coords()})")
-                    // TODO: copy default resource file with the name of 'resourceName' into the resource folder
+                    getDefault(ResourceType.style, resourceFileName)
                 }
 
                 // parse resource (if parseable)
@@ -172,9 +172,44 @@ object ResourceManager {
      *
      * @param resourceType Type of the resource
      */
-    fun getDefault(resourceType: ResourceType): String {
-        // TODO
-        return ""
+    fun getDefault(resourceType: ResourceType, resourceName: String) {
+        val defaultResourceFolder = "resources"
+        when (resourceType) {
+            ResourceType.image -> {
+                val defaultImagePath = "${WholeProject.appHome}/$defaultResourceFolder/default-image.png"
+                val artFolder = "${WholeProject.project.buildFolder}/${WholeProject.project.artFolder}"
+                val targetName = NameFormatter.deliterateText(resourceName)
+                val targetPath = "$artFolder/$targetName"
+                // copy default image to art folder
+                if (!Project.ensureFolderExists(artFolder, null)) {
+                    Log.warning("Cannot ensure art folder $artFolder exists.")
+                    return
+                }
+                try {
+                    val sourceFile = File(defaultImagePath)
+                    if (sourceFile.exists()) {
+                        sourceFile.copyTo(File(targetPath), overwrite = true)
+                    } else {
+                        Log.warning("Default image not found at `$defaultImagePath`")
+                    }
+                } catch (e: Exception) {
+                    Log.warning("Failed to copy default image: ${e.message}")
+                }
+            }
+
+            ResourceType.style, ResourceType.view -> {
+                val styleFile = File(resourceName)
+                if (!Project.ensureFolderExists(styleFile.parent, null)) {
+                    Log.warning("Cannot ensure art folder ${styleFile.parent} exists.")
+                    return
+                }
+                try {
+                    styleFile.createNewFile()
+                } catch (e: Exception) {
+                    Log.warning("Failed to create empty style file $styleFile: ${e.message}")
+                }
+            }
+        }
     }
 
     fun getImageResource(resourceName: String, frameworkResourceFinder: (String) -> String): Resource {

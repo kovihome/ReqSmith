@@ -74,7 +74,6 @@ class ModelValidator {
                 ref.properties.getOrNull(0)?.let { resourceName ->
                     if (!ResourceManager.exists(NameFormatter.deliterateText(resourceName.value ?: ""))) {
                         Log.warning("Resource ${resourceName.value} is not exists. (${ref.coords()})")
-                        // TODO: copy default resource file with the name of 'resourceName' into the resource folder
                     }
                 }
             }
@@ -188,8 +187,8 @@ class ModelValidator {
                 }
                 StandardStyleAttributes.image.name -> {
                     if (!ResourceManager.exists(property.value ?: "")) {
-                        Log.warning("Resource ${property.value} is not exists; use default resource of this king will be used.")
-                        property.value = ResourceManager.getDefault(ResourceType.image)
+                        Log.warning("Resource ${property.value} is not exists; default resource of this kind will be used.")
+                        ResourceManager.getDefault(ResourceType.image, property.value!!)
                     }
                 }
                 StandardStyleAttributes.outline.name -> {}

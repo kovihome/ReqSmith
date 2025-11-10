@@ -30,6 +30,9 @@ const val ART_FOLDER_NAME = "art"
 /**
  * Manage project structure
  *
+ * @param projectFolder Project root folder
+ * @param buildSystem Build system used in the project
+ *
  * Default project structure is:
  *
  * project
@@ -40,7 +43,15 @@ const val ART_FOLDER_NAME = "art"
 class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
     var inputFolder: String? = null
     var outputFolder: String? = null
+
+    /**
+     * Art folder path relative to project folder
+     */
     var artFolder: String = "${buildSystem.resourceFolder}/$ART_FOLDER_NAME"
+
+    /**
+     * Build folder absolute path
+     */
     var buildFolder: String = ""
     private val reqmFolderName = "reqm"
     private val errors: MutableList<String> = ArrayList()

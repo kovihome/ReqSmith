@@ -26,6 +26,7 @@ class GeneratorData {
 
 
 object WholeProject {
+    lateinit var appHome: String
     lateinit var project: Project
     var projectModel = ProjectModel()
     val sourceArchitecture = SourceArchitecture()

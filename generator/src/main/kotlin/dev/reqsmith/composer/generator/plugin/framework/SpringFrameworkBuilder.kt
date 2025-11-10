@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.generator.plugin.framework
 
+import dev.reqsmith.composer.common.ART_FOLDER_NAME
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
@@ -332,9 +333,9 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
         // copy arts
         if (hasTemplateFiles) {
-            val copyFrom = "$reqmResourcesFolderName/art"
+            val copyFrom = "$reqmResourcesFolderName/${ART_FOLDER_NAME}"
             val copyTo =
-                "$buildResourcesFolderName/${getArtFolder()}/art"   // TODO: get art folder name from project
+                "$buildResourcesFolderName/${getArtFolder()}/${ART_FOLDER_NAME}"
             Project.ensureFolderExists(copyTo, null)
 
             File(copyFrom).listFiles()?.filter { it.isFile }?.forEach { file ->

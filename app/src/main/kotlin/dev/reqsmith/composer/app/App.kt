@@ -75,7 +75,7 @@ class App(private val args: Array<String>) {
         // select build system
         val buildSystem = try {
             PluginManager.get<BuildSystem>(PluginType.BuildSystem, buildSystemName)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Log.error("build system $buildSystemName is not supported.")
             return false
         }
@@ -98,11 +98,13 @@ class App(private val args: Array<String>) {
     fun compose() : Boolean {
         Log.title("Forge ReqM model")
 
+        WholeProject.appHome = path
+
         // select build system
         val buildSystem = try {
             Log.debug("build system plugin $buildSystemName is using in app.App.compose().")
             PluginManager.get<BuildSystem>(PluginType.BuildSystem, buildSystemName)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Log.error("build system $buildSystemName is not supported.")
             return false
         }
