@@ -73,7 +73,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun createImage(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         return createHTML(true).div {
-            val image: Resource = ResourceManager.getImageResource(attr["src"] ?: "") { getBootstrapImageResource(it) }
+            val image: Resource = ResourceManager.getImageResource(attr["src"] ?: "")
             img {
                 src = image.name
                 attr["alt"]?.let { alt = it }
@@ -86,6 +86,10 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                             height = "${it.height}${it.unit}"
                         }
                     }
+                }
+                if (image.source == ResourceSourceType.PROJECT) {
+                    val imageName = if (image.name.startsWith("$ART_FOLDER_NAME/")) { image.name.substringAfter("$ART_FOLDER_NAME/") } else { image.name }
+                    viewArts.add(imageName)
                 }
             }
         }
@@ -106,7 +110,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
      * TODO: move this function along with Size class into a general helper class
      */
     fun parseSize(input: String): Size? {
-        if (input.isNullOrBlank()) return null
+        if (input.isBlank()) return null
 
         val trimmed = input.trim().lowercase()
 
@@ -165,8 +169,16 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     classes = setOf("bi", "bi-${iconResource.name}", "me-2")
                 }
             }
+            ResourceSourceType.EXTERNAL -> {
+                createHTML(true).img {
+                    src = iconResource.name
+                }
+            }
             else -> {
-                createHTML(true).img { src = iconResource.name }
+                createHTML(true).img {
+                    src = iconResource.name
+                    viewArts.add(iconResource.name)
+                }
             }
         }
     }
@@ -304,7 +316,6 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 if (attr.contains("logo")) {
                     img { src = "$ART_FOLDER_NAME/${attr["logo"]}"; alt = "logo"; classes = setOf("me-3"); style = "height: 128px;"
                         viewArts.add(attr["logo"] ?: "")
-                        WholeProject.projectModel.igm.addResource("static/$ART_FOLDER_NAME", "$ART_FOLDER_NAME/${attr["logo"]}") // TODO static
                     }
                 }
                 if (attr.contains("title")) {

@@ -61,7 +61,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
     override val extension: String = "kt"
     override val language: String = "kotlin"
     override var artPathPrefix: String = ""
-    override val viewArts: MutableList<String>
+    override val viewArts: MutableSet<String>
         get() = TODO("Not yet implemented")
 
     private val tabsize = 4

@@ -171,15 +171,17 @@ object ResourceManager {
      * Get default resource of the given type
      *
      * @param resourceType Type of the resource
+     * @param resourceName Name of the resource
      */
     fun getDefault(resourceType: ResourceType, resourceName: String) {
         val defaultResourceFolder = "resources"
         when (resourceType) {
             ResourceType.image -> {
                 val defaultImagePath = "${WholeProject.appHome}/$defaultResourceFolder/default-image.png"
-                val artFolder = "${WholeProject.project.buildFolder}/${WholeProject.project.artFolder}"
+                val artFolder = "${WholeProject.project.projectFolder}/${WholeProject.project.artFolder}"
                 val targetName = NameFormatter.deliterateText(resourceName)
                 val targetPath = "$artFolder/$targetName"
+
                 // copy default image to art folder
                 if (!Project.ensureFolderExists(artFolder, null)) {
                     Log.warning("Cannot ensure art folder $artFolder exists.")
@@ -212,15 +214,21 @@ object ResourceManager {
         }
     }
 
-    fun getImageResource(resourceName: String, frameworkResourceFinder: (String) -> String): Resource {
+    fun getImageResource(resourceName: String, frameworkResourceFinder: (String) -> String = { "" }): Resource {
         return if (exists(resourceName)) {
-            Resource(ResourceType.image, ResourceSourceType.PROJECT, resourceName)
+            Resource(ResourceType.image, if (isExternalResource(resourceName)) ResourceSourceType.EXTERNAL else ResourceSourceType.PROJECT, resourceName)
         } else {
             val artResourceName = "$ART_FOLDER_NAME/$resourceName"
             if (exists(artResourceName)) {
                 Resource(ResourceType.image, ResourceSourceType.PROJECT, artResourceName)
             } else {
-                Resource(ResourceType.image, ResourceSourceType.FRAMEWORK, frameworkResourceFinder(resourceName))
+                val frameworkResourceName = frameworkResourceFinder(resourceName)
+                if (frameworkResourceName.isBlank()) {
+                    getDefault(ResourceType.image, resourceName)
+                    Resource(ResourceType.image, ResourceSourceType.PROJECT, resourceName)
+                } else {
+                    Resource(ResourceType.image, ResourceSourceType.FRAMEWORK, frameworkResourceName)
+                }
             }
         }
     }

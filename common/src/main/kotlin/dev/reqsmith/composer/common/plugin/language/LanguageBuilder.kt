@@ -35,7 +35,7 @@ interface LanguageBuilder {
     val language: String
 
     var artPathPrefix: String
-    val viewArts : MutableList<String>
+    val viewArts : MutableSet<String>
 
     /**
      * Create a class artifact

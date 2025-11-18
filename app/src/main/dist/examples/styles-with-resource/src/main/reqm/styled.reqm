@@ -108,6 +108,10 @@ view About {
                 src: 'https://www.pikpng.com/pngl/m/411-4110725_free-png-gold-swirl-design-png-png-images.png' // external resource
                 size: h64px
             }
+            image {
+                src: 'cat-welcome.png' // missing local resource to test fallback to default image
+                size: h64px
+            }
         }
     }
 }

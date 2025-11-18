@@ -36,7 +36,7 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
     override val extension: String = "html"
     override val language: String = "html"
     override var artPathPrefix: String = ""
-    override val viewArts: MutableList<String> = ArrayList()
+    override val viewArts: MutableSet<String> = HashSet()
 
     lateinit var templateBuilder : HtmlTemplateBuilder
 

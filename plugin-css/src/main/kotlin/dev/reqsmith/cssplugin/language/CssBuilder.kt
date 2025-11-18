@@ -35,7 +35,7 @@ class CssBuilder : LanguageBuilder, Plugin {
     override val extension: String = "css"
     override val language: String = "css"
     override var artPathPrefix: String = ""
-    override val viewArts: MutableList<String> = ArrayList()
+    override val viewArts: MutableSet<String> = HashSet()
 
     override fun definition(): PluginDef {
         return PluginDef(language, PluginType.Language)
