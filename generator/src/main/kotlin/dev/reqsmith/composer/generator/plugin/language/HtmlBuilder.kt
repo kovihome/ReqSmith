@@ -32,6 +32,8 @@ import dev.reqsmith.model.igm.IGMView
 import kotlinx.html.*
 import kotlinx.html.stream.createHTML
 
+private const val DOCTYPE = "<!DOCTYPE html>\n"
+
 open class HtmlBuilder : LanguageBuilder, Plugin {
     override val extension: String = "html"
     override val language: String = "html"
@@ -53,7 +55,7 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
         }
 
         // build source code in string builder
-        return createHTML().html {
+        return DOCTYPE + createHTML(prettyPrint = true).html {
             head {
                 meta { charset = Charsets.UTF_8.name() }
                 meta {
@@ -75,7 +77,7 @@ open class HtmlBuilder : LanguageBuilder, Plugin {
             }
             body {
                 if (!view.styleRef.isNullOrBlank()) {
-                    classes = setOf(view.styleRef!!)
+                    classes = setOf(view.styleRef!!.lowercase())
                 }
                 unsafe {
                     raw(createNode(view.layout))

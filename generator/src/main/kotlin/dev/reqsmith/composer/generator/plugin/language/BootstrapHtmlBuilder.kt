@@ -73,6 +73,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun createImage(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         return createHTML(true).div {
+            collectViewLayoutElementStyles(node).takeIf { it.isNotEmpty() }?.let { classes = it }
             val image: Resource = ResourceManager.getImageResource(attr["src"] ?: "")
             img {
                 src = image.name
@@ -291,7 +292,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         }
     }
 
-    private fun calculateBackgroundColor(styleRef: String?, defaultBackgroundClass: String): String {
+    private fun calculateBackgroundColor(styleRef: String?, defaultBackgroundClass: String = ""): String {
         if (!styleRef.isNullOrBlank()) {
             // check if the background attribute exists in style class
             WholeProject.projectModel.igm.styles[styleRef]?.let { style ->
@@ -389,8 +390,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         val groupTitle = node.attributes.find { it.first == "title" }?.second ?: "Links"
         val colSize = node.attributes.find { it.first == "colSize" }?.second ?: "6"
         return createHTML(true).div {
-            classes = setOf("col-md-$colSize", "mb-3", "mb-md-0")
-
+            classes = mutableSetOf("col-md-$colSize", "mb-3", "mb-md-0").apply {
+                addAll(collectViewLayoutElementStyles(node))
+            }
             h5 { text(groupTitle) }
             ul { classes = setOf("list-unstyled")
                 node.attributes.filter { it.first == VIEW_LAYOUT_ELEMENT_ATTR_TO }.forEach { link ->
@@ -434,6 +436,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         val attr = node.attributes.toMap()
         return createHTML(true).div {
             classes = mutableSetOf("container", "mt-4").apply {
+                add(calculateBackgroundColor(node.styleRef))
+                addAll(collectViewLayoutElementStyles(node))
                 attr["align"]?.let {
                     add("text-$it")
                 }

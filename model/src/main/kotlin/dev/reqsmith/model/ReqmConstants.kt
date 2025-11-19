@@ -34,5 +34,3 @@ const val VIEW_LAYOUT_ELEMENT_STYLE = "style"
 const val VIEW_SUBTYPE_TEMPLATE = "template"
 const val VIEW_SUBTYPE_WIDGET = "widget"
 const val FEATURE_RESOURCE_ATTRIBUTE_FILE = "file"
-
-

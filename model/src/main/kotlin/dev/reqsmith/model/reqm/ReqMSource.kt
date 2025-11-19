@@ -26,6 +26,10 @@ class ReqMSource : ElementBase() {
         }
     }
 
+    fun getStyle(styleName: String): Style? {
+        return styles.find { it.qid?.id == styleName }
+    }
+
     val applications: MutableList<Application> = ArrayList()
     val modules: MutableList<Modul> = ArrayList()
     val actors: MutableList<Actor> = ArrayList()

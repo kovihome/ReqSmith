@@ -160,7 +160,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
 
     private fun mergeStyleRef(style: Style, refStyles: Collection<Style>) {
         refStyles.forEach {
-            mergeProperties(style.definition.properties, it.definition.properties)
+            mergeProperties(style.definition.properties, it.definition.properties, deepMerge = true)
         }
     }
 
@@ -222,7 +222,8 @@ class ModelMerger(private val finder: RepositoryFinder) {
                     qid = QualifiedId(FEATURE_STYLE)
                     properties.add(Property().apply {
                         key = FEATURE_STYLE_ATTRIBUTE_STYLE
-                        type = defaultStyle.qid.toString()
+                        value = defaultStyle.qid.toString()
+                        type = StandardTypes.stringLiteral.name
                     })
                 })
             }
@@ -704,16 +705,29 @@ class ModelMerger(private val finder: RepositoryFinder) {
      * @param destPropList Destination (project) item properties
      * @param srcPropList Source (referenced) item properties
      */
-    private fun mergeProperties(destPropList: MutableList<Property>, srcPropList: List<Property>) {
+    private fun mergeProperties(destPropList: MutableList<Property>, srcPropList: List<Property>, deepMerge: Boolean = false) {
         srcPropList.forEach { d ->
             val p = destPropList.find { it.key == d.key }
             if (p != null) {
+                if (d.value != null && d.value!!.isNotBlank()) {
+                    if (p.value.isNullOrBlank()) {
+                        p.value = d.value
+                    } else {
+                        if (p.value != d.value) {
+                            // TODO: introduce overwrite parameter to control conflict resolution
+                            Log.warning("Merge conflict: property '${d.key}' has different values ('${p.value}' and '${d.value}'); keeping the project value. (${p.coords()} | ${d.coords()})")
+                        }
+                    }
+                }
                 if (p.type == null) {
                     p.type = d.type
                     p.listOf = d.listOf
                 }
                 if (p.optionality == Optionality.Undefined.name) {
                     p.optionality = d.optionality
+                }
+                if (deepMerge && p.type == StandardTypes.propertyList.name) {
+                    mergeProperties(p.simpleAttributes, d.simpleAttributes, true)
                 }
             } else {
                 destPropList.add(d)
@@ -722,19 +736,49 @@ class ModelMerger(private val finder: RepositoryFinder) {
     }
 
     fun mergeMultipleModelElementInstances() {
-        // TODO if multiple application items exist, merge them
+        // merge multiple application items
         // error conditions:
         // - multiple srcRefs exist
         // - attributes and features with different values, types
         if (WholeProject.projectModel.source.applications.size > 1) {
             val pivot = WholeProject.projectModel.source.applications[0]
-            val mergables = WholeProject.projectModel.source.applications.subList(1, WholeProject.projectModel.source.applications.size).toList()
-            mergeApplicationRef(pivot, mergables)
-            WholeProject.projectModel.source.applications.removeAll(mergables)
+            val mergeableApps = WholeProject.projectModel.source.applications.subList(1, WholeProject.projectModel.source.applications.size).toList()
+            mergeApplicationRef(pivot, mergeableApps)
+            WholeProject.projectModel.source.applications.removeAll(mergeableApps)
+            Log.info("Merged ${mergeableApps.size} duplicate application definitions of '${pivot.qid}'.")
         }
 
+        // merge multiple styles
+        val mergeableStyles = WholeProject.projectModel.source.styles.groupingBy { it.qid.toString() }.eachCount().filter { it.value > 1 }.keys
+        mergeableStyles.forEach { styleName ->
+            val stylesToMerge = WholeProject.projectModel.source.styles.filter { it.qid.toString() == styleName }
+            val pivot = stylesToMerge[0]
+            val rest = stylesToMerge.subList(1, stylesToMerge.size).toList()
+            mergeStyleRef(pivot, rest)
+            WholeProject.projectModel.source.styles.removeAll(rest)
+            Log.info("Merged ${rest.size} duplicate style definitions of '$styleName'.")
+        }
+
+        // merge default style
+        val defaultStyleName = ConfigManager.defaults[FEATURE_TEMPLATE_ATTRIBUTE_DEFAULT_STYLE] ?: "DefaultStyle"
+        val defaultStyle = WholeProject.projectModel.source.getStyle(defaultStyleName)
+
+        val appDefaultStyleProperty = WholeProject.projectModel.source.applications[0].definition.properties.find { it.key == FEATURE_TEMPLATE_ATTRIBUTE_DEFAULT_STYLE }
+        val appDefaultStyleName = appDefaultStyleProperty?.value
+        if (appDefaultStyleName != null) {
+            val appDefaultStyle = WholeProject.projectModel.source.getStyle(appDefaultStyleName)
+            if (appDefaultStyle != null && defaultStyle != null) {
+                mergeStyleRef(defaultStyle, listOf(appDefaultStyle))
+                WholeProject.projectModel.source.styles.remove(appDefaultStyle)
+                appDefaultStyleProperty.value = defaultStyleName
+                Log.info("Merged application default style '$appDefaultStyleName' into project default style '$defaultStyleName'.")
+            }
+        }
+
+        // TODO: merge multiple views, entities, classes, actors, actions, features
+
+        // TODO: merge default view templates
 
     }
-
 
 }
