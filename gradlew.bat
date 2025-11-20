@@ -70,7 +70,7 @@ goto fail
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\gradle-gradle-cli-main-9.0.0.jar
+set CLASSPATH=%APP_HOME%\lib\gradle-gradle-cli-main-9.2.0.jar
 
 
 @rem Execute Gradle
