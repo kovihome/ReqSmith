@@ -416,7 +416,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
             }
             role = "button"
             href = checkLink(attr[VIEW_LAYOUT_ELEMENT_ATTR_TO])
-            unsafe { raw(addIconResource(attr["icon"] ?: "")) }
+            if (attr.contains("icon")) {
+                unsafe { raw(addIconResource(attr["icon"] ?: "")) }
+            }
             text(attr["title"] ?: "LinkButton")
         }
     }
@@ -719,7 +721,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
     private fun isFormView(link: String): Boolean {
         val view = WholeProject.projectModel.igm.views[link]
-        return isFormLayoutNode(view!!.layout)
+        return if (view != null) isFormLayoutNode(view.layout) else false
     }
 
 }

@@ -203,6 +203,7 @@ class ModelValidator {
     }
 
     private fun validateViewLayoutElement(property: Property, missingLinks: MutableList<String>) {
+        var returning = false
         // resolve missing links
         if (property.key == VIEW_LAYOUT_ELEMENT_ATTR_TO) {
             val link = property.value
@@ -211,7 +212,21 @@ class ModelValidator {
                 Log.warning("Missing link ${link}; create new view for this link. (${property.coords()})")
                 missingLinks.add(link)
             }
-            return
+            returning = true
+        }
+
+        if (property.key == StandardLayoutElements.menu.name) {
+            val menuLinks = property.simpleAttributes.filter { !StandardLayoutElements.menu.attributes.contains(it.key) }.map { it.value }
+            if (menuLinks.isNotEmpty()) {
+                menuLinks.forEach { link ->
+                    if (link != null && !link.startsWith("http:") && !link.startsWith("https:")
+                        && WholeProject.projectModel.source.views.none { it.qid.toString() == link } && !missingLinks.contains(link)) {
+                        Log.warning("Missing link ${link}; create new view for this link. (${property.coords()})")
+                        missingLinks.add(link)
+                    }
+                }
+            }
+            returning = true
         }
 
         // check layout element style
@@ -232,7 +247,7 @@ class ModelValidator {
                         Log.warning("Layout element's style property ${attr.key} is not a valid style attribute. (${attr.coords()})")
                 }
             }
-            return
+            returning = true
         }
 
         // check view event action existence
@@ -257,6 +272,7 @@ class ModelValidator {
         }
 
         // recurse
+        if (returning) return
         property.simpleAttributes.forEach {
             validateViewLayoutElement(it, missingLinks)
         }
