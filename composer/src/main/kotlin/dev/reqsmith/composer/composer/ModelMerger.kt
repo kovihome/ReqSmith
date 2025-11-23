@@ -158,9 +158,9 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
     }
 
-    private fun mergeStyleRef(style: Style, refStyles: Collection<Style>) {
+    private fun mergeStyleRef(style: Style, refStyles: Collection<Style>, overwriteAttributes: Boolean = false, conflictWarning: Boolean = false) {
         refStyles.forEach {
-            mergeProperties(style.definition.properties, it.definition.properties, deepMerge = true)
+            mergeProperties(style.definition.properties, it.definition.properties, deepMerge = true, overwriteAttributes = overwriteAttributes, conflictWarning = conflictWarning)
         }
     }
 
@@ -705,7 +705,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
      * @param destPropList Destination (project) item properties
      * @param srcPropList Source (referenced) item properties
      */
-    private fun mergeProperties(destPropList: MutableList<Property>, srcPropList: List<Property>, deepMerge: Boolean = false) {
+    private fun mergeProperties(destPropList: MutableList<Property>, srcPropList: List<Property>, deepMerge: Boolean = false, overwriteAttributes: Boolean = false, conflictWarning: Boolean = false) {
         srcPropList.forEach { d ->
             val p = destPropList.find { it.key == d.key }
             if (p != null) {
@@ -714,8 +714,11 @@ class ModelMerger(private val finder: RepositoryFinder) {
                         p.value = d.value
                     } else {
                         if (p.value != d.value) {
-                            // TODO: introduce overwrite parameter to control conflict resolution
-                            Log.warning("Merge conflict: property '${d.key}' has different values ('${p.value}' and '${d.value}'); keeping the project value. (${p.coords()} | ${d.coords()})")
+                            if (overwriteAttributes) {
+                                p.value = d.value
+                            } else if (conflictWarning) {
+                                Log.warning("Merge conflict: property '${d.key}' has different values ('${p.value}' and '${d.value}'); keeping the first value. (${p.coords()} | ${d.coords()})")
+                            }
                         }
                     }
                 }
@@ -735,6 +738,9 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
     }
 
+    /**
+     * Merge multiple model element instances in the project model
+     */
     fun mergeMultipleModelElementInstances() {
         // merge multiple application items
         // error conditions:
@@ -754,7 +760,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             val stylesToMerge = WholeProject.projectModel.source.styles.filter { it.qid.toString() == styleName }
             val pivot = stylesToMerge[0]
             val rest = stylesToMerge.subList(1, stylesToMerge.size).toList()
-            mergeStyleRef(pivot, rest)
+            mergeStyleRef(pivot, rest, conflictWarning = true)
             WholeProject.projectModel.source.styles.removeAll(rest)
             Log.info("Merged ${rest.size} duplicate style definitions of '$styleName'.")
         }
@@ -768,7 +774,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         if (appDefaultStyleName != null) {
             val appDefaultStyle = WholeProject.projectModel.source.getStyle(appDefaultStyleName)
             if (appDefaultStyle != null && defaultStyle != null) {
-                mergeStyleRef(defaultStyle, listOf(appDefaultStyle))
+                mergeStyleRef(defaultStyle, listOf(appDefaultStyle), overwriteAttributes = true, conflictWarning = true)
                 WholeProject.projectModel.source.styles.remove(appDefaultStyle)
                 appDefaultStyleProperty.value = defaultStyleName
                 Log.info("Merged application default style '$appDefaultStyleName' into project default style '$defaultStyleName'.")

@@ -19,11 +19,16 @@
 package dev.reqsmith.model.enumeration
 
 @Suppress("EnumEntryName")
-enum class StandardStyleAttributes {
+enum class StandardStyleAttributes(val acceptedValues: List<String> = listOf()) {
 
     @Suppress("EnumEntryName")
-    align,
-    color,
+    align(listOf(
+        "left",
+        "center",
+        "right",
+        "justify"
+    )),
+    color(StandardColors.values().map { it.name.lowercase() }),
     face,
     image,
     margin,
@@ -31,7 +36,17 @@ enum class StandardStyleAttributes {
     padding,
     size,
     spacing,
-    format
+    format(listOf(
+        // font
+        "italic", "oblique",
+        "bold", "bolder", "lighter",
+        "ultra-condensed", "extra-condensed", "condensed", "semi-condensed", "semi-expanded", "expanded", "extra-expanded", "ultra-expanded",
+        "small-caps", "all-small-caps", "petite-caps", "all-petite-caps", "unicase", "titling-caps",
+        "line-through", "underline",
+        // border
+        "solid", "dotted", "dashed", "double", "groove", "ridge", "inset", "outset",
+        "round", "rounder", "roundest"
+    ))
     ;
 
     companion object {

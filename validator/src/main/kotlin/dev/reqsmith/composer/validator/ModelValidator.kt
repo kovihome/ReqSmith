@@ -18,7 +18,6 @@
 
 package dev.reqsmith.composer.validator
 
-import StandardColors
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
@@ -132,10 +131,6 @@ class ModelValidator {
         return value.toIntOrNull() != null
     }
 
-    private fun isAlignAttributeValue(align: String): Boolean {
-        return listOf("left", "right", "center", "justify").contains(align)
-    }
-
     private fun validateStyleElements(properties: List<Property>) {
         properties.forEach {
             when {
@@ -173,7 +168,7 @@ class ModelValidator {
         } else {
             when (propertyName) {
                 StandardStyleAttributes.color.name -> {
-                    if (!StandardColors.has(property.value!!)) {
+                    if (!StandardStyleAttributes.color.acceptedValues.contains(property.value)) {
                         Log.warning("Color style attribute has invalid value '${property.value}' (${property.coords()})")
                     }
                 }
@@ -193,12 +188,16 @@ class ModelValidator {
                 }
                 StandardStyleAttributes.outline.name -> {}
                 StandardStyleAttributes.align.name -> {
-                    if (!isAlignAttributeValue(property.value!!)) {
+                    if (!StandardStyleAttributes.align.acceptedValues.contains(property.value)) {
                         Log.warning("Value of the style attribute '$propertyName' is not an align type. (${property.coords()})")
                     }
                 }
                 StandardStyleAttributes.face.name -> {}
-                StandardStyleAttributes.format.name -> {}
+                StandardStyleAttributes.format.name -> {
+                    if (!StandardStyleAttributes.format.acceptedValues.contains(property.value)) {
+                        Log.warning("Value of the style attribute '$propertyName' is not a format type. (${property.coords()})")
+                    }
+                }
             }
         }
     }

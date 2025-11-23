@@ -22,7 +22,7 @@ const val VIEW_LAYOUT_ELEMENT_ATTR_TITLE = "title"
 const val VIEW_LAYOUT_ELEMENT_ATTR_DATA = "data"
 const val VIEW_LAYOUT_ELEMENT_ATTR_TO = "to"
 
-enum class StandardLayoutElements(val attributes: List<String>) {
+enum class StandardLayoutElements(val attributes: List<String> = listOf()) {
     datatable(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, VIEW_LAYOUT_ELEMENT_ATTR_DATA, "createForm")),
     footer(listOf("linkGroup", "copyrightText", "facebookLink", "twitterLink", "linkedinLink", "youtubeLink", "githubLink")),
     form(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, VIEW_LAYOUT_ELEMENT_ATTR_DATA)),
@@ -32,7 +32,7 @@ enum class StandardLayoutElements(val attributes: List<String>) {
     menu(listOf("type", VIEW_LAYOUT_ELEMENT_ATTR_TITLE, VIEW_LAYOUT_ELEMENT_ATTR_TO)),
     navigation(listOf(VIEW_LAYOUT_ELEMENT_ATTR_TITLE, "position", "side", "home", "menu", "breadcrumb", "search", "cta", "select")),
     panel(listOf("align")),
-    spacer(listOf()),
+    spacer,
     text(listOf("label")),
 //  accordion,
 //  alert,
