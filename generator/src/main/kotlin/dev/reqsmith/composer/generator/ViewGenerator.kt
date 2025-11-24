@@ -69,8 +69,10 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val viewRe
         val copyFrom = "${WholeProject.project.projectFolder}/${WholeProject.project.artFolder}"
         val copyTo = "$artResourceFolderName/${ART_FOLDER_NAME}"
         langBuilder.viewArts.forEach {
-            val resourceFileName = NameFormatter.deliterateText(it)
-            WholeProject.projectModel.resources.add(Pair("$copyFrom/$resourceFileName", "$copyTo/$resourceFileName"))
+            val resourceFileName = NameFormatter.deliterateText(it).replace("\\", "/")
+            val copySource = if (resourceFileName.contains("/")) resourceFileName else "$copyFrom/$resourceFileName"
+            val copyTarget = "$copyTo/${resourceFileName.substringAfterLast("/")}"
+            WholeProject.projectModel.resources.add(Pair(copySource, copyTarget))
         }
         return true
     }

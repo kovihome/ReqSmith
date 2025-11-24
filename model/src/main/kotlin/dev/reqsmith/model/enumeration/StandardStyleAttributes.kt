@@ -28,7 +28,7 @@ enum class StandardStyleAttributes(val acceptedValues: List<String> = listOf()) 
         "right",
         "justify"
     )),
-    color(StandardColors.values().map { it.name.lowercase() }),
+    color(StandardColors.entries.map { it.name.lowercase() }),
     face,
     image,
     margin,

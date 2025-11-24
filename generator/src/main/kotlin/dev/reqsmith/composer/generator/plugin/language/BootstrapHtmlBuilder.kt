@@ -91,6 +91,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 if (image.source == ResourceSourceType.PROJECT) {
                     val imageName = if (image.name.startsWith("$ART_FOLDER_NAME/")) { image.name.substringAfter("$ART_FOLDER_NAME/") } else { image.name }
                     viewArts.add(imageName)
+                } else if (image.source == ResourceSourceType.EXTERNAL && image.localPath.isNotBlank()) {
+                    viewArts.add(image.localPath)
                 }
             }
         }
@@ -100,13 +102,6 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
     /**
      * Parse size notation
-     *
-     * The acceptable formats are:
-     * - 999[unit]
-     * - 999x888[unit]
-     * - h999[unit]
-     * - w999[unit]
-     * -h999[unit],w888[unit]
      *
      * TODO: move this function along with Size class into a general helper class
      */

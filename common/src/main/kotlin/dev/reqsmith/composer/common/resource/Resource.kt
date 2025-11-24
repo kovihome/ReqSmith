@@ -18,4 +18,4 @@
 
 package dev.reqsmith.composer.common.resource
 
-class Resource(val type: ResourceType, val source: ResourceSourceType, val name: String)
+class Resource(val type: ResourceType, val source: ResourceSourceType, val name: String, val localPath: String = "")

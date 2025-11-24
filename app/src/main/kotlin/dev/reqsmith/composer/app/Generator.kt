@@ -57,7 +57,7 @@ class Generator(
         Log.info("=============== InternalGeneratorModel ===============\n${WholeProject.projectModel.igm.print()}")
         Log.info("======================================================\n")
         if (Log.level == Log.LogLevel.DEBUG) {
-            val igmFolder = "${WholeProject.project.buildFolder}/igm"
+            val igmFolder = "${WholeProject.project.buildFolder}/${WholeProject.project.internalForgeFolderName}/igm"
             Project.ensureFolderExists(igmFolder, null)
             val igmPath = "$igmFolder/${WholeProject.projectModel.source.applications[0].qid?.id}.igm"
             Log.debug("Write IGM to $igmPath")

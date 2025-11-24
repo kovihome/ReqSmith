@@ -109,15 +109,15 @@ object ResourceManager {
             try {
                 val url = URI(resourceName).toURL()
                 val internalResourceName = internalName(url)
-                if (localExists(internalResourceName)) {
+                if (internalExists(internalResourceName)) {
                     return true
                 }
-//              Downloading external resources is temporary turned off
-//                try {
-//                    downloadResource(url, internalResourceName)
-//                } catch (_: Exception) {
-//                    return false
-//                }
+                // Download external resource
+                try {
+                    downloadResource(url, internalResourceName)
+                } catch (_: Exception) {
+                    return false
+                }
                 return true
             } catch (_: Exception) {
                 return localExists(resourceName)
@@ -129,22 +129,44 @@ object ResourceManager {
     /**
      * Returns full resource file path (project source file)
      *
-     * @param internalResourceName Internal name of the project resource, relative to the project resource folder
+     * @param resourceName Internal name of the project resource, relative to the project internal resource folder
      * @return Full path of the resource file
      */
-    private fun resourceFileName(internalResourceName: String): String {
-        val projectFolder = WholeProject.project.projectFolder
-        val resourceFolder = WholeProject.project.buildSystem.resourceFolder
-        val fn =  "${projectFolder}/${resourceFolder}/${internalResourceName}"
-        return fn
-    }
+    private fun resourceFileName(resourceName: String): String = "${WholeProject.project.projectFolder}/${WholeProject.project.buildSystem.resourceFolder}/${resourceName}"
 
-    private fun localExists(internalResourceName: String): Boolean {
-        return File(resourceFileName(internalResourceName)).exists()
-    }
+    /**
+     * Returns full internal resource file path (in the build folder)
+     *
+     * @param internalResourceName Internal name of the project resource, relative to the project internal resource folder
+     * @return Full path of the internal resource file
+     */
+    private fun internalResourceFileName(internalResourceName: String): String = "${WholeProject.project.buildFolder}/${WholeProject.project.internalForgeFolderName}/resources/${internalResourceName}"
 
+    /**
+     * Check existence of the local resource file in the project resources folder
+     *
+     * @param resourceName Internal name of the project resource, relative to the project internal resource folder
+     * @return *true* - if the resource file exists, *false* - otherwise
+     */
+    private fun localExists(resourceName: String): Boolean = File(resourceFileName(resourceName)).exists()
+
+    /**
+     * Check existence of the internal resource file in the build folder resources folder
+     *
+     * @param internalResourceName Internal name of the project resource, relative to the project internal resource folder
+     * @return *true* - if the internal resource file exists, *false* - otherwise
+     */
+    private fun internalExists(internalResourceName: String): Boolean = File(internalResourceFileName(internalResourceName)).exists()
+
+
+    /**
+     * Download external resource to the project resources folder
+     *
+     * @param url URL of the external resource
+     * @param internalResourceName Internal name of the project resource, relative to the project internal resource folder
+     */
     private fun downloadResource(url: URL, internalResourceName: String) {
-        val resourcePath = resourceFileName(internalResourceName)
+        val resourcePath = internalResourceFileName(internalResourceName)
         val resourceFolder = resourcePath.replace('\\', '/').substringBeforeLast("/")
         val errors = mutableListOf<String>()
         Project.ensureFolderExists(resourceFolder, errors)
@@ -159,9 +181,15 @@ object ResourceManager {
     }
 
     private fun getLocalFileName(resourceName: String): String {
-        return if (isExternalResource(resourceName)) internalName(URI(resourceName).toURL()) else resourceFileName(resourceName)
+        return if (isExternalResource(resourceName)) internalResourceFileName(internalName(URI(resourceName).toURL())) else resourceFileName(resourceName)
     }
 
+    /**
+     * Get internal name for external resource URL
+     *
+     * @param url URL of the external resource
+     * @return Internal name of the resource
+     */
     private fun internalName(url: URL): String {
         val fileName = url.toExternalForm().substringAfterLast("/")
         return "$EXTERNAL_RESOURCE_FOLDER/$fileName"
@@ -216,7 +244,13 @@ object ResourceManager {
 
     fun getImageResource(resourceName: String, frameworkResourceFinder: (String) -> String = { "" }): Resource {
         return if (exists(resourceName)) {
-            Resource(ResourceType.image, if (isExternalResource(resourceName)) ResourceSourceType.EXTERNAL else ResourceSourceType.PROJECT, resourceName)
+            if (isExternalResource(resourceName)) {
+                val localPath = getLocalFileName(resourceName)
+                val realResourceName = "$ART_FOLDER_NAME/${localPath.substringAfterLast("/")}"
+                Resource(ResourceType.image, ResourceSourceType.EXTERNAL, realResourceName, localPath)
+            } else {
+                Resource(ResourceType.image, ResourceSourceType.PROJECT, resourceName)
+            }
         } else {
             val artResourceName = "$ART_FOLDER_NAME/$resourceName"
             if (exists(artResourceName)) {
@@ -225,7 +259,7 @@ object ResourceManager {
                 val frameworkResourceName = frameworkResourceFinder(resourceName)
                 if (frameworkResourceName.isBlank()) {
                     getDefault(ResourceType.image, resourceName)
-                    Resource(ResourceType.image, ResourceSourceType.PROJECT, resourceName)
+                    Resource(ResourceType.image, ResourceSourceType.PROJECT, "$ART_FOLDER_NAME/$resourceName")
                 } else {
                     Resource(ResourceType.image, ResourceSourceType.FRAMEWORK, frameworkResourceName)
                 }

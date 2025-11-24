@@ -121,8 +121,8 @@ object ColorUtils {
     /**
      * Calculate simple metric distance of two RGB colors
      *
-     * @param c1rgb First RGB color
-     * @param c2rgb Second RGB color
+     * @param c1 First RGB color
+     * @param c2 Second RGB color
      * @return The metric distance of the two
      */
     fun metric(c1: RGBColor, c2: RGBColor): Double {

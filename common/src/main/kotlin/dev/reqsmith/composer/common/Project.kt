@@ -42,7 +42,11 @@ const val ART_FOLDER_NAME = "art"
  */
 class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
     var inputFolder: String? = null
-    var outputFolder: String? = null
+
+    /**
+     * ReqM output folder absolute path
+     */
+    var reqmOutputFolder: String? = null
 
     /**
      * Art folder path relative to project folder
@@ -54,6 +58,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
      */
     var buildFolder: String = ""
     private val reqmFolderName = "reqm"
+    val internalForgeFolderName = "forge"
     private val errors: MutableList<String> = ArrayList()
 
     companion object {
@@ -115,13 +120,13 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
         Log.debug("Build folder = $buildFolder")
 
         // check output directory, create if it does not exist
-        if (outputFolder == null) {
-            outputFolder = "$buildFolder/${buildSystem.sourceFolder}/$reqmFolderName"
+        if (reqmOutputFolder == null) {
+            reqmOutputFolder = "$buildFolder/$internalForgeFolderName/$reqmFolderName"
         }
-        if (!forInit && !ensureFolderExists(outputFolder!!, errors)) {
+        if (!forInit && !ensureFolderExists(reqmOutputFolder!!, errors)) {
             return false
         }
-        Log.debug("Output folder = $outputFolder")
+        Log.debug("Output folder = $reqmOutputFolder")
 
         return true
     }
@@ -164,7 +169,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
             "projectRootFolder" to projectFolder!!,
             "language" to language,
             "reqmSourceDir" to inputFolder!!,
-            "reqmOutputDir" to outputFolder!!,
+            "reqmOutputDir" to reqmOutputFolder!!,
             "plugins" to pluginsBlock,
             "dependencies" to dependenciesBlock
         )

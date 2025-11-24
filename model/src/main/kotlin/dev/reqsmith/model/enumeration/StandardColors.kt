@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+package dev.reqsmith.model.enumeration
+
 enum class StandardColors(val rgb: String) {
     aliceblue("#f0f8ff"),
     antiquewhite("#faebd7"),

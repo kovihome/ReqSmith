@@ -112,7 +112,7 @@ class App(private val args: Array<String>) {
         // set up project environment
         val project = Project(projectDir, buildSystem).apply {
             inputFolder = inputDir
-            outputFolder = outputDir
+            reqmOutputFolder = outputDir
         }
         WholeProject.project = project
         if (!project.calculateFolders()) {
@@ -130,7 +130,7 @@ class App(private val args: Array<String>) {
         filenames.forEach { Log.info("- $it") }
 
         // check output directory, create if it does not exist
-        Log.info("Output directory: ${project.outputFolder}")
+        Log.info("Output directory: ${project.reqmOutputFolder}")
 
         // compose full requirement model
         val composeOk = try {
@@ -177,7 +177,7 @@ fun main(args: Array<String>) {
     val elapsedTime = measureTimeMillis {
 
         // load default values first
-        // TODO
+        // TODO: get application home without env variable
         ConfigManager.load(System.getenv("APP_HOME") ?: ".")
 
         // create the app
