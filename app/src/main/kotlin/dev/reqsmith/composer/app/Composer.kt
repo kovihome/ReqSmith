@@ -123,9 +123,9 @@ class Composer(private val appHome: String) {
         val outputDepFileName = "${WholeProject.project.reqmOutputFolder}/$fileName"
         Log.text("Saving ${if (fileName.startsWith("effective")) "effective model" else "dependencies"} to $outputDepFileName")
         writer.writeReqM(reqmModel, outputDepFileName, reqmFileHeader)
-        Log.info("=============== ${if (fileName.startsWith("dep")) "Dependencies" else "ReqMSource"} ===============")
-        writer.printReqMSource(reqmModel)
-        Log.info("==========================================")
+//        Log.info("=============== ${if (fileName.startsWith("dep")) "Dependencies" else "ReqMSource"} ===============")
+//        writer.printReqMSource(reqmModel)
+//        Log.info("==========================================")
     }
 
     private fun addDependenciesToGenerate() {

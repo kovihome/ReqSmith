@@ -19,6 +19,7 @@
 package dev.reqsmith.composer.app
 
 
+import dev.reqsmith.composer.common.Folders
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.WholeProject
@@ -98,7 +99,7 @@ class App(private val args: Array<String>) {
     fun compose() : Boolean {
         Log.title("Forge ReqM model")
 
-        WholeProject.appHome = path
+        WholeProject.appHome = path.replace("\\", "/")
 
         // select build system
         val buildSystem = try {
@@ -110,7 +111,7 @@ class App(private val args: Array<String>) {
         }
 
         // set up project environment
-        val project = Project(projectDir, buildSystem).apply {
+        val project = Project(projectDir?.replace("\\", "/"), buildSystem).apply {
             inputFolder = inputDir
             reqmOutputFolder = outputDir
         }
@@ -119,6 +120,10 @@ class App(private val args: Array<String>) {
             project.printErrors()
             return false
         }
+
+        // RBL
+        Log.debug("Project folders:")
+        Folders.printALl()
 
         // list file from input pattern
         val filenames = project.getSourceFiles()
@@ -148,7 +153,7 @@ class App(private val args: Array<String>) {
         }
 
         // generate source code
-        val generator = Generator(/*project, projectModel, */path, language)
+        val generator = Generator(language)
         val success = try {
             generator.generate()
         } catch (e: Exception) {

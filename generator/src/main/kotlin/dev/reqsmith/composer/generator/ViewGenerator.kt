@@ -19,6 +19,7 @@
 package dev.reqsmith.composer.generator
 
 import dev.reqsmith.composer.common.ART_FOLDER_NAME
+import dev.reqsmith.composer.common.Folders
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.WholeProject
@@ -66,7 +67,7 @@ class ViewGenerator(private val langBuilder: LanguageBuilder, private val viewRe
     }
 
     fun copyArts(): Boolean {
-        val copyFrom = "${WholeProject.project.projectFolder}/${WholeProject.project.artFolder}"
+        val copyFrom = Folders.ProjectResourcesArt.absPath()
         val copyTo = "$artResourceFolderName/${ART_FOLDER_NAME}"
         langBuilder.viewArts.forEach {
             val resourceFileName = NameFormatter.deliterateText(it).replace("\\", "/")

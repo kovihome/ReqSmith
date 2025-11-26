@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.app
 
+import dev.reqsmith.composer.common.Folders
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.WholeProject
@@ -35,12 +36,7 @@ import java.util.*
 
 private const val RESOURCE_SAVING_PREFIX = "<save>"
 
-class Generator(
-//    private val project: Project,
-//    private val projectModel: ProjectModel,
-    private val appHome: String,
-    private val lang: String
-) {
+class Generator(private val lang: String) {
 
     private val langBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, lang)
     private val srcPath = WholeProject.project.srcPath(lang)
@@ -54,10 +50,10 @@ class Generator(
         Project.ensureFolderExists(resourcesFolderName, null)
         val generatorModelBuilder = GeneratorModelBuilder(resourcesFolderName)
         generatorModelBuilder.build()
-        Log.info("=============== InternalGeneratorModel ===============\n${WholeProject.projectModel.igm.print()}")
-        Log.info("======================================================\n")
+//        Log.info("=============== InternalGeneratorModel ===============\n${WholeProject.projectModel.igm.print()}")
+//        Log.info("======================================================\n")
         if (Log.level == Log.LogLevel.DEBUG) {
-            val igmFolder = "${WholeProject.project.buildFolder}/${WholeProject.project.internalForgeFolderName}/igm"
+            val igmFolder = Folders.BuildForgeIgm.absPath() // "${WholeProject.project.buildFolder}/${WholeProject.project.INTERNAL_FORGE_FOLDER_NAME}/igm"
             Project.ensureFolderExists(igmFolder, null)
             val igmPath = "$igmFolder/${WholeProject.projectModel.source.applications[0].qid?.id}.igm"
             Log.debug("Write IGM to $igmPath")
@@ -125,10 +121,13 @@ class Generator(
                 Log.error("Generating resource file $fileNameTo was failed; ${e.localizedMessage}")
             }
         } else {
-            val from = File(fileNameFrom)
+            var from = File(fileNameFrom)
             if (!from.exists()) {
-                Log.error("Resource file $fileNameFrom is not exists.")
-                return
+                from = File(Folders.BuildForgeResourcesArt.absFilePath(from.name))
+                if (!from.exists()) {
+                    Log.error("Resource file $fileNameFrom is not exists.")
+                    return
+                }
             }
             try {
                 Log.info("Copy resource $fileNameTo")
@@ -145,7 +144,7 @@ class Generator(
      */
     private fun generateBuildScripts(buildScriptUpdates: Map<String, List<String>>) {
         val version = WholeProject.projectModel.source.applications[0].definition.properties.find { it.key == "version" }?.value ?: "0.1.0"
-        WholeProject.project.updateBuildScript(appHome, lang, WholeProject.projectModel.source.applications[0].qid.toString(), version, buildScriptUpdates)
+        WholeProject.project.updateBuildScript(lang, WholeProject.projectModel.source.applications[0].qid.toString(), version, buildScriptUpdates)
     }
 
     private fun getFileHeader(): String {

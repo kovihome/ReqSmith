@@ -19,6 +19,7 @@
 package dev.reqsmith.composer.common.resource
 
 import dev.reqsmith.composer.common.ART_FOLDER_NAME
+import dev.reqsmith.composer.common.Folders
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.Project
 import dev.reqsmith.composer.common.WholeProject
@@ -32,8 +33,6 @@ import dev.reqsmith.model.reqm.View
 import java.io.File
 import java.net.URI
 import java.net.URL
-
-private const val EXTERNAL_RESOURCE_FOLDER = "downloaded"
 
 /**
  * Manage internal or external resources
@@ -127,28 +126,12 @@ object ResourceManager {
     }
 
     /**
-     * Returns full resource file path (project source file)
-     *
-     * @param resourceName Internal name of the project resource, relative to the project internal resource folder
-     * @return Full path of the resource file
-     */
-    private fun resourceFileName(resourceName: String): String = "${WholeProject.project.projectFolder}/${WholeProject.project.buildSystem.resourceFolder}/${resourceName}"
-
-    /**
-     * Returns full internal resource file path (in the build folder)
-     *
-     * @param internalResourceName Internal name of the project resource, relative to the project internal resource folder
-     * @return Full path of the internal resource file
-     */
-    private fun internalResourceFileName(internalResourceName: String): String = "${WholeProject.project.buildFolder}/${WholeProject.project.internalForgeFolderName}/resources/${internalResourceName}"
-
-    /**
      * Check existence of the local resource file in the project resources folder
      *
      * @param resourceName Internal name of the project resource, relative to the project internal resource folder
      * @return *true* - if the resource file exists, *false* - otherwise
      */
-    private fun localExists(resourceName: String): Boolean = File(resourceFileName(resourceName)).exists()
+    private fun localExists(resourceName: String): Boolean = File(Folders.ProjectResources.absFilePath(resourceName)).exists()
 
     /**
      * Check existence of the internal resource file in the build folder resources folder
@@ -156,7 +139,7 @@ object ResourceManager {
      * @param internalResourceName Internal name of the project resource, relative to the project internal resource folder
      * @return *true* - if the internal resource file exists, *false* - otherwise
      */
-    private fun internalExists(internalResourceName: String): Boolean = File(internalResourceFileName(internalResourceName)).exists()
+    private fun internalExists(internalResourceName: String): Boolean = File(Folders.BuildForgeResources.absFilePath(internalResourceName)).exists()
 
 
     /**
@@ -166,8 +149,8 @@ object ResourceManager {
      * @param internalResourceName Internal name of the project resource, relative to the project internal resource folder
      */
     private fun downloadResource(url: URL, internalResourceName: String) {
-        val resourcePath = internalResourceFileName(internalResourceName)
-        val resourceFolder = resourcePath.replace('\\', '/').substringBeforeLast("/")
+        val resourcePath = Folders.BuildForgeResources.absFilePath(internalResourceName) // internalResourceFileName(internalResourceName)
+        val resourceFolder = resourcePath.substringBeforeLast("/")
         val errors = mutableListOf<String>()
         Project.ensureFolderExists(resourceFolder, errors)
         if (errors.isEmpty()) {
@@ -181,7 +164,10 @@ object ResourceManager {
     }
 
     private fun getLocalFileName(resourceName: String): String {
-        return if (isExternalResource(resourceName)) internalResourceFileName(internalName(URI(resourceName).toURL())) else resourceFileName(resourceName)
+        return if (isExternalResource(resourceName))
+            Folders.BuildForgeResources.absFilePath(internalName(URI(resourceName).toURL()))
+        else
+            Folders.ProjectResources.absFilePath(resourceName)
     }
 
     /**
@@ -192,7 +178,7 @@ object ResourceManager {
      */
     private fun internalName(url: URL): String {
         val fileName = url.toExternalForm().substringAfterLast("/")
-        return "$EXTERNAL_RESOURCE_FOLDER/$fileName"
+        return "$ART_FOLDER_NAME/$fileName"
     }
 
     /**
@@ -202,11 +188,10 @@ object ResourceManager {
      * @param resourceName Name of the resource
      */
     fun getDefault(resourceType: ResourceType, resourceName: String) {
-        val defaultResourceFolder = "resources"
         when (resourceType) {
             ResourceType.image -> {
-                val defaultImagePath = "${WholeProject.appHome}/$defaultResourceFolder/default-image.png"
-                val artFolder = "${WholeProject.project.projectFolder}/${WholeProject.project.artFolder}"
+                val defaultImagePath = Folders.RepoResourcesArt.absFilePath("default-image.png")
+                val artFolder = Folders.BuildForgeResourcesArt.absPath()
                 val targetName = NameFormatter.deliterateText(resourceName)
                 val targetPath = "$artFolder/$targetName"
 
@@ -258,6 +243,8 @@ object ResourceManager {
             } else {
                 val frameworkResourceName = frameworkResourceFinder(resourceName)
                 if (frameworkResourceName.isBlank()) {
+                    // TODO: itt nem kell a warning, csak a validációnál nincsenek ellenőrizva a képek
+                    Log.warning("Image $resourceName is not exists; default image will be used.")
                     getDefault(ResourceType.image, resourceName)
                     Resource(ResourceType.image, ResourceSourceType.PROJECT, "$ART_FOLDER_NAME/$resourceName")
                 } else {

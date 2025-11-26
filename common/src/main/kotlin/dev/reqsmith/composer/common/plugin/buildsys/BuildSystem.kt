@@ -30,6 +30,11 @@ interface BuildSystem {
     val sourceFolder: String
 
     /**
+     * The resource folder name
+     */
+    val RESOURCE_FOLDER_NAME: String
+
+    /**
      * The resource folder path relative to the project root or build folder
      */
     val resourceFolder: String

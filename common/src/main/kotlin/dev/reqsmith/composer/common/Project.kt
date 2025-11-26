@@ -25,7 +25,14 @@ import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.notExists
 
+/**
+ * ReqM folder names
+ */
+const val REQM_FOLDER_NAME = "reqm"
 const val ART_FOLDER_NAME = "art"
+const val INTERNAL_FORGE_FOLDER_NAME = "forge"
+const val IGM_FOLDER_NAME = "igm"
+
 
 /**
  * Manage project structure
@@ -57,8 +64,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
      * Build folder absolute path
      */
     var buildFolder: String = ""
-    private val reqmFolderName = "reqm"
-    val internalForgeFolderName = "forge"
+
     private val errors: MutableList<String> = ArrayList()
 
     companion object {
@@ -87,13 +93,13 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
 
         // if project folder was not given, set cwd to it
         if (projectFolder == null) {
-            projectFolder = Paths.get("").toAbsolutePath().toString()
+            projectFolder = Paths.get("").toAbsolutePath().toString().replace("\\", "/")
         }
         Log.debug("Project folder = $projectFolder")
 
         // check input folder/file
         if (inputFolder == null) {
-            inputFolder = "${buildSystem.sourceFolder}/$reqmFolderName"
+            inputFolder = "${buildSystem.sourceFolder}/$REQM_FOLDER_NAME"
         }
         Log.debug("Input folder = $inputFolder")
         if (forInit) {
@@ -121,7 +127,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
 
         // check output directory, create if it does not exist
         if (reqmOutputFolder == null) {
-            reqmOutputFolder = "$buildFolder/$internalForgeFolderName/$reqmFolderName"
+            reqmOutputFolder = "$buildFolder/$INTERNAL_FORGE_FOLDER_NAME/$REQM_FOLDER_NAME"
         }
         if (!forInit && !ensureFolderExists(reqmOutputFolder!!, errors)) {
             return false
@@ -153,7 +159,6 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
     fun srcPath(language: String): String = "$buildFolder/${buildSystem.sourceFolder}/$language"
 
     fun updateBuildScript(
-        appHome: String,
         language: String,
         mainClass: String,
         appVersion: String,
@@ -162,7 +167,7 @@ class Project(var projectFolder: String?, val buildSystem: BuildSystem) {
         val pluginsBlock = buildSystem.formatPluginBlock(buildScriptUpdates["plugins"] ?: listOf())
         val dependenciesBlock = buildSystem.formatDependenciesBlock(buildScriptUpdates["dependencies"] ?: listOf())
         val params = mutableMapOf (
-            "composerCommand" to "${appHome.replace('\\', '/')}/bin/forge".replace("//", "/"),
+            "composerCommand" to "${WholeProject.appHome}/bin/forge",
             "projectName" to mainClass.substringAfterLast('.').lowercase(),
             "version" to appVersion,
             "mainClass" to mainClass,

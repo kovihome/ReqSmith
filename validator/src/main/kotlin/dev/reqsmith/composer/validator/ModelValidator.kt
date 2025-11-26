@@ -182,7 +182,7 @@ class ModelValidator {
                 }
                 StandardStyleAttributes.image.name -> {
                     if (!ResourceManager.exists(property.value ?: "")) {
-                        Log.warning("Resource ${property.value} is not exists; default resource of this kind will be used.")
+                        Log.warning("Image ${property.value} is not exists; default image will be used.")
                         ResourceManager.getDefault(ResourceType.image, property.value!!)
                     }
                 }
@@ -270,6 +270,8 @@ class ModelValidator {
                 Log.warning("Data layout attribute '${data.value}' is not match any entity (${data.coords()})")
             }
         }
+
+        // TODO: check view layout image attributes
 
         // recurse
         if (returning) return

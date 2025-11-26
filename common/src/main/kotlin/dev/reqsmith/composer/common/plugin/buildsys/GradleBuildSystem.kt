@@ -27,8 +27,9 @@ import java.io.File
 import java.io.FileWriter
 
 class GradleBuildSystem : BuildSystem, Plugin {
+    override val RESOURCE_FOLDER_NAME = "resources"
     override val sourceFolder: String = "src/main"
-    override val resourceFolder: String = "src/main/resources"
+    override val resourceFolder: String = "${sourceFolder}/$RESOURCE_FOLDER_NAME"
     override val buildFolder: String = "build"
 
     private val taskName = "composeReqm"
