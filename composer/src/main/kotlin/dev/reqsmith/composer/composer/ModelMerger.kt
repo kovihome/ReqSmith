@@ -128,11 +128,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         val defaultViewTemplate = getDefaultViewTemplate()
         val defaultStyle = getDefaultStyle()
         WholeProject.projectModel.source.views.forEach { view ->
-            collectViewDependencies(view)
-            applyDefaultViewTemplate(view, defaultViewTemplate)
-            applyDefaultStyleOnView(view, defaultStyle)
-            resolveViewTemplates(view)
-            resolveViewPropertiesInLayout(view)
+            processViewMerging(view, defaultViewTemplate, defaultStyle)
         }
 
         // merge styles
@@ -156,6 +152,14 @@ class ModelMerger(private val finder: RepositoryFinder) {
         if (errors.isNotEmpty()) {
             throw ReqMMergeException("Merge failed.", errors)
         }
+    }
+
+    fun processViewMerging(view: View, defaultViewTemplate: View?, defaultStyle: Style?) {
+        collectViewDependencies(view)
+        applyDefaultViewTemplate(view, defaultViewTemplate)
+        applyDefaultStyleOnView(view, defaultStyle)
+        resolveViewTemplates(view)
+        resolveViewPropertiesInLayout(view)
     }
 
     private fun mergeStyleRef(style: Style, refStyles: Collection<Style>, overwriteAttributes: Boolean = false, conflictWarning: Boolean = false) {
@@ -230,7 +234,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
     }
 
-    private fun getDefaultStyle(): Style? {
+    fun getDefaultStyle(): Style? {
         val defaultStyleName = ConfigManager.defaults[FEATURE_TEMPLATE_ATTRIBUTE_DEFAULT_STYLE]
         return if (defaultStyleName != null) {
             WholeProject.projectModel.source.styles.find { it.qid.toString() == defaultStyleName }
@@ -246,7 +250,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
     private fun applyDefaultViewTemplate(view: View, defaultViewTemplate: View?) {
         if (defaultViewTemplate != null) {
             val noTemplateFeature = view.definition.featureRefs.none { it.qid.toString() == FEATURE_TEMPLATE }
-            if (view.parent == QualifiedId.Undefined && noTemplateFeature) {
+            if ((view.parent == QualifiedId.Undefined || view.parent.toString() == "static") && noTemplateFeature) {
                 view.definition.featureRefs.add(FeatureRef().apply {
                     qid = QualifiedId(FEATURE_TEMPLATE)
                     properties.add(Property().apply {
@@ -258,7 +262,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
         }
     }
 
-    private fun getDefaultViewTemplate(): View? {
+    fun getDefaultViewTemplate(): View? {
         val defaultViewTemplateName = ConfigManager.defaults[FEATURE_TEMPLATE_ATTRIBUTE_TEMPLATE_VIEW]
         return if (defaultViewTemplateName != null) {
             val view = WholeProject.projectModel.source.views.find { it.qid.toString() == defaultViewTemplateName }

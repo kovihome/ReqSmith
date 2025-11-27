@@ -50,8 +50,6 @@ class Generator(private val lang: String) {
         Project.ensureFolderExists(resourcesFolderName, null)
         val generatorModelBuilder = GeneratorModelBuilder(resourcesFolderName)
         generatorModelBuilder.build()
-//        Log.info("=============== InternalGeneratorModel ===============\n${WholeProject.projectModel.igm.print()}")
-//        Log.info("======================================================\n")
         if (Log.level == Log.LogLevel.DEBUG) {
             val igmFolder = Folders.BuildForgeIgm.absPath() // "${WholeProject.project.buildFolder}/${WholeProject.project.INTERNAL_FORGE_FOLDER_NAME}/igm"
             Project.ensureFolderExists(igmFolder, null)

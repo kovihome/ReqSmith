@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [[Unreleased]](https://github.com/kovihome/ReqSmith)
 ### Added
+
+### Modified
+
+### Fixed
+
+---
+
+## [[0.4.0] - 2025-11-28](https://github.com/kovihome/ReqSmith/releases/tag/0.4.0)
+### Added
 - New ReqM element definition: style
 - StdRepo: Style feature
 - Style references in view and view elements
@@ -21,8 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Modified
 
 - More sophisticated project folder handling
-
-### Fixed
 
 ---
 

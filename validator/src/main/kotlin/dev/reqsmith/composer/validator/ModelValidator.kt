@@ -31,7 +31,7 @@ import dev.reqsmith.model.reqm.*
 
 class ModelValidator {
 
-    fun validateCompleteness(): Boolean {
+    fun validateCompleteness(addedElements: ReqMSource): Boolean {
         val model = WholeProject.projectModel.source
 
         // Search for typeless properties, and assign a default type to them
@@ -54,7 +54,7 @@ class ModelValidator {
             validateViewStyleRef(view)
             validateFeatureResources(view.definition.featureRefs)
         }
-        generateMissingViews(missingLinks, model)
+        generateMissingViews(missingLinks, addedElements)
 
         // validate style elements
         WholeProject.projectModel.source.styles.forEach {
@@ -103,7 +103,7 @@ class ModelValidator {
     /**
      * Generate
      */
-    private fun generateMissingViews(missingLinks: List<String>, model: ReqMSource) {
+    private fun generateMissingViews(missingLinks: List<String>, addedElements: ReqMSource) {
         missingLinks.forEach { link ->
             val newView = View().apply {
                 qid = QualifiedId(link)
@@ -124,8 +124,9 @@ class ModelValidator {
                     })
                 }
             }
-            model.views.add(newView)
+            addedElements.views.add(newView)
         }
+        return
     }
 
     private fun isSizeAttributeValue(value: String): Boolean {
@@ -275,10 +276,9 @@ class ModelValidator {
         // validate image attributes
         if (listOf("icon", "logo", "src").contains(property.key)) {
             val imageName = NameFormatter.deliterateText(property.value!!)
-            if (property.value != null && !ResourceManager.isSymbolicResourceName(imageName) && !ResourceManager.exists(imageName)) {
-                if (!imageName.startsWith("$ART_FOLDER_NAME/") && !ResourceManager.exists("$ART_FOLDER_NAME/$imageName")) {
-                    Log.warning("Image resource ${property.value} is not exists; default image will be used. (${property.coords()})")
-                }
+            if (property.value != null && !ResourceManager.isSymbolicResourceName(imageName) && !ResourceManager.exists(imageName) &&
+                !imageName.startsWith("$ART_FOLDER_NAME/") && !ResourceManager.exists("$ART_FOLDER_NAME/$imageName")) {
+                Log.warning("Image resource ${property.value} is not exists; default image will be used. (${property.coords()})")
             }
         }
 

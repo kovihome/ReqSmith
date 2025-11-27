@@ -97,10 +97,15 @@ class Composer(private val appHome: String) {
 
         // validate model completeness
         Log.title("Validate model completeness")
-        val isComplete = validator.validateCompleteness()
+        val addedElements = ReqMSource()
+        val isComplete = validator.validateCompleteness(addedElements)
         if (!isComplete) {
             // Failure Point #3 - merged model is not complete
             return false
+        }
+        addedElements.views.forEach { view ->
+            WholeProject.projectModel.source.views.add(view)
+            merger.processViewMerging(view, merger.getDefaultViewTemplate(), merger.getDefaultStyle())
         }
 
         // process input resources
@@ -123,9 +128,6 @@ class Composer(private val appHome: String) {
         val outputDepFileName = "${WholeProject.project.reqmOutputFolder}/$fileName"
         Log.text("Saving ${if (fileName.startsWith("effective")) "effective model" else "dependencies"} to $outputDepFileName")
         writer.writeReqM(reqmModel, outputDepFileName, reqmFileHeader)
-//        Log.info("=============== ${if (fileName.startsWith("dep")) "Dependencies" else "ReqMSource"} ===============")
-//        writer.printReqMSource(reqmModel)
-//        Log.info("==========================================")
     }
 
     private fun addDependenciesToGenerate() {
