@@ -9,14 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - New ReqM element definition: style
 - StdRepo: Style feature
+- Style references in view and view elements
 - Generating style artifact (.css file)
 - Apply style on view or view elements
 - Default style
 - Parsing style from .css file
 - New view layout elements: navigation, menu, button, image
 - Icon in layout elements (button, linkButton)
+- Resource manager
 
 ### Modified
+
+- More sophisticated project folder handling
 
 ### Fixed
 
@@ -37,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Spring plugin manages persistency with Spring Data and H2 embedded database
 - File-based @Template feature was renamed @Resource feature
 
+---
 
 ## [[0.2.0] - 2025-01-16](https://github.com/kovihome/ReqSmith/releases/tag/0.2.0)
 ### Added

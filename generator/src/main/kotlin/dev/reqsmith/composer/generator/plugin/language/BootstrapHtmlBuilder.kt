@@ -67,7 +67,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     }
 
     fun getBootstrapImageResource(resourceName: String): String {
-        return resourceName
+        return if (resourceName.all { it.isLetter() }) resourceName else ""
     }
 
     override fun createImage(node: IGMView.IGMNode): String {

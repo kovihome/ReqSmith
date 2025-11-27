@@ -243,8 +243,6 @@ object ResourceManager {
             } else {
                 val frameworkResourceName = frameworkResourceFinder(resourceName)
                 if (frameworkResourceName.isBlank()) {
-                    // TODO: itt nem kell a warning, csak a validációnál nincsenek ellenőrizva a képek
-                    Log.warning("Image $resourceName is not exists; default image will be used.")
                     getDefault(ResourceType.image, resourceName)
                     Resource(ResourceType.image, ResourceSourceType.PROJECT, "$ART_FOLDER_NAME/$resourceName")
                 } else {
@@ -252,6 +250,10 @@ object ResourceManager {
                 }
             }
         }
+    }
+
+    fun isSymbolicResourceName(resourceName: String): Boolean {
+        return resourceName.all { it.isLetter() }
     }
 
 }

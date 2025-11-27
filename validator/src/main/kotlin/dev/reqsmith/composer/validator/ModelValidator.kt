@@ -18,6 +18,7 @@
 
 package dev.reqsmith.composer.validator
 
+import dev.reqsmith.composer.common.ART_FOLDER_NAME
 import dev.reqsmith.composer.common.Log
 import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
@@ -271,7 +272,15 @@ class ModelValidator {
             }
         }
 
-        // TODO: check view layout image attributes
+        // validate image attributes
+        if (listOf("icon", "logo", "src").contains(property.key)) {
+            val imageName = NameFormatter.deliterateText(property.value!!)
+            if (property.value != null && !ResourceManager.isSymbolicResourceName(imageName) && !ResourceManager.exists(imageName)) {
+                if (!imageName.startsWith("$ART_FOLDER_NAME/") && !ResourceManager.exists("$ART_FOLDER_NAME/$imageName")) {
+                    Log.warning("Image resource ${property.value} is not exists; default image will be used. (${property.coords()})")
+                }
+            }
+        }
 
         // recurse
         if (returning) return
