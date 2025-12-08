@@ -26,4 +26,9 @@ class ProjectModel {
     val dependencies = ReqMSource()
     val igm = InternalGeneratorModel()
     val resources: MutableList<Pair<String, String>> = mutableListOf()
+
+    fun getStartPage(): String {
+        val startView = source.applications[0].definition.properties.find { it.key == "startView" }
+        return startView?.value ?: "WelcomePage"
+    }
 }

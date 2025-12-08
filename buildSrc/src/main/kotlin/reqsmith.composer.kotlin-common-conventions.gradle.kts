@@ -30,7 +30,7 @@ val buildNumber = providers.exec {
 
 allprojects {
     group = "dev.reqsmith.composer"
-    version = "0.4.0"
+    version = "0.5.0"
     description = "ReqSmith::forge - build application source code from requirement model"
     extensions.add("vendor", "ReqSmith Dev")
     extensions.add("email", "kovihome86@gmail.com")

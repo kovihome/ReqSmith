@@ -23,6 +23,7 @@ import dev.reqsmith.composer.common.WholeProject
 import dev.reqsmith.composer.common.configuration.ConfigManager
 import dev.reqsmith.composer.common.exceptions.ReqMMergeException
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
+import dev.reqsmith.composer.common.formatter.NameFormatter
 import dev.reqsmith.composer.parser.ReqMParser
 import dev.reqsmith.composer.parser.enumeration.Optionality
 import dev.reqsmith.composer.repository.api.RepositoryFinder
@@ -270,7 +271,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
                 Log.warning("View '$defaultViewTemplateName' is exists in the project, but is is not template view (${view.coords()})")
                 return null
             }
-            return view
+            view
         } else {
             null
         }
@@ -363,6 +364,33 @@ class ModelMerger(private val finder: RepositoryFinder) {
             attr.value?.let {
                 properties.find { it.key == attr.value }?.let { prop ->
                     attr.value = prop.value
+                }
+            }
+            when (node.key) {
+                StandardLayoutElements.menu.name -> {
+                    when {
+                        attr.key == "submenu" -> {
+                            // TODO: include widgets only, inherited from menu
+                            collectViewSources(QualifiedId(attr.value))
+                            WholeProject.projectModel.dependencies.views.find { it.qid.toString() == attr.value }?.let { submenu ->
+                                if (/*submenu.parent.toString() == "widget" &&*/ submenu.sourceRef.toString() == StandardLayoutElements.menu.name) {
+                                    val submenuItems = submenu.definition.properties
+                                    val menuTitle = submenuItems.find { it.key == "title" }
+                                    attr.key = if (menuTitle != null && menuTitle.value != null) NameFormatter.deliterateText(menuTitle.value!!) else NameFormatter.deliterateText(attr.value!!)
+                                    attr.simpleAttributes.addAll(submenuItems.filter { !StandardLayoutElements.menu.attributes.contains(it.key) })
+                                    attr.type = StandardTypes.propertyList.name
+                                    attr.value = null
+                                    attr.simpleAttributes.filter { it.type == StandardTypes.propertyList.name  }.forEach { child ->
+                                        resolveNodeProperties(child, properties)
+                                    }
+                                }
+                            }
+                        }
+                        !StandardLayoutElements.menu.attributes.contains(attr.key) -> {
+                            // TODO: include normal views only
+                            collectViewSources(QualifiedId(attr.value), optional = true)
+                        }
+                    }
                 }
             }
         }

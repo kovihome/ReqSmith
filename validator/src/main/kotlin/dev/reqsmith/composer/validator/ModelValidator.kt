@@ -206,26 +206,36 @@ class ModelValidator {
 
     private fun validateViewLayoutElement(property: Property, missingLinks: MutableList<String>) {
         var returning = false
+
+
         // resolve missing links
-        if (property.key == VIEW_LAYOUT_ELEMENT_ATTR_TO) {
-            val link = property.value
+        fun checkMissingLink(link: String?) {
             if (link != null && !link.startsWith("http:") && !link.startsWith("https:")
                 && WholeProject.projectModel.source.views.none { it.qid.toString() == link } && !missingLinks.contains(link)) {
                 Log.warning("Missing link ${link}; create new view for this link. (${property.coords()})")
                 missingLinks.add(link)
             }
+        }
+
+        if (property.key == VIEW_LAYOUT_ELEMENT_ATTR_TO) {
+            checkMissingLink(property.value)
             returning = true
         }
 
+        fun collectMenuLinks(p: Property): List<String?> {
+            val links =  p.simpleAttributes.filter { !StandardLayoutElements.menu.attributes.contains(it.key) }
+                .map { it.value }.toMutableList()
+            p.simpleAttributes.filter { it.type == StandardTypes.propertyList.name }.forEach { submenu ->
+                links.addAll(collectMenuLinks(submenu))
+            }
+            return links
+        }
+
         if (property.key == StandardLayoutElements.menu.name) {
-            val menuLinks = property.simpleAttributes.filter { !StandardLayoutElements.menu.attributes.contains(it.key) }.map { it.value }
+            val menuLinks = collectMenuLinks(property)
             if (menuLinks.isNotEmpty()) {
                 menuLinks.forEach { link ->
-                    if (link != null && !link.startsWith("http:") && !link.startsWith("https:")
-                        && WholeProject.projectModel.source.views.none { it.qid.toString() == link } && !missingLinks.contains(link)) {
-                        Log.warning("Missing link ${link}; create new view for this link. (${property.coords()})")
-                        missingLinks.add(link)
-                    }
+                    checkMissingLink(link)
                 }
             }
             returning = true

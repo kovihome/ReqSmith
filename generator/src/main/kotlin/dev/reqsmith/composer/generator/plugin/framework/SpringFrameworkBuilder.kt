@@ -306,9 +306,10 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
         // generate index.html page
         if (WholeProject.projectModel.source.views.none { it.qid.toString() == "index" }) {
-            val startView = WholeProject.projectModel.source.applications[0].definition.properties.find { it.key == "startView" }
-            val viewName = if (startView != null) startView.value!! else "#"
-            val context = mapOf( "WelcomePage" to viewName)
+//            val startView = WholeProject.projectModel.source.applications[0].definition.properties.find { it.key == "startView" }
+//            val viewName = if (startView != null) startView.value!! else "#"
+//            val context = mapOf( "WelcomePage" to viewName)
+            val context = mapOf( "WelcomePage" to WholeProject.projectModel.getStartPage())
             val indexContent = Template().translateFile(context, "templates/index.html.st")
             WholeProject.projectModel.resources.add(Pair("<save>$indexContent", "$buildResourcesFolderName/${getViewFolder()}/index.html"))
         }

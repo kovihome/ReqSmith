@@ -1,0 +1,10 @@
+/*
+ * Restrict feature
+ *
+ * generator - generator plugin ID
+ */
+
+feature Restrict {
+    generator: 'feature.restrict'
+}
+

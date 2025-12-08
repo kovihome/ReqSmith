@@ -75,7 +75,7 @@ typelessDefinitionClosure : closureStart featureRef*? typelessProperty*? closure
 
 typelessProperty : simpleTypelessProperty | compoundTypelessProperty ;
 
-// NEW: application definition closure rules
+// application definition closure rules
 applicationDefinitionClosure : closureStart featureRef*? applicationProperty*? closureEnd ;
 
 applicationProperty : simpleApplicationProperty | compoundTypelessProperty | applicationTwoLevelProperty ;
@@ -84,14 +84,14 @@ simpleApplicationProperty: simpleId (':' applicationPropertyValue)? ;
 
 applicationTwoLevelProperty : simpleId closureStart compoundTypelessProperty*? closureEnd ;
 
-// NEW: view definition closure
+// view definition closure
 viewDefinitionClosure : closureStart featureRef*? viewProperty*? closureEnd ;
 
 viewProperty :  simpleTypelessProperty |  compoundViewProperty ;
 
 compoundViewProperty : simpleId closureStart viewProperty*? closureEnd ;
 
-// NEW style definition closure
+// style definition closure
 styleDefinitionClosure : closureStart featureRef*? styleProperty*? closureEnd ;
 
 styleProperty : simpleTypelessProperty | compoundTypelessProperty | layoutStyleProperty ;
@@ -121,6 +121,14 @@ optionality : KWOPTIONAL | KWMANDATORY ;
 // ID definitions
 simpleId : KWACTION | KWSTYLE | ID ;
 qualifiedId : (simpleId DOT)* simpleId ;
+
+// NEW: expressions
+//booleanExpr : orExpr ;
+//orExpr : andExpr (OR andExpr)* ;
+//andExpr : equalityExpr (AND equalityExpr)* ;
+//equalityExpr : unaryExpr ((EQ | NEQ) unaryExpr)* ;
+//unaryExpr : NOT unaryExpr | primary ;
+//primary : ID | BOOLEAN | LPAREN booleanExpr RPAREN ;
 
 // others
 closureStart : LCURLY ; // NL* ;
@@ -161,10 +169,12 @@ fragment WhiteSpaceNL : '\u0020' | '\u0009' | '\u000D' | '\u000A' ;
 
 // **** Terminal elements ****
 
+//BOOLEAN: 'true' | 'false';
 AND : 'and' ;
 OR : 'or' ;
 NOT : 'not' ;
-EQ : '=' ;
+EQ : '=' ; // or '==' ;
+NEQ: '!=';
 COMMA : ',' ;
 SEMI : ';' ;
 LPAREN : '(' ;

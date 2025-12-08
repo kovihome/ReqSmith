@@ -226,7 +226,8 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 node.children.find { it.name == "menu" }?.let { menu ->
                     val menuTitle = menu.attributes.find { it.first == VIEW_LAYOUT_ELEMENT_ATTR_TITLE }?.second
                     if (navTitle.isNullOrBlank() && !menuTitle.isNullOrBlank()) {
-                        a { classes = setOf("navbar-brand"); href = "#"; text(menuTitle) }
+                        val startPage = WholeProject.projectModel.getStartPage()
+                        a { classes = setOf("navbar-brand"); href = checkFormLink(startPage); text(menuTitle) }
                     }
 //                    button {
 //                        classes = setOf("navbar-toggler")
@@ -247,7 +248,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                     li {
                                         classes = setOf("nav-item")
                                         val link = menuItem.text.ifBlank { menuItem.attributes.find { c -> c.first == "default" }?.second ?: "#" }
-                                        val linkText = menuItem.name.replace("_", " ")
+                                        val linkText = NameFormatter.toDisplayText(menuItem.name.replace("_", " "))
                                         a { href = checkFormLink(link); classes = setOf("nav-link"); text(linkText) }
                                     }
                                 } else {
@@ -266,10 +267,17 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                             classes = setOf("dropdown-menu")
                                             menuItem.children.forEach { subitem ->
                                                 li {
-                                                    classes = setOf("dropdown-item")
-                                                    val link = subitem.text.ifBlank { subitem.attributes.find { c -> c.first == "default" }?.second ?: "#" }
-                                                    val linkText = subitem.name.replace("_", " ")
-                                                    a { href = checkFormLink(link); classes = setOf("nav-link"); text(linkText) }
+                                                    when (subitem.name) {
+                                                        "spacer" -> {
+                                                            hr { classes = setOf("dropdown-divider") }
+                                                        }
+                                                        else -> {
+                                                            classes = setOf("dropdown-item")
+                                                            val link = subitem.text.ifBlank { subitem.attributes.find { c -> c.first == "default" }?.second ?: "#" }
+                                                            val linkText = NameFormatter.toDisplayText(subitem.name.replace("_", " "))
+                                                            a { href = checkFormLink(link); classes = setOf("nav-link"); text(linkText) }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
