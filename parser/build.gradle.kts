@@ -18,6 +18,7 @@
 
 plugins {
     id("reqsmith.composer.kotlin-library-conventions")
+    `java-test-fixtures`
     antlr
 }
 

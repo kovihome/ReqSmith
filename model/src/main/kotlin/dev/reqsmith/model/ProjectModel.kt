@@ -19,6 +19,8 @@
 package dev.reqsmith.model
 
 import dev.reqsmith.model.igm.InternalGeneratorModel
+import dev.reqsmith.model.reqm.ElementBase
+import dev.reqsmith.model.reqm.QualifiedId
 import dev.reqsmith.model.reqm.ReqMSource
 
 class ProjectModel {
@@ -27,8 +29,10 @@ class ProjectModel {
     val igm = InternalGeneratorModel()
     val resources: MutableList<Pair<String, String>> = mutableListOf()
 
-    fun getStartPage(): String {
-        val startView = source.applications[0].definition.properties.find { it.key == "startView" }
-        return startView?.value ?: "WelcomePage"
-    }
+    fun getStartPage(): String = source.applications[0].definition.properties.find { it.key == "startView" }?.value ?: "WelcomePage"
+
+    inline fun <reified  T: ElementBase> get(name: String?, default: () -> T? = { null }): T? = source.get<T>(name) ?: dependencies.get<T>(name) ?: default()
+
+    inline fun <reified  T: ElementBase> get(qid: QualifiedId?, default: () -> T? = { null }): T? = source.get<T>(qid?.toString()) ?: dependencies.get<T>(qid?.toString()) ?: default()
+
 }

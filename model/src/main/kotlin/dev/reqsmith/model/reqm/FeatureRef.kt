@@ -18,6 +18,11 @@
 
 package dev.reqsmith.model.reqm
 
+import dev.reqsmith.model.FEATURE_STYLE
+import dev.reqsmith.model.FEATURE_STYLE_ATTRIBUTE_STYLE
+import dev.reqsmith.model.FEATURE_TEMPLATE
+import dev.reqsmith.model.enumeration.StandardTypes
+
 open class FeatureRef : ElementBase() {
     var qid : QualifiedId = QualifiedId()
     val properties : MutableList<Property> = ArrayList()
@@ -26,5 +31,24 @@ open class FeatureRef : ElementBase() {
 
     override fun toString(): String {
         return "FeatureRef(qid=$qid)"
+    }
+
+    companion object {
+        fun style(styleName: String) = FeatureRef().apply {
+            qid = QualifiedId(FEATURE_STYLE)
+            properties.add(Property().apply {
+                key = FEATURE_STYLE_ATTRIBUTE_STYLE
+                value = styleName
+                type = StandardTypes.stringLiteral.name
+            })
+        }
+        fun template(templateName: String) = FeatureRef().apply {
+            qid = QualifiedId(FEATURE_TEMPLATE)
+            properties.add(Property().apply {
+                key = "templateView"
+                value = templateName
+                type = StandardTypes.stringLiteral.name
+            })
+        }
     }
 }

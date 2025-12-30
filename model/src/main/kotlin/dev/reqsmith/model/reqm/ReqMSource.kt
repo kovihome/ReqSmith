@@ -19,17 +19,6 @@
 package dev.reqsmith.model.reqm
 
 class ReqMSource : ElementBase() {
-    fun getAction(actionName: String, sourceFileName: String? = null): Action? {
-        return actions.find {
-            if (sourceFileName == null) it.qid?.id == actionName
-            else it.qid?.id == actionName && it.sourceFileName == sourceFileName
-        }
-    }
-
-    fun getStyle(styleName: String): Style? {
-        return styles.find { it.qid?.id == styleName }
-    }
-
     val applications: MutableList<Application> = ArrayList()
     val modules: MutableList<Modul> = ArrayList()
     val actors: MutableList<Actor> = ArrayList()
@@ -39,4 +28,57 @@ class ReqMSource : ElementBase() {
     val views: MutableList<View> = ArrayList()
     val styles: MutableList<Style> = ArrayList()
     val features: MutableList<Feature> = ArrayList()
+
+//    fun getAction(actionName: String, sourceFileName: String? = null): Action? {
+//        return actions.find {
+//            if (sourceFileName == null) it.qid?.id == actionName
+//            else it.qid?.id == actionName && it.sourceFileName == sourceFileName
+//        }
+//    }
+
+//    fun getStyle(styleName: String): Style? {
+//        return styles.find { it.qid?.id == styleName }
+//    }
+
+    inline fun <reified T : ElementBase> get(name: String?, sourceFileName: String? = null): T? {
+        if (name == null) return null
+        when (T::class.simpleName) {
+            Application::class.simpleName -> return applications.find { it.qid.toString() == name && (sourceFileName == null || it.sourceFileName == sourceFileName) } as T?
+            Modul::class.simpleName -> return modules.find { it.qid.toString() == name && (sourceFileName == null || it.sourceFileName == sourceFileName) } as T?
+            Actor::class.simpleName -> return actors.find { it.qid.toString() == name && (sourceFileName == null || it.sourceFileName == sourceFileName) } as T?
+            Classs::class.simpleName -> return classes.find { it.qid.toString() == name && (sourceFileName == null || it.sourceFileName == sourceFileName) } as T?
+            Entity::class.simpleName -> return entities.find { it.qid.toString() == name && (sourceFileName == null || it.sourceFileName == sourceFileName) } as T?
+            Action::class.simpleName -> return actions.find { it.qid.toString() == name && (sourceFileName == null || it.sourceFileName == sourceFileName) } as T?
+            View::class.simpleName -> return views.find { it.qid.toString() == name && (sourceFileName == null || it.sourceFileName == sourceFileName) } as T?
+            Style::class.simpleName -> return styles.find { it.qid.toString() == name && (sourceFileName == null || it.sourceFileName == sourceFileName) } as T?
+            Feature::class.simpleName -> return features.find { it.qid.toString() == name && (sourceFileName == null || it.sourceFileName == sourceFileName) } as T?
+        }
+        return TODO("Unknown ReqM element type")
+    }
+
+    inline fun <reified T : ElementBase> get(qid: QualifiedId?, sourceFileName: String? = null): T? = get<T>(qid?.toString(), sourceFileName)
+
+    fun addAll(newDeps: ReqMSource) {
+        applications.addAll(newDeps.applications)
+        modules.addAll(newDeps.modules)
+        actors.addAll(newDeps.actors)
+        classes.addAll(newDeps.classes)
+        entities.addAll(newDeps.entities)
+        actions.addAll(newDeps.actions)
+        views.addAll(newDeps.views)
+        styles.addAll(newDeps.styles)
+        features.addAll(newDeps.features)
+    }
+
+    fun clear() {
+        applications.clear()
+        modules.clear()
+        actors.clear()
+        classes.clear()
+        entities.clear()
+        actions.clear()
+        views.clear()
+        styles.clear()
+        features.clear()
+    }
 }

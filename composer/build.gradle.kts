@@ -18,6 +18,7 @@
 
 plugins {
     id("reqsmith.composer.kotlin-library-conventions")
+    `java-test-fixtures`
 }
 
 dependencies {
@@ -25,4 +26,6 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":repository-finder"))
     implementation(project(":parser"))
+
+    testImplementation(testFixtures(project(":parser")))
 }

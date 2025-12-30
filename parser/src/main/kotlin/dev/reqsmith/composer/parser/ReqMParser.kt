@@ -553,7 +553,12 @@ class ReqMParser {
                 })
             } else {
                 featureRef.property().forEach {
-                    properties.add(parseProperty(it))
+                    val property = parseProperty(it)
+                    if (property.value == null) {
+                        property.value = property.type
+                        property.type = StandardTypes.stringLiteral.name
+                    }
+                    properties.add(property)
                 }
             }
         }

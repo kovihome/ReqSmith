@@ -19,6 +19,7 @@
 package dev.reqsmith.model.igm
 
 import dev.reqsmith.model.enumeration.StandardTypes
+import kotlin.collections.mutableListOf
 
 
 open class IGMAction(val actionId: String) {
@@ -42,7 +43,7 @@ open class IGMAction(val actionId: String) {
     }
 
     class IGMActionStmt(val actionName: IGMStatement) {
-        val parameters: MutableList<IGMStmtParam> = ArrayList()
+        val parameters = mutableListOf<IGMStmtParam>()
         fun withParam(param: String, ptype: String = StandardTypes.string.name) : IGMActionStmt {
             parameters.add(IGMStmtParam(ptype, param))
             return this
@@ -55,7 +56,7 @@ open class IGMAction(val actionId: String) {
     }
 
     class IGMActionParam(val name: String, val type: String, val listof: Boolean = false) {
-        val annotations: MutableList<IGMAnnotation> = mutableListOf()
+        val annotations = mutableListOf<IGMAnnotation>()
         override fun toString(): String {
             return "$name: ${if (listof) "listOf" else ""} $type"
         }
@@ -88,10 +89,10 @@ open class IGMAction(val actionId: String) {
         }
     }
 
-    val annotations: MutableList<IGMAnnotation> = ArrayList()
+    val annotations = mutableListOf<IGMAnnotation>()
 
-    val statements : MutableList<IGMActionStmt> = ArrayList()
-    val parameters: MutableList<IGMActionParam> = ArrayList()
+    val statements = mutableListOf<IGMActionStmt>()
+    val parameters = mutableListOf<IGMActionParam>()
     var returnType: IGMReturnType? = null
     var isMain: Boolean = false
 

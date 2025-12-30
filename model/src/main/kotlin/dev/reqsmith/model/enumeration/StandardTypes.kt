@@ -21,7 +21,7 @@ package dev.reqsmith.model.enumeration
 enum class StandardTypes {
 
      // atomic types
-    integer, string, enum, versionNumber, date,
+    integer, string, enum, versionNumber, date, boolean,
 
     // internal types
     stringLiteral, valueList, propertyList, variable

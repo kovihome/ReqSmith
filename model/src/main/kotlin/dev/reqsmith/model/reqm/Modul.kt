@@ -18,9 +18,7 @@
 
 package dev.reqsmith.model.reqm
 
-class Modul : ElementBase() {
-    var qid: QualifiedId? = null
-    var sourceRef: QualifiedId? = null
+class Modul : TopElement() {
     var definition: Definition = Definition()
 
     override fun toString(): String {

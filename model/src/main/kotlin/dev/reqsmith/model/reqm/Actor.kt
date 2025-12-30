@@ -18,10 +18,7 @@
 
 package dev.reqsmith.model.reqm
 
-class Actor : ElementBase() {
-
-    var qid: QualifiedId? = null
-    var sourceRef: QualifiedId? = null
+class Actor : TopElement() {
     var definition: Definition = Definition()
     override fun toString(): String {
         return "Actor(qid=$qid, sourceRef=$sourceRef)"

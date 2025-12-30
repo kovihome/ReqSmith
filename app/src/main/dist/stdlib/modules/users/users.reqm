@@ -21,6 +21,7 @@ class AuthSource enumeration {
 actor guest
 
 entity User {
+    @Persistent
     username: string
     password: string
     email: string

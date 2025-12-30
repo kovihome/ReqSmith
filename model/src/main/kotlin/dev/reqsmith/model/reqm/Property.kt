@@ -18,7 +18,7 @@
 
 package dev.reqsmith.model.reqm
 
-open class Property : ElementBase() {
+open class Property : ElementBase(), Cloneable {
 
     var key: String? = null
     var listOf: Boolean = false
@@ -32,5 +32,17 @@ open class Property : ElementBase() {
 
     override fun toString(): String {
         return "Property(key=$key, listOf=$listOf, type=$type, opt=$optionality)"
+    }
+
+    public override fun clone(): Property {
+        val newProperty = Property()
+        newProperty.key = key
+        newProperty.listOf = listOf
+        newProperty.type = type
+        newProperty.optionality = optionality
+        newProperty.value = value
+        newProperty.valueList.addAll(valueList)
+        newProperty.simpleAttributes.addAll(simpleAttributes.map { it.clone() } as Collection<Property>)
+        return newProperty
     }
 }

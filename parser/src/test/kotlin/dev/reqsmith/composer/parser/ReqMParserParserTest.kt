@@ -18,24 +18,15 @@
 
 package dev.reqsmith.composer.parser
 
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
-import org.junit.jupiter.api.Test
 import dev.reqsmith.composer.common.exceptions.ReqMParsingException
 import dev.reqsmith.model.reqm.Definition
 import dev.reqsmith.model.reqm.QualifiedId
 import dev.reqsmith.model.reqm.ReqMSource
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
+import parseReqMFile
 
 class ReqMParserParserTest {
-
-    private fun parseReqMFile(fileName: String): ReqMParserParser.ReqmContext? {
-        val s = CharStreams.fromFileName(fileName)
-        val lexer = ReqMParserLexer(s)
-        val tokens = CommonTokenStream(lexer)
-        val parser = ReqMParserParser(tokens)
-        return parser.reqm()
-    }
 
     @Test fun testParseBasics() {
         val tree = parseReqMFile("src/test/resources/basics.reqm")

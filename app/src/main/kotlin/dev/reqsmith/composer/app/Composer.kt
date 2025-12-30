@@ -92,20 +92,12 @@ class Composer(private val appHome: String) {
             return false
         }
 
-        // drop applications from dependencies
-        WholeProject.projectModel.dependencies.applications.clear()
-
         // validate model completeness
         Log.title("Validate model completeness")
-        val addedElements = ReqMSource()
-        val isComplete = validator.validateCompleteness(addedElements)
+        val isComplete = validator.validateCompleteness()
         if (!isComplete) {
             // Failure Point #3 - merged model is not complete
             return false
-        }
-        addedElements.views.forEach { view ->
-            WholeProject.projectModel.source.views.add(view)
-            merger.processViewMerging(view, merger.getDefaultViewTemplate(), merger.getDefaultStyle())
         }
 
         // process input resources
@@ -137,7 +129,16 @@ class Composer(private val appHome: String) {
         // copy features
         WholeProject.projectModel.source.features.addAll(WholeProject.projectModel.dependencies.features)
 
-        // TODO: copy other relevant elements into model
+        // copy referenced views
+        WholeProject.projectModel.source.views.addAll(WholeProject.projectModel.dependencies.views.filter { it.generate })
+
+        // copy references entities
+        WholeProject.projectModel.source.entities.addAll(WholeProject.projectModel.dependencies.entities.filter { it.generate })
+
+        // copy references classes
+        WholeProject.projectModel.source.classes.addAll(WholeProject.projectModel.dependencies.classes.filter { it.generate })
+
+        // TODO: copy other relevant elements into model: actors, styles
     }
 
     fun createApp(projectName: String) {

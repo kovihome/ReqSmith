@@ -18,11 +18,8 @@
 
 package dev.reqsmith.model.reqm
 
-class Classs : ElementBase() {
-
-    var qid: QualifiedId? = null
+class Classs : TopElement() {
     var parent: QualifiedId = QualifiedId.Undefined
-    var sourceRef: QualifiedId? = null
     var definition: Definition = Definition()
     var enumeration: Boolean = false
     var atomic: Boolean = false

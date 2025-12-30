@@ -96,7 +96,8 @@ view DefaultTemplate is template {
                     New_Cat: CatForm
                 }
                 About: About
-                submenu: UsersMenu  // inserts the user management menu
+                // submenu: UsersMenu  // inserts the user management menu
+                UsersMenu
             }
         }
         content

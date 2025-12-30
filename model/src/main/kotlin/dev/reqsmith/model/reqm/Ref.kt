@@ -45,7 +45,25 @@ data class Ref(val type: Type, val qid: QualifiedId, val referred: QualifiedId?,
      * @property typ Type name of a property
      */
     enum class Type {
-        app, mod, act, cls, ent, acn, vie, ftr, sty, src, par, typ
+        app, mod, act, cls, ent, acn, vie, ftr, sty, src, par, typ;
+
+        companion object {
+            inline fun <reified T : ElementBase> byClass(): Type {
+                when (T::class.simpleName) {
+                    Application::class.simpleName -> return app
+                    Modul::class.simpleName -> return mod
+                    Actor::class.simpleName -> return act
+                    Classs::class.simpleName -> return cls
+                    Entity::class.simpleName -> return ent
+                    Action::class.simpleName -> return acn
+                    View::class.simpleName -> return vie
+                    Style::class.simpleName -> return sty
+                    Feature::class.simpleName -> return ftr
+                }
+                return TODO("Unknown ReqM element type")
+            }
+        }
+
     }
 
     override fun toString(): String {

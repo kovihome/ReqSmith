@@ -18,10 +18,8 @@
 
 package dev.reqsmith.model.reqm
 
-class Style : ElementBase() {
-    var qid: QualifiedId? = null
+class Style : TopElement() {
 //    var parent: QualifiedId = QualifiedId.Undefined // TODO: is this needed?
-    var sourceRef: QualifiedId? = null  // TODO: is this needed?
     var definition: Definition = Definition()
     override fun toString(): String {
         return "Style(qid=$qid, sourceRef=$sourceRef)"

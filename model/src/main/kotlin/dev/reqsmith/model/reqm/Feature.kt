@@ -18,11 +18,10 @@
 
 package dev.reqsmith.model.reqm
 
-class Feature : ElementBase() {
-    var qid: QualifiedId? = null
+class Feature : TopElement() {
     var parent: QualifiedId = QualifiedId.Undefined
-    var sourceRef: QualifiedId? = null
     var definition: Definition = Definition()
+
     override fun toString(): String {
         return "Feature(qid=$qid, sourceRef=$sourceRef)"
     }

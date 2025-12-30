@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2025. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.model.reqm
+import org.junit.jupiter.api.Test
 
-class Action : TopElement() {
-    var definition: ActionDefinition = ActionDefinition()
-    var owner: String? = null
+class ModelMergerTest {
 
-    override fun toString(): String {
-        return "Action(qid=$qid)"
+    @Test fun testMergeEntities() {
+        val reqScript = """
+            entity Cat {
+                @Persistent
+                name: String
+                sex: Sex
+                color: CatColor
+                birthDate: Date
+                age: Integer
+                favoriteToy: String
+            }
+        """.trimIndent()
+        val reqModel = parseReqMString(reqScript)
+        // TODO: implement merging test
     }
 }

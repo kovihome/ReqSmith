@@ -85,6 +85,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         StandardTypes.versionNumber.name -> "String"
         StandardTypes.integer.name -> "Int"
         StandardTypes.date.name -> "java.time.LocalDate"
+        StandardTypes.boolean.name -> "Boolean"
         else -> type
     }
 
@@ -281,7 +282,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
     private fun addClassMember(sb: StringBuilder, property: IGMClassMember, indent: Int) {
         // var key: Type
         // var key: Type?  --> property.optionality
-        // val key: MultableList<Type> = ArrayList() --> property.listOf
+        // val key: MutableList<Type> = ArrayList() --> property.listOf
         // val key = value --> property.type == stringLiteral
 
         // start with annotations
@@ -312,6 +313,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
                         "String" -> if (property.value.isNullOrBlank()) "\"\"" else "\"${property.value}\""
                         "Int" -> if (property.value.isNullOrBlank()) "0" else "${property.value}"
                         "LocalDate" -> "LocalDate.now()"
+                        "Boolean" -> if (property.value.isNullOrBlank()) "false" else "${property.value}"
                         else -> if (property.enumerationType) "$type.${property.value}" else if (property.value.isNullOrBlank()) "$type()" else "${property.value}"
                     }
                     sb.append(" = $defaultValue")

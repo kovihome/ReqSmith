@@ -18,11 +18,10 @@
 
 package dev.reqsmith.model.reqm
 
-class Entity : ElementBase() {
-    var qid: QualifiedId? = null
+class Entity : TopElement() {
     var parent: QualifiedId = QualifiedId.Undefined
-    var sourceRef: QualifiedId? = null
     var definition: Definition = Definition()
+
     override fun toString(): String {
         return "Entity(qid=$qid, sourceRef=$sourceRef)"
     }

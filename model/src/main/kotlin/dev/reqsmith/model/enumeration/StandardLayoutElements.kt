@@ -76,5 +76,7 @@ enum class StandardLayoutElements(val attributes: List<String> = listOf()) {
 
     companion object {
         fun contains(s: String) = entries.map { it.name }.contains(s)
+
+        fun entriesByAttribute(a: String): List<StandardLayoutElements> = entries.filter { it.hasAttribute(a) }
     }
 }

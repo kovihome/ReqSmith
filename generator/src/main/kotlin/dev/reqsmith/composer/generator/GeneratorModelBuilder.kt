@@ -163,7 +163,8 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
         }
 
         // create empty entity service class
-        val sc = WholeProject.projectModel.igm.getClass("${c.id.replace("entities", "service")}Service")
+        val serviceName = WholeProject.sourceArchitecture.serviceName(c.id)
+        val sc = WholeProject.projectModel.igm.getClass(serviceName)
 
         // TODO v0.3: add actions as class methods
         ent.definition.properties.find { it.key == "actions" }?.let { actions ->

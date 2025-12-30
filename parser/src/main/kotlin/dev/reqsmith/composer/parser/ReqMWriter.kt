@@ -34,9 +34,7 @@ class ReqMWriter {
     fun writeReqM(source : ReqMSource, outFileName : String, reqmHeader: String) {
         OutputStreamWriter(FileOutputStream(outFileName)).use { outs ->
             writeComment(outs, reqmHeader)
-            if (source.applications.isNotEmpty()) {
-                writeApplication(source.applications[0], outs)
-            }
+            source.applications.forEach { writeApplication(it, outs) }
             source.modules.forEach { writeModul(it, outs) }
             source.actors.forEach { writeActor(it, outs) }
             source.classes.forEach { writeClasss(it, outs) }

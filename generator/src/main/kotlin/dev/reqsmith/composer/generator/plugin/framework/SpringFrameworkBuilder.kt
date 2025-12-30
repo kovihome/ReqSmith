@@ -33,6 +33,7 @@ import dev.reqsmith.model.*
 import dev.reqsmith.model.enumeration.StandardEvents
 import dev.reqsmith.model.enumeration.StandardLayoutElements
 import dev.reqsmith.model.enumeration.StandardTypes
+import dev.reqsmith.model.enumeration.VIEW_LAYOUT_ELEMENT_ATTR_DATA
 import dev.reqsmith.model.igm.*
 import dev.reqsmith.model.reqm.*
 import java.io.File
@@ -52,6 +53,10 @@ private const val CRUD_ACTION_GET = "get"
 private const val CRUD_ACTION_LISTALL = "listAll"
 
 private const val SPRING_CLASS_MODEL = "org.springframework.ui.Model"
+
+private const val SPRING_CLASS_SERVICE = "org.springframework.stereotype.Service"
+
+private const val PERSISTENT_TABLE_PREFIX = "REQM_"
 
 /**
  * Spring Framework Builder
@@ -126,6 +131,39 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         return null
     }
 
+    private fun ensureServiceActionExists(domainName: String?, dataClass: String, actionName: String) {
+        val dcn = if (domainName == null || dataClass.startsWith(domainName)) dataClass else "$domainName.entities.$dataClass"      // TODO: entites to some config or sourceArchitecture
+        val serviceClassName = WholeProject.sourceArchitecture.serviceName(dcn)
+        val serviceClass = WholeProject.projectModel.igm.getClass(serviceClassName).apply {
+            if (!this.annotations.any { it.annotationName == "Service" }) {
+                this.annotations.add(IGMAction.IGMAnnotation(addImport(SPRING_CLASS_SERVICE)))
+            }
+        }
+
+        when (actionName) {
+            CRUD_ACTION_GET -> {
+                getCRUDServiceAction(CRUD_ACTION_GET, serviceClass, dataClass).apply {
+                    if (statements.isEmpty()) {
+                        val varName = dataClass.replaceFirstChar { it.lowercase() }
+                        addStmt(IGMStatement.set, varName, dataClass)
+                        addStmt(IGMStatement.`return`, varName)
+                    }
+                }
+            }
+            CRUD_ACTION_LISTALL -> {
+                getCRUDServiceAction(CRUD_ACTION_LISTALL, serviceClass, dataClass).apply {
+                    if (statements.isEmpty()) {
+                        addStmt(IGMStatement.`return`, "${dataClass.replaceFirstChar { it.lowercase() }}s")
+                    }
+                }
+            }
+            CRUD_ACTION_PERSIST -> {
+                getCRUDServiceAction(CRUD_ACTION_PERSIST, serviceClass, dataClass)
+            }
+        }
+    }
+
+
     override fun buildView(view: View, templateContext: MutableMap<String, String>) {
         super.buildView(view, templateContext)
 
@@ -174,6 +212,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                             addStmt(IGMStatement.set, dataVar, action, ID_FIELD_NAME)
                         }
                         addStmt(IGMStatement.call, "model.addAttribute", "'$dataVar'", dataVar)
+                        ensureServiceActionExists(domainName, dataClass, actionName)
                     }
 
                     val viewTemplateContext = TemplateContextCollector().getItemTemplateContext(view.qid, view.definition.properties, "view").apply {
@@ -195,6 +234,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                     val actionUrl = "/data/${dataClass.id.substringAfterLast('.').lowercase()}/${StandardEvents.submitForm.name}"
                     var returnViewName = view.definition.properties.find { it.key == "returnView" }?.value
                     returnViewName = if (returnViewName != null) "/$returnViewName.${getViewLanguage()}" else "/"
+                    ensureServiceActionExists(domainName, dataClass.id, actionName)
 
                     getAction(StandardEvents.submitForm.name).apply {
                         annotations.add(
@@ -246,7 +286,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     }
 
     private fun findDataAttributeInNode(node: IGMView.IGMNode, dataAttributes: MutableList<Pair<String, String>>) {
-        val dataAttr = node.attributes.find { it.first == "data" }
+        val dataAttr = node.attributes.find { it.first == VIEW_LAYOUT_ELEMENT_ATTR_DATA }
         if (dataAttr != null) {
             dataAttributes.add(Pair(node.name, dataAttr.second))
         }
@@ -395,6 +435,9 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
 
         // add class notifications
         igmClass.annotations.add(IGMAction.IGMAnnotation(igmClass.addImport("jakarta.persistence.Entity")))
+        igmClass.annotations.add(IGMAction.IGMAnnotation(igmClass.addImport("jakarta.persistence.Table")).apply {
+            parameters.add(IGMAction.IGMAnnotationParam("name", "$PERSISTENT_TABLE_PREFIX${entityClassName.uppercase()}", StandardTypes.stringLiteral.name))
+        })
 
         // set all entity members to optional, and add annotation to date fields
         igmClass.members.forEach {
@@ -443,7 +486,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         val serviceClassName = WholeProject.sourceArchitecture.serviceName(igmClass.id)
         val repo = repoClassName.substringAfterLast('.').replaceFirstChar { it.lowercase() }
         WholeProject.projectModel.igm.getClass(serviceClassName).apply {
-            annotations.add(IGMAction.IGMAnnotation(addImport("org.springframework.stereotype.Service")))
+            annotations.add(IGMAction.IGMAnnotation(addImport(SPRING_CLASS_SERVICE)))
             ctorParams.add(IGMAction.IGMActionParam(repo, addImport(repoClassName)))
 
             addImport(repoClassName)
@@ -476,6 +519,27 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         }
 
     }
+
+    private fun getCRUDServiceAction (actionType: String, igmClass: IGMClass, entityClassName: String ): IGMAction {
+        when (actionType) {
+            CRUD_ACTION_GET -> return igmClass.getAction(CRUD_ACTION_GET).apply {
+                if (parameters.isEmpty()) {
+                    parameters.add(IGMAction.IGMActionParam(ID_FIELD_NAME, ID_FIELD_TYPE))
+                    returns(entityClassName)
+                }
+            }
+            CRUD_ACTION_LISTALL -> return igmClass.getAction(CRUD_ACTION_LISTALL).apply {
+                returns(entityClassName, true)
+            }
+            CRUD_ACTION_PERSIST -> return igmClass.getAction(CRUD_ACTION_PERSIST).apply {
+                if (parameters.isEmpty()) {
+                    parameters.add(IGMAction.IGMActionParam("data", igmClass.addImport(entityClassName)))
+                }
+            }
+        }
+        return TODO("Serve all CRUD service actions")
+    }
+
 
     private fun getSpringController(controllerClassName: String, serviceClassNames: List<String> = listOf()): IGMClass {
         return WholeProject.projectModel.igm.getClass(controllerClassName).apply {

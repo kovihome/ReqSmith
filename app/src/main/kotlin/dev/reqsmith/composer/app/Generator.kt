@@ -43,7 +43,6 @@ class Generator(private val lang: String) {
 
     fun generate(): Boolean {
         // create the internal generator model
-        Log.debug("language plugin $lang is using in app.Generator.constructor().")
         Log.title("Build Internal Generator Model")
         Log.info("Generated source path: $srcPath")
         val resourcesFolderName = "${WholeProject.project.buildFolder}/${WholeProject.project.buildSystem.resourceFolder}"
@@ -65,7 +64,6 @@ class Generator(private val lang: String) {
         // generate styles
         var successStyles = true
         if (WholeProject.projectModel.igm.styles.isNotEmpty()) {
-            Log.debug("style language plugin ${generatorModelBuilder.styleGeneratorName} is using in app.Generator.generate().")
             val styleLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, generatorModelBuilder.styleGeneratorName)
             val artResourceFolderName = "$resourcesFolderName/${generatorModelBuilder.codeBuilder!!.getArtFolder()}"
             val styleGenerator = StyleGenerator(styleLangBuilder, artResourceFolderName)
@@ -76,7 +74,6 @@ class Generator(private val lang: String) {
         // generate views
         var successView = true
         if (WholeProject.projectModel.igm.views.isNotEmpty()) {
-            Log.debug("view language plugin ${generatorModelBuilder.viewGeneratorName} is using in app.Generator.generate().")
             val viewLangBuilder = PluginManager.get<LanguageBuilder>(PluginType.Language, generatorModelBuilder.viewGeneratorName)
             val viewResourceFolderName = "$resourcesFolderName/${generatorModelBuilder.codeBuilder!!.getViewFolder()}"
             val artResourceFolderName = "$resourcesFolderName/${generatorModelBuilder.codeBuilder!!.getArtFolder()}"
