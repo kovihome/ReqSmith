@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,7 +132,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     }
 
     private fun ensureServiceActionExists(domainName: String?, dataClass: String, actionName: String) {
-        val dcn = if (domainName == null || dataClass.startsWith(domainName)) dataClass else "$domainName.entities.$dataClass"      // TODO: entites to some config or sourceArchitecture
+        val dcn = if (domainName == null || dataClass.startsWith(domainName)) dataClass else "$domainName.entities.$dataClass"      // TODO: entities to some config or sourceArchitecture
         val serviceClassName = WholeProject.sourceArchitecture.serviceName(dcn)
         val serviceClass = WholeProject.projectModel.igm.getClass(serviceClassName).apply {
             if (!this.annotations.any { it.annotationName == "Service" }) {
@@ -204,7 +204,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
                     dataAttributes.forEach { (nodeType, dataClass) ->
                         val actionName = findViewEvent(view, StandardEvents.init.name) ?: if (nodeType == StandardLayoutElements.datatable.name) CRUD_ACTION_LISTALL else CRUD_ACTION_GET
                         val action = "$domainName.service.${dataClass}Service.$actionName"
-                        var dataVar = dataClass.lowercase()
+                        var dataVar = dataClass.replaceFirstChar { it.lowercase() }
                         if (nodeType == StandardLayoutElements.datatable.name) {
                             dataVar = "${dataVar}s"
                             addStmt(IGMStatement.set, dataVar, action)

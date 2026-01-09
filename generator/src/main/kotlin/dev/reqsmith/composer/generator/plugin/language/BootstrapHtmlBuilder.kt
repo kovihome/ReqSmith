@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,11 @@ private const val FORM_COLUMN_SIZE_CLS = "col-md-6"
 
 private const val ALIGN_ITEMS_CENTER = "align-items-center"
 
+private const val ENTITY_ID_FIELD_NAME = "id"
+
+private const val BOOTSTRAP_VERSION = "5.3.0"
+private const val BOOTSTRAP_ICONS_VERSION = "1.13.1"
+
 class BootstrapHtmlBuilder: HtmlBuilder() {
 
     private var currentViewStyleRef: String? = null
@@ -52,9 +57,9 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
     override fun createView(view: IGMView): String {
         view.imports.addAll(listOf(
-            "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
-            "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css",
-            "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js",
+            "https://cdn.jsdelivr.net/npm/bootstrap@${BOOTSTRAP_VERSION}/dist/css/bootstrap.min.css",
+            "https://cdn.jsdelivr.net/npm/bootstrap-icons@${BOOTSTRAP_ICONS_VERSION}/font/bootstrap-icons.min.css",
+            "https://cdn.jsdelivr.net/npm/bootstrap@${BOOTSTRAP_VERSION}/dist/js/bootstrap.bundle.min.js",
             // for date control
 //            "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css",
 //            "https://code.jquery.com/jquery-3.6.0.min.js",
@@ -67,7 +72,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     }
 
     fun getBootstrapImageResource(resourceName: String): String {
-        return if (resourceName.all { it.isLetter() }) resourceName else ""
+        return if (resourceName.all { (it.isLetterOrDigit() && it.isLowerCase()) || it == '-' }) resourceName else ""
     }
 
     override fun createImage(node: IGMView.IGMNode): String {
@@ -201,6 +206,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
     override fun createMenu(node: IGMView.IGMNode): String {
         val attr = node.attributes.toMap()
         return createHTML(true).div {
+            // TODO: menu menu creation here from navigation
             text("[menu spaceholder]")
         }
     }
@@ -265,7 +271,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                                         }
                                         ul {
                                             classes = setOf("dropdown-menu")
-                                            menuItem.children.forEach { subitem ->
+                                            menuItem.children.filter { !StandardLayoutElements.menu.attributes.contains(it.name) }.forEach { subitem ->
                                                 li {
                                                     when (subitem.name) {
                                                         "spacer" -> {
@@ -418,7 +424,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 addAll(collectViewLayoutElementStyles(node))
             }
             role = "button"
-            href = checkLink(attr[VIEW_LAYOUT_ELEMENT_ATTR_TO])
+            href = checkFormLink(attr[VIEW_LAYOUT_ELEMENT_ATTR_TO])
             if (attr.contains("icon")) {
                 unsafe { raw(addIconResource(attr["icon"] ?: "")) }
             }
@@ -515,6 +521,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
 
         // collect entity members
         val entity = getEntity(entityName)
+        val hasIdField = entity.members.any { it.memberId == ENTITY_ID_FIELD_NAME }
 
         return createHTML(true).div {
             classes = mutableSetOf("container-sm", ALIGN_ITEMS_CENTER, FORM_COLUMN_SIZE_CLS).apply {
@@ -529,15 +536,15 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     attributes[first] = second
                 }
 
-                entity.members.filter { it.memberId != "id" }.forEach { member ->
+                entity.members.filter { it.memberId != ENTITY_ID_FIELD_NAME }.forEach { member ->
 
                     val enumList = getEnumeration(member.type)
                     // control types: text, select, check, radio, range, date
-                    val controlType = when (member.type) {
-                        "String" -> "text"
-                        "Int", "Long" -> "text"
-                        "Boolean" -> "checkbox"
-                        "Date" -> "date"
+                    val controlType = when (member.type.lowercase()) {
+                        "string" -> "text"
+                        "int", "Long" -> "text"
+                        "boolean" -> "checkbox"
+                        "date" -> "date"
                         else -> {
                             if (enumList.isNotEmpty()) {
                                 "select"
@@ -605,9 +612,12 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                     }
 
                 }
-                input { id = "id"; type = InputType.hidden; name = "id"
-                    with(templateBuilder.htmlAttribute("input", "value", "id")) {
-                        attributes[first] = second
+                if (hasIdField) {
+                    input {
+                        id = ENTITY_ID_FIELD_NAME; type = InputType.hidden; name = ENTITY_ID_FIELD_NAME
+                        with(templateBuilder.htmlAttribute("input", "value", ENTITY_ID_FIELD_NAME)) {
+                            attributes[first] = second
+                        }
                     }
                 }
                 button { classes = setOf("btn", "btn-primary"); type = ButtonType.submit; text("Submit") }
@@ -639,7 +649,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                 classes = setOf("table", "table-hover")
                 thead {
                     tr {
-                        entity.members.filter { it.memberId != "id" }.forEach { member ->
+                        entity.members.filter { it.memberId != ENTITY_ID_FIELD_NAME }.forEach { member ->
                             th {
                                 scope = ThScope.col
                                 text(NameFormatter.toDisplayText(member.memberId))
@@ -660,7 +670,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
                         with(templateBuilder.htmlAttribute("tr", "if_not_empty", entityVar)) {
                             attributes[first] = second
                         }
-                        entity.members.filter { it.memberId != "id" }.forEach { member ->
+                        entity.members.filter { it.memberId != ENTITY_ID_FIELD_NAME }.forEach { member ->
                             td {
                                 with(templateBuilder.htmlAttribute("td", "loop_member", "$entityVar.${member.memberId}")) {
                                     attributes[first] = second

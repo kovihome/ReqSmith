@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2025-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,12 +45,13 @@ enum class StandardLayoutElements(val attributes: List<String> = listOf()) {
 //  check/combo/list box,
 //  collapse,
 //  container,
+//  diagram,
 //  grid,
 //  heading,
 //  hero,
     image(listOf("src", "alt", "size")),
 //  input(listOf("name", "type", "placeholder", "value", "required", "readonly", "disabled", "autocomplete", "autofocus", "list", "maxlength", "minlength", "pattern", "size", "step", "min", "max")),
-//  link(listOf("to", "text", "title", "target")),
+//  link(listOf("to", "text", "title", "target", "icon")),
 //  list, grid list,
 //  loader,
 //  modal,

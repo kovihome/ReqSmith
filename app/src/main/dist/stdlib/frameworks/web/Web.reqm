@@ -57,7 +57,7 @@ view linkButton is widget {
 
 view linkGroup is widget {
     title: 'Link Group'
-    to: '#'
+    to
 }
 
 view navigation is widget {

@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2023-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2023-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -424,6 +424,7 @@ class ModelMerger(private val finder: RepositoryFinder) {
             var templateView = WholeProject.projectModel.get<View>(templateViewName)
             if (templateView == null) {
                 templateView = getFromRepository<View>(QualifiedId(templateViewName))
+                if (templateView != null) WholeProject.projectModel.dependencies.views.add(templateView)
             }
             if (templateView != null) {
                 collectViewDependencies(templateView)
