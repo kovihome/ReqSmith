@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.20")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.21")
     implementation("com.github.ben-manes:gradle-versions-plugin:0.52.0")
 }

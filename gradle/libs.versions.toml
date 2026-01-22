@@ -1,6 +1,6 @@
 [versions]
 kotlin-cli = "0.3.6"
-kotlin = "2.0.21"
+kotlin = "2.2.21"
 snakeyaml = "2.5"
 antlr4 = "4.13.2"
 antlr-st4 = "4.3.4"

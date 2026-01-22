@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ configurations.all {
 dependencies {
 
     // Use JUnit Jupiter for testing.
-    testImplementation("org.junit.jupiter:junit-jupiter:5.12.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.0.2")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
