@@ -1,12 +1,13 @@
 [versions]
 kotlin-cli = "0.3.6"
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 snakeyaml = "2.5"
 antlr4 = "4.13.2"
 antlr-st4 = "4.3.4"
 slf4j = "2.0.17"
 commons-io = "2.21.0"
 commons-text = "1.15.0"
+commons-lang = "3.18.0"
 jupiter = "6.0.2"
 versions = "0.52.0"
 kotlin-html = "0.12.0"
@@ -20,13 +21,17 @@ kotlin-html-jvm = { module = "org.jetbrains.kotlinx:kotlinx-html-jvm", version.r
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
 commons-text = { module = "org.apache.commons:commons-text", version.ref = "commons-text" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commons-io"}
+commons-lang = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang" }
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml"}
 antlr = { module = "org.antlr:antlr4", version.ref = "antlr4"}
 antlr-st4 = { module = "org.antlr:ST4", version.ref = "antlr-st4"}
 slf4j = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" } # thymeleaf logging provider
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "jupiter" }
 cssparser = { module = "com.helger:ph-css", version.ref = "ph-css" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+update-versions-plugin = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "versions" }
 
 [bundles]
 kotlin-html = ["kotlin-html", "kotlin-html-jvm"]

@@ -18,6 +18,8 @@
 
 import java.time.LocalDateTime
 
+val libs = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
+
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
     kotlin("jvm")
@@ -65,16 +67,16 @@ repositories {
 
 configurations.all {
     resolutionStrategy {
-        force("org.apache.commons:commons-lang3:3.18.0")
+        force(libs.findLibrary("commons-lang").get())
     }
 }
 
 dependencies {
 
     // Use JUnit Jupiter for testing.
-    testImplementation("org.junit.jupiter:junit-jupiter:6.0.2")
+    testImplementation(libs.findLibrary("junit-jupiter").get())
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(libs.findLibrary("junit-platform-launcher").get())
 }
 
 tasks.named<Test>("test") {

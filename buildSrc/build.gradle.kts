@@ -31,6 +31,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.21")
-    implementation("com.github.ben-manes:gradle-versions-plugin:0.52.0")
+    implementation(libs.kotlin.gradle.plugin)
+    implementation(libs.update.versions.plugin)
 }
