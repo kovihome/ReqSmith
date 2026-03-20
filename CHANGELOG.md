@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [[Unreleased]](https://github.com/kovihome/ReqSmith)
 ### Added
+- StdRepo: Users module (Users submenu, Login form, Registration form)
 
 ### Modified
+- Rewrite ReqM composing strategy
 
 ### Fixed
 
