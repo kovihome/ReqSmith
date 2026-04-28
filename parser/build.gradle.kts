@@ -30,9 +30,10 @@ dependencies {
 }
 
 tasks.generateGrammarSource {
+    packageName = "dev.reqsmith.composer.parser"
     maxHeapSize = "64m"
     outputDirectory = File (outputDirectory.absolutePath + "/dev/reqsmith/composer/parser")
-    arguments = arguments + listOf("-long-messages", "-package", "dev.reqsmith.composer.parser", "-visitor")
+    arguments = arguments + listOf("-long-messages", "-visitor")
 }
 
 tasks.compileKotlin {
