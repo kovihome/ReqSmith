@@ -11,7 +11,7 @@ commons-lang = "3.20.0"
 jupiter = "6.0.3"
 versions = "0.52.0"
 kotlin-html = "0.12.0"
-ph-css = "8.2.0"
+ph-css = "8.2.1"
 caffeine = "3.2.4"
 
 [libraries]
