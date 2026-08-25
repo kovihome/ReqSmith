@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@ import dev.reqsmith.composer.parser.enumeration.Optionality
 import dev.reqsmith.model.enumeration.StandardTypes
 import dev.reqsmith.model.igm.*
 
+private const val KOTLIN_VERSION = "2.4.10"
+
 class KotlinBuilder : LanguageBuilder, Plugin {
 
     class LocalVariables {
@@ -33,6 +35,8 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         private val imports : MutableList<String> = ArrayList()
 
         fun exist(variable: String) = variables.containsKey(variable)
+
+        fun add(variable: String, type: String = "") = variables.put(variable, type)
 
         fun setParameters(parameters: List<IGMAction.IGMActionParam>) {
             parameters.forEach {
@@ -72,7 +76,7 @@ class KotlinBuilder : LanguageBuilder, Plugin {
 
     override fun collectBuildScriptElement(buildScriptUpdates: Map<String, MutableList<String>>) {
         buildScriptUpdates["plugins"]?.addAll(listOf(
-            "kotlin(\"jvm\"):2.0.20"
+            "kotlin(\"jvm\"):$KOTLIN_VERSION"
         ))
     }
 
@@ -125,7 +129,10 @@ class KotlinBuilder : LanguageBuilder, Plugin {
                 }
                 IGMStatement.set -> {
                     val varName = st.parameters[0].value
-                    if (!localVars.exist(varName)) sb.append("val ")
+                    if (!localVars.exist(varName)) {
+                        sb.append("val ")
+                        localVars.add(varName)
+                    }
                     sb.append("$varName = ")
                     writeCall(sb, st.parameters.subList(1, st.parameters.size), localVars, pre2)
                 }
@@ -134,6 +141,9 @@ class KotlinBuilder : LanguageBuilder, Plugin {
                 }
                 IGMStatement.`return` -> {
                     sb.append("return ${st.parameters[0].format()}")
+                }
+                IGMStatement.native -> {
+                    sb.append(st.parameters[0].value)
                 }
             }
             sb.append("\n")
@@ -152,10 +162,16 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         val classs = calledFunction.substringBeforeLast('.', "")
         val func = calledFunction.substringAfterLast('.')
         if (classs.isNotEmpty()) {
-            // check class, if exists in local vars
-            val instantiateStmt = localVars.instantiateClass(classs)
-            // create local var for this class
-            sb.append(instantiateStmt.replace("\n", "\n$pre2"))
+            if (classs.startsWith("s/")) {
+                // static function call
+                val staticClass = classs.removePrefix("s/")
+                sb.append("$staticClass.")
+            } else {
+                // check class, if exists in local vars
+                val instantiateStmt = localVars.instantiateClass(classs)
+                // create local var for this class
+                sb.append(instantiateStmt.replace("\n", "\n$pre2"))
+            }
         }
         sb.append("$func(${params.joinToString(",") { p -> p.format() }})")
     }
@@ -202,7 +218,8 @@ class KotlinBuilder : LanguageBuilder, Plugin {
         addAnnotations(sb, cls.annotations, indent)
         // class signature
         val clsname = cls.id.substringAfterLast('.')
-        sb.append("${pre}${if (cls.interfaceType) "interface" else "class"} $clsname")
+        val modifier = if (cls.dataClass && !cls.interfaceType) "data " else ""
+        sb.append("${pre}$modifier${if (cls.interfaceType) "interface" else "class"} $clsname")
         if (cls.ctorParams.isNotEmpty()) {
             sb.append("(${parameterList(cls.ctorParams, "val")})")
         }
