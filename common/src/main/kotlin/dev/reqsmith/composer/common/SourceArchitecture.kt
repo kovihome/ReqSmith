@@ -18,23 +18,27 @@
 
 package dev.reqsmith.composer.common
 
-private const val ENTITIES_PATHNAME = "entities"
+const val ENTITIES_PATHNAME = "entities"
 
-private const val CONTROLLER_PATHNAME = "controller"
+const val CONTROLLER_PATHNAME = "controller"
 
-private const val CONTROLLER_NAME_POSTFIX = "Controller"
+const val CONTROLLER_NAME_POSTFIX = "Controller"
 
-private const val SERVICE_PATHNAME = "service"
+const val SERVICE_PATHNAME = "service"
 
-private const val SERVICE_NAME_POSTFIX = "Service"
+const val SERVICE_NAME_POSTFIX = "Service"
 
-private const val REPOSITORY_PATHNAME = "repository"
+const val REPOSITORY_PATHNAME = "repository"
 
-private const val REPOSITORY_NAME_POSTFIX = "Repository"
+const val REPOSITORY_NAME_POSTFIX = "Repository"
 
 class SourceArchitecture {
 
-    fun controllerName(baseName: String) = "${baseName.replace(ENTITIES_PATHNAME, CONTROLLER_PATHNAME)}$CONTROLLER_NAME_POSTFIX"
+    fun controllerName(baseName: String) = if (baseName.contains(ENTITIES_PATHNAME)) {
+        "${baseName.replace(ENTITIES_PATHNAME, CONTROLLER_PATHNAME)}$CONTROLLER_NAME_POSTFIX"
+    } else {
+        "${WholeProject.projectModel.rootPackage}.$CONTROLLER_PATHNAME.${baseName}$CONTROLLER_NAME_POSTFIX"
+    }
 
     fun serviceName(baseName: String) = "${baseName.replace(ENTITIES_PATHNAME, SERVICE_PATHNAME)}$SERVICE_NAME_POSTFIX"
 

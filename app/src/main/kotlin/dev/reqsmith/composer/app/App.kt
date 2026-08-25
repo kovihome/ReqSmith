@@ -100,6 +100,7 @@ class App(private val args: Array<String>) {
         Log.title("Forge ReqM model")
 
         WholeProject.appHome = path.replace("\\", "/")
+        WholeProject.projectModel.rootPackage = ConfigManager.defaults["basePackage"] ?: "dev.reqsmith.sample"
 
         // select build system
         val buildSystem = try {

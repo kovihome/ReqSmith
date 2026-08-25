@@ -24,7 +24,7 @@ import kotlin.collections.mutableListOf
 
 open class IGMAction(val actionId: String) {
 
-    class IGMReturnType(val type: String, val listOf: Boolean) {
+    class IGMReturnType(val type: String, val listOf: Boolean = false) {
         fun print(): String = "${if (listOf) "listOf" else ""}$type"
     }
 

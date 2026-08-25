@@ -390,6 +390,7 @@ class BootstrapHtmlBuilder: HtmlBuilder() {
         return when {
             link.isNullOrBlank() -> "#"
             link.startsWith("http") -> link
+            link.startsWith("/") -> link
             existingView(link) -> "$link.html"
             else -> "#"
         }
