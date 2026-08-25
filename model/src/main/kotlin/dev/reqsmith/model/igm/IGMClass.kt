@@ -20,6 +20,7 @@ package dev.reqsmith.model.igm
 
 class IGMClass(val id: String) {
     var interfaceType = false
+    var dataClass = false
     var parent: String = ""
     val parentClasses: MutableList<String> = mutableListOf()
     var mainClass: Boolean = false
