@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,10 @@ open class DefaultFrameworkBuilder : FrameworkBuilder, Plugin {
     }
 
     override fun applyFeatureOnEntity(ent: Entity, feature: Feature) {
+        TODO("Not yet implemented")
+    }
+
+    override fun processModule(module: Modul) {
         TODO("Not yet implemented")
     }
 

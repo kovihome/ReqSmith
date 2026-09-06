@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package dev.reqsmith.composer.generator.plugin.framework
 import dev.reqsmith.model.reqm.Application
 import dev.reqsmith.model.reqm.Entity
 import dev.reqsmith.model.reqm.Feature
+import dev.reqsmith.model.reqm.Modul
 import dev.reqsmith.model.reqm.View
 
 interface FrameworkBuilder {
@@ -81,4 +82,10 @@ interface FrameworkBuilder {
      * @param feature The feature that has to be applied on the entity
      */
     fun applyFeatureOnEntity(ent: Entity, feature: Feature)
+
+    /**
+     * Process a module
+     * @param module The module to be processed
+     */
+    fun processModule(module: Modul)
 }

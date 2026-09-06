@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,16 +36,16 @@ import dev.reqsmith.model.igm.IGMStyle
 import dev.reqsmith.model.reqm.*
 
 class GeneratorModelBuilder(private val resourcesFolderName: String) {
-    private val appRootPackage = WholeProject.projectModel.source.applications[0].qid?.domain ?: "com.sample.app"
+    private val appRootPackage = WholeProject.projectModel.rootPackage
     var styleGeneratorName = ""
     var viewGeneratorName = ""
     var codeBuilder: FrameworkBuilder? = null
+    val moduleBuilders = mutableSetOf<FrameworkBuilder>()
+    val featureBuilders = mutableSetOf<FrameworkBuilder>()
 
     private fun determineBuilders() {
-        // determine code generator
-        val app = WholeProject.projectModel.source.applications[0]
-        val generatorName = app.definition.properties.find { it.key == "generator" }?.value ?: "framework.base"
-        codeBuilder = determineFrameworkBuilder(generatorName)
+        // determine code generators
+        collectGenerators()
 
         // determine view builder
         val viewLang = codeBuilder!!.getViewLanguage()
@@ -53,13 +53,50 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
 
         // determine style language
         val styleLang = codeBuilder!!.getStyleLanguage()
-//        styleGeneratorName = "$styleLang.${ConfigManager.defaults[styleLang]}"
         styleGeneratorName = styleLang
+    }
+
+    private fun collectGenerators() {
+        Log.debug("Collecting generators")
+
+        // application generator
+        val app = WholeProject.projectModel.source.applications[0]
+        val appGeneratorName = app.definition.properties.find { it.key == "generator" }?.value ?: "framework.base"
+        codeBuilder = determineFrameworkBuilder(appGeneratorName)
+        Log.debug("  Application generator: $appGeneratorName (${codeBuilder?.javaClass?.simpleName})")
+
+        // module generators
+        WholeProject.projectModel.dependencies.modules.forEach { module ->
+            var modGeneratorName = module.definition.properties.find { it.key == "generator" }?.value
+            if (!modGeneratorName.isNullOrBlank()) {
+                modGeneratorName = NameFormatter.deliterateText(modGeneratorName)
+                val builder = determineFrameworkBuilder(modGeneratorName, optional=true)
+                if (builder != null) {
+                    moduleBuilders.add(builder)
+                    Log.debug("  Module generator for '${module.qid}': $modGeneratorName (${builder.javaClass.simpleName})")
+                } else {
+                    Log.warning("Module generator for '${module.qid}': $modGeneratorName plugin not found; module features will missing.")
+                }
+            }
+        }
+        // feature generators
+        WholeProject.projectModel.source.features.forEach { feature ->
+            val featureGeneratorName = feature.definition.properties.find { it.key == "generator" }?.value
+            if (!featureGeneratorName.isNullOrBlank()) {
+                val builder = determineFrameworkBuilder(featureGeneratorName, optional = true)
+                if (builder != null) {
+                    featureBuilders.add(builder)
+                    Log.debug("  Feature generator for '${feature.qid}': $featureGeneratorName (${builder.javaClass.simpleName})")
+                } else {
+                    Log.warning("Feature generator for '${feature.qid}': $featureGeneratorName plugin not found; module features will missing.")
+                }
+            }
+        }
     }
 
     fun build() {
         // set root package for internal generator model
-        WholeProject.projectModel.igm.rootPackage = appRootPackage
+//        WholeProject.projectModel.igm.rootPackage = appRootPackage
 
         // determine code and view generator
         determineBuilders()
@@ -83,6 +120,13 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
         val templateContext = TemplateContextCollector().getItemTemplateContext(WholeProject.projectModel.source.applications[0].qid, WholeProject.projectModel.source.applications[0].definition.properties, "app")
         WholeProject.projectModel.source.actions.forEach { createAction(it, templateContext) }
 
+        // process modules
+        moduleBuilders.forEach { builder ->
+            WholeProject.projectModel.dependencies.modules.forEach { module ->
+                processModule(module, builder)
+            }
+        }
+
         // create view descriptors
         WholeProject.projectModel.source.views.filter { view -> listOf(VIEW_SUBTYPE_TEMPLATE, VIEW_SUBTYPE_WIDGET).none { it == view.parent.id } }.forEach { createView(it, templateContext, codeBuilder!!) }
         
@@ -93,6 +137,10 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
         val reqmResourceFolder = "${WholeProject.project.projectFolder}/${WholeProject.project.buildSystem.resourceFolder}"
         codeBuilder?.processResources(reqmResourceFolder, resourcesFolderName)
 
+    }
+
+    private fun processModule(module: Modul, builder: FrameworkBuilder) {
+        builder.processModule(module)
     }
 
     private fun createStyle(style: Style) {
@@ -252,11 +300,15 @@ class GeneratorModelBuilder(private val resourcesFolderName: String) {
         return true
     }
 
-    private fun determineFrameworkBuilder(generatorName: String): FrameworkBuilder {
+    private fun determineFrameworkBuilder(generatorName: String, optional: Boolean = false): FrameworkBuilder? {
         var impl = ConfigManager.defaults[generatorName]
         impl = if (!impl.isNullOrBlank()) "$generatorName.$impl" else generatorName
-        Log.debug("framework plugin $impl is using in generator.GeneratorModelBuilder.determineFrameworkBuilder().")
-        return PluginManager.get<FrameworkBuilder>(PluginType.Framework, impl)
+        // TODO: nem kellene itt a getBest() függvényt használni?
+        return if (optional) {
+            PluginManager.getOrNull(PluginType.Framework, impl)
+        } else {
+            PluginManager.get<FrameworkBuilder>(PluginType.Framework, impl)
+        }
     }
 
     private fun addActionToClass(actionName: String, cls: IGMClass, templateContext: Map<String, String>) {

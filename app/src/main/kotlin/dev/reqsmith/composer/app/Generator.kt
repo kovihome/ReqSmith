@@ -95,6 +95,9 @@ class Generator(private val lang: String) {
         )
         langBuilder.collectBuildScriptElement(buildScriptUpdates)
         generatorModelBuilder.codeBuilder?.collectBuildScriptElement(buildScriptUpdates)
+        generatorModelBuilder.moduleBuilders.forEach { builder ->
+            builder.collectBuildScriptElement(buildScriptUpdates)
+        }
 
         generateBuildScripts(buildScriptUpdates)
 
