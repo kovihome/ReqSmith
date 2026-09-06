@@ -20,7 +20,7 @@ package dev.reqsmith.model.igm
 
 class InternalGeneratorModel {
     // model containers
-    var rootPackage: String = ""
+//    var rootPackage: String = ""
     val classes: MutableMap<String, IGMClass> = mutableMapOf()
     val enumerations: MutableMap<String, IGMEnumeration> = mutableMapOf()
     val views: MutableMap<String, IGMView> = mutableMapOf()
@@ -51,6 +51,7 @@ class InternalGeneratorModel {
     }
 
     fun print(): String {
+        val rootPackage = classes.values.find { it.mainClass }?.id?.substringBeforeLast(".") ?: "dev.reqsmith.sample"
         val sb = StringBuilder("package $rootPackage\n")
         classes.forEach { sb.append(it.value.print()).append("\n") }
         enumerations.forEach { sb.append(it.value.print()).append("\n") }

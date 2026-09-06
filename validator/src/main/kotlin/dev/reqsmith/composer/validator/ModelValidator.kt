@@ -297,7 +297,9 @@ class ModelValidator {
             }
             if (app.qid?.domain.isNullOrBlank()) {
                 Log.warning("application ${app.qid} has no domain name; set the default domain name ${ConfigManager.defaults["domainName"]} to it. (${app.qid?.coords()})")
-                app.qid?.domain = ConfigManager.defaults["domainName"]
+                app.qid?.domain = WholeProject.projectModel.rootPackage // ConfigManager.defaults["domainName"]
+            } else {
+                WholeProject.projectModel.rootPackage = app.qid?.domain!!
             }
             if (app.sourceRef == null || app.sourceRef == QualifiedId.Undefined) {
                 Log.warning("application ${app.qid} has no application type; set the default application type ${ConfigManager.defaults["applicationType"]}. (${app.qid?.coords()})")

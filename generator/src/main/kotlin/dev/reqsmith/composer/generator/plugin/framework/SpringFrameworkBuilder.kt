@@ -58,6 +58,11 @@ private const val SPRING_CLASS_SERVICE = "org.springframework.stereotype.Service
 
 private const val PERSISTENT_TABLE_PREFIX = "REQM_"
 
+private const val SPRING_BOOT_VERSION = "4.0.2"
+
+// TODO: kotlin version must come from KotlinBuilder plugin
+private const val KOTLIN_VERSION = "2.4.10"
+
 /**
  * Spring Framework Builder
  *
@@ -68,15 +73,15 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
     private val applicationProperties = Properties()
 
     private val springPlugins = mutableListOf(
-        "kotlin(\"plugin.spring\"):2.0.20", // TODO ez függ a nyelvtől
-        "id:org.springframework.boot:3.4.0",
+        "kotlin(\"plugin.spring\"):$KOTLIN_VERSION", // TODO ez függ a nyelvtől vagy a build rendszertől
+        "id:org.springframework.boot:${SPRING_BOOT_VERSION}",
         "id:io.spring.dependency-management:1.1.6")
     private val springDependencies = mutableListOf(
         "org.springframework.boot:spring-boot-starter-web",
         "com.fasterxml.jackson.module:jackson-module-kotlin",
         "org.jetbrains.kotlin:kotlin-reflect")
     private val springDataPlugins = listOf(
-        "kotlin(\"plugin.jpa\"):2.0.20")
+        "kotlin(\"plugin.jpa\"):$KOTLIN_VERSION") // TODO:
     private val springDataDependencies = listOf(
         "org.springframework.boot:spring-boot-starter-data-jpa") // Spring Data JPA
     private val thymeleafSpringDependencies = listOf(
@@ -179,7 +184,7 @@ open class SpringFrameworkBuilder : WebFrameworkBuilder(), Plugin {
         if (isResource || isTemplate || dataAttributes.isNotEmpty()) {
             hasTemplateViews = true
             // create a controller class for this view
-            val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else WholeProject.projectModel.igm.rootPackage
+            val domainName = if (!view.qid?.domain.isNullOrBlank()) view.qid?.domain else WholeProject.projectModel.rootPackage
             val className = view.qid!!.id!!
             val serviceClasses = dataAttributes.map { "$domainName.service.${it.second}Service" }
             val formClass = dataAttributes.any { it.first == "form" }
