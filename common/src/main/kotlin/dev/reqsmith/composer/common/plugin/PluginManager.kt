@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,12 +64,25 @@ object PluginManager {
      * @throws Exception If no plugin is found for the given type and name, or if the plugin cannot be cast to the expected type.
      */
     inline fun <reified T> get(type: PluginType, name: String): T {
-        val plugin = plugins[type]?.get(name)
-        if (plugin != null && plugin is T) {
+        val plugin = getOrNull<T>(type, name)
+        if (plugin != null) {
             return plugin
         } else {
             throw Exception("No appropriate plugin has found for type ${type.name} and $name")
         }
+    }
+
+    /**
+     * Retrieves a plugin of the specified type and name, or null, if not found.
+     *
+     * @param T The expected type of the plugin to be retrieved.
+     * @param type The type of the plugin, as defined in the PluginType enum.
+     * @param name The name of the plugin to retrieve.
+     * @return The plugin of the specified type and name, or null.
+     */
+    inline fun <reified T> getOrNull(type: PluginType, name: String): T? {
+        val plugin = plugins[type]?.get(name)
+        return if (plugin != null && plugin is T) plugin else null
     }
 
     /**
