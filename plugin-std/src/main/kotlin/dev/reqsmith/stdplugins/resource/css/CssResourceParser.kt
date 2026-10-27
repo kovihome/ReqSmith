@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2025-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.reqsmith.cssplugin.resource
+package dev.reqsmith.stdplugins.resource.css
 
 import com.helger.css.decl.CSSSelectorSimpleMember
 import com.helger.css.decl.CSSStyleRule

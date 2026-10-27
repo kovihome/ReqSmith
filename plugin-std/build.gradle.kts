@@ -1,6 +1,6 @@
 /*
  * ReqSmith - Build application from requirements
- * Copyright (c) 2024-2025. Kovi <kovihome86@gmail.com>
+ * Copyright (c) 2024-2026. Kovi <kovihome86@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ plugins {
 dependencies {
     implementation(project(":model"))
     implementation(project(":common"))
+    implementation(project(":generator"))   // RBL: temporarily added, remove later if not needed
 
     implementation(libs.cssparser)
 }
