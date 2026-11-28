@@ -18,5 +18,5 @@
 
 dev.reqsmith.stdplugins.language.css.CssBuilder
 dev.reqsmith.stdplugins.resource.css.CssResourceParser
-#dev.reqsmith.stdplugins.framework.users.UsersModuleBuilder
-#dev.reqsmith.stdplugins.framework.users.SpringSecurityBuilder
+dev.reqsmith.stdplugins.framework.users.UsersModuleBuilder
+dev.reqsmith.stdplugins.framework.users.SpringSecurityBuilder
